@@ -209,8 +209,12 @@ class TestStormScenarioTabConsistency:
         # Get Worst Storms storm IDs (idx 2)
         map_page.locator(".prop-storm-tab[data-idx='2']").click()
         map_page.wait_for_timeout(2_000)
+        # window._propWorstStormsChart, not window.currentChart: the latter is
+        # an IIFE-local slot in property/psa_charts.js that was never assigned
+        # to window, so this read returned undefined on every run and the
+        # assertion below reported an empty chart that had in fact rendered.
         worst_ids = map_page.evaluate("""() => {
-            var chart = window.currentChart;
+            var chart = window._propWorstStormsChart;
             if (!chart || !chart.data) return [];
             return chart.data.labels || [];
         }""")

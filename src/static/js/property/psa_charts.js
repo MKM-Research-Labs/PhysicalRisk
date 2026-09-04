@@ -109,6 +109,7 @@
             function renderWorstStorms() {
                 var content = document.getElementById('prop-storm-content');
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
+                window._propWorstStormsChart = null;
                 if (!propStormData || !propStormData.flood_events || propStormData.flood_events.length === 0) {
                     content.innerHTML = '<p style="color:var(--muted-2);text-align:center;margin-top:var(--space-inset);">No flood events</p>';
                     return;
@@ -167,6 +168,10 @@
                         }
                     }
                 });
+                // Exported under its own name: currentChart is an
+                // IIFE-local slot every storm tab reuses, so it is
+                // never on window and cannot be read from outside.
+                window._propWorstStormsChart = currentChart;
 
                 document.getElementById('prop-worst-stats').innerHTML = [
                     '<span><b>Top ' + top.length + ' storms shown</b></span>',

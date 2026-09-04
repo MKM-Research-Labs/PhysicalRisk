@@ -20,6 +20,7 @@
 
             function renderPRSPricing() {
                 if (currentChart) { currentChart.destroy(); currentChart = null; }
+                window._prsCashflowChart = null;
 
                 var result = computePRSCashflows();
                 if (!result) return;  // PRS controls not built yet; re-renders once they are
@@ -81,6 +82,11 @@
                 var premPVs = periods.map(function(p) { return p.premPV / 1000; });
                 var protPVs = periods.map(function(p) { return p.protPV / 1000; });
 
+                // currentChart is the slot every gauge tab reuses, so it is not
+                // a stable handle on this particular chart. Export the
+                // cashflow chart under its own name as the hazard chart
+                // below already does (window._prsHazardCurveChart), so it can
+                // be reached without guessing which tab rendered last.
                 currentChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
@@ -124,6 +130,7 @@
                         }
                     }
                 });
+                window._prsCashflowChart = currentChart;
 
                 // Render hazard curve term structure chart (left panel)
                 var hcCtx = document.getElementById('prs-hazard-curve-chart');

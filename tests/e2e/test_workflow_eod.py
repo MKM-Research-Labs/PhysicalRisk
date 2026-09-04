@@ -48,12 +48,16 @@ class TestEODSubmit:
 
     def test_eod_submit_creates_snapshot(self, map_page):
         """Clicking EOD submit should create a snapshot (success message or history update)."""
+        # The id is stable and known — trading/eod/setup.js builds
+        # #td-eod-submit-btn. The union of text and wildcard selectors this
+        # used to carry could match several controls or none, so a failure
+        # said "no visible submit button" without saying which one it wanted.
         view = map_page.locator("#td-eod-view")
-        submit_btn = view.locator(
-            "button:has-text('Submit'), button:has-text('Snap'), "
-            "button:has-text('EOD'), button:has-text('Run'), "
-            "button[id*='eod-submit'], button[id*='eod-snap']"
-        ).first
+        assert view.is_visible(), (
+            "#td-eod-view is hidden — the EOD tab did not open, so the submit "
+            "button below was never going to be reachable"
+        )
+        submit_btn = view.locator("#td-eod-submit-btn")
         assert submit_btn.count() > 0 and submit_btn.is_visible(), (
             "No visible EOD submit button — the control this test exercises "
             "is absent, which is a failure, not a reason to skip"

@@ -28,6 +28,8 @@ Tests the connected user journeys that a client demo would follow:
 - Storm scenarios tabs remain consistent when flipping between them
 """
 
+import json
+
 import pytest
 
 from tests.e2e.helpers import (
@@ -121,45 +123,77 @@ class TestGaugePRSToBlotterRoundTrip:
         map_page.evaluate(CLOSE_ALL_JS)
 
     def test_04_blotter_button_muted_for_gauge_without_trades(self, map_page):
-        """For gauge without trades, blotter button should be muted.
+        """The blotter button is muted for a gauge with no open trades.
 
-        Finds an untraded gauge rather than testing ``first_gauge_id``, which
-        is derived from ``first_traded_gauge_id`` and therefore *always* has
-        trades — this test skipped on every run for that reason and never once
-        checked the muted state.
+        The muted state is decided in gauge/gaugehc/panel_data.js: the panel
+        fetches /trading/blotter/active-gauges on open and disables the button
+        when the gauge is absent from the returned list.
+
+        This used to hunt the portfolio for a real untraded gauge, which made
+        the test hostage to how the book was seeded — once every gauge carried
+        a trade it failed with "cannot verify the muted state", reporting a
+        data condition as a code failure. It also only ever checked one
+        direction.
+
+        Intercepting the route drives both directions deterministically. This
+        is the only route interception in the suite; it is used here because
+        the thing under test is the panel's *reaction* to that response, not
+        the response itself, which has its own coverage in
+        tests/routes/trading.
         """
-        untraded = map_page.evaluate("""async () => {
+        gauge_id = self._any_real_gauge(map_page)
+        assert gauge_id, "no real (non-synthetic) gauge available"
+
+        def _serve(gauge_ids):
+            def handler(route):
+                route.fulfill(
+                    status=200,
+                    content_type="application/json",
+                    body=json.dumps({"status": "success",
+                                     "gauge_ids": gauge_ids}),
+                )
+            return handler
+
+        # --- absent from the active list -> muted -------------------------
+        map_page.route("**/trading/blotter/active-gauges", _serve([]))
+        try:
+            open_gauge_panel(map_page, gauge_id)
+            map_page.wait_for_timeout(5_000)
+            disabled = map_page.evaluate(
+                "document.getElementById('hazard-blotter-link').disabled")
+            assert disabled, (
+                "blotter button should be muted for a gauge with no trades")
+            close_gauge_panel(map_page)
+        finally:
+            map_page.unroute("**/trading/blotter/active-gauges")
+
+        # --- present in the active list -> enabled ------------------------
+        # The other direction matters: a button muted unconditionally would
+        # pass the assertion above and lock every trader out of the blotter.
+        map_page.route("**/trading/blotter/active-gauges", _serve([gauge_id]))
+        try:
+            open_gauge_panel(map_page, gauge_id)
+            map_page.wait_for_timeout(5_000)
+            disabled = map_page.evaluate(
+                "document.getElementById('hazard-blotter-link').disabled")
+            assert not disabled, (
+                "blotter button should be active for a gauge with trades")
+            close_gauge_panel(map_page)
+        finally:
+            map_page.unroute("**/trading/blotter/active-gauges")
+
+    @staticmethod
+    def _any_real_gauge(map_page):
+        """First non-synthetic gauge id, whatever the book looks like."""
+        return map_page.evaluate("""async () => {
             var cfg = window.__BACKEND_CONFIG || {};
-            var base = cfg.url || '';
-            var active = await (await fetch(
-                base + '/api/v1/trading/blotter/active-gauges')).json();
-            var traded = new Set(active.gauge_ids || []);
-            var all = await (await fetch(base + '/api/v1/gauges')).json();
+            var all = await (await fetch((cfg.url || '') + '/api/v1/gauges')).json();
             var ids = (all.gauges || all || []).map(function(g) {
                 return g.gauge_id || (g.Header && g.Header.GaugeID) || g.id;
             }).filter(Boolean);
-            // Synthetic gauges are never traded by design, so they would make
-            // this pass without exercising a real untraded instrument.
             var real = ids.filter(function(i) { return i.indexOf('SYNTH-') !== 0; });
-            for (var i = 0; i < real.length; i++) {
-                if (!traded.has(real[i])) return real[i];
-            }
-            return null;
+            return real[0] || null;
         }""")
-
-        assert untraded, (
-            "Every real gauge has trades — cannot verify the muted state. "
-            "Seed the book with fewer instruments, or widen the gauge set"
-        )
-
-        open_gauge_panel(map_page, untraded)
-        map_page.wait_for_timeout(5_000)
-
-        disabled = map_page.evaluate(
-            "document.getElementById('hazard-blotter-link').disabled"
-        )
-        assert disabled, "Blotter button should be disabled for gauge without trades"
-        close_gauge_panel(map_page)
 
 
 class TestBlotterNewPRSButton:

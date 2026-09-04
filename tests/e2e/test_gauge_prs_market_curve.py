@@ -142,8 +142,13 @@ class TestGaugePRSMarketCurve:
     def test_pv_premium_chart_has_data_on_open(self, map_page):
         """PV Premium bars (blue) must have non-zero values on initial open."""
         result = map_page.evaluate("""() => {
-            var chart = window.currentChart || null;
-            // currentChart is the cashflow bar chart in the hazard-chart canvas
+            // window._prsCashflowChart, not window.currentChart: currentChart
+            // is an IIFE-local slot that every gauge tab reuses and was never
+            // assigned to window, so this read was undefined on every run and
+            // the test could not pass. The renderer now exports the cashflow
+            // chart under its own name, as it already did for the hazard
+            // chart beside it.
+            var chart = window._prsCashflowChart || null;
             if (!chart || !chart.data || !chart.data.datasets) return { exists: false, reason: 'no_chart' };
             var premDs = chart.data.datasets.find(function(ds) {
                 return ds.label && ds.label.indexOf('Premium') !== -1;

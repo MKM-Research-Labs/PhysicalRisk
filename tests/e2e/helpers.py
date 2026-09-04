@@ -126,9 +126,20 @@ def open_trading_desk(page, tab=None):
 
     if tab:
         tab_btn = page.locator(f"#td-tab-{tab}")
-        if tab_btn.count() > 0:
-            tab_btn.click(force=True)
+        # A missing tab button used to fall through to the wait, leaving the
+        # requested view hidden — every later assertion then failed as though
+        # the control it wanted were absent, which sends you looking in the
+        # wrong file. Fail here, naming the tab.
+        assert tab_btn.count() > 0, (
+            f"trading desk has no #td-tab-{tab} button — the panel did not "
+            f"build its tab bar, so nothing in the {tab} view can be reached"
+        )
+        tab_btn.click(force=True)
         page.wait_for_timeout(3_000)
+        assert page.locator(f"#td-{tab}-view").is_visible(), (
+            f"#td-{tab}-view is still hidden after clicking #td-tab-{tab} — "
+            f"the tab switch did not take effect"
+        )
 
 
 def close_trading_desk(page):
