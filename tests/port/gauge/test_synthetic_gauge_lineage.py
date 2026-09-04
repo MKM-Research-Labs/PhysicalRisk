@@ -34,6 +34,8 @@ from pathlib import Path
 
 import pytest
 
+from tests._dataset import full_dataset_only
+
 from config import config
 
 
@@ -244,12 +246,17 @@ class TestStormEventFlow:
         assert properties_with_events > 0, \
             "No properties have any flood events — storm data not flowing through"
 
+    @full_dataset_only
     def test_some_properties_actually_flood(self):
         """At least some properties should have flooded=True events.
 
         Guards against the flood_idw signal-dilution failure mode (IDW across the
         nearest gauges washing out the synthetic flood signal so nothing floods).
         A regeneration that leaves every property unflooded should fail here.
+
+        Full-dataset only: with a handful of properties, none flooding is an
+        ordinary outcome rather than evidence of dilution, so the check cannot
+        discriminate at that size.
         """
         pts_dir = _input_dir() / "propertyts"
         flooded_count = 0

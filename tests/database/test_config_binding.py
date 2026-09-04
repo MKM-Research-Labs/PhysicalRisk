@@ -46,9 +46,12 @@ def test_from_config_active_catchment_honours_resolved_dir():
     active = config.catchment_id
     # active catchment routes through config.get_input_dir() (override-aware)
     assert repo._catchment_dir(active) == config.get_input_dir()
-    # any other catchment composes data/input/<catchment>
+    # any other catchment composes <input root>/<catchment>
     other = "halong" if active != "halong" else "mekong"
-    assert repo._catchment_dir(other) == config.get_project_root() / "data" / "input" / other
+    # get_input_root(), not project_root/"data"/"input": the composed literal
+    # ignored MKM_DATA_ROOT, so this asserted the real tree while the repo
+    # under test resolved to whichever root was actually configured.
+    assert repo._catchment_dir(other) == config.get_input_root() / other
 
 
 def test_use_file_backend_installs_active_repo():

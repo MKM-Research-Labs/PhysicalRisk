@@ -29,6 +29,8 @@ import pathlib
 
 import pytest
 
+from tests._dataset import full_dataset_only
+
 from config import config as _config
 
 from tests.data.conftest import (
@@ -114,17 +116,55 @@ class TestGaugehcData:
                 violations.append((gid, a, w, s))
         assert not violations, f"Flood trigger ordering violated: {violations[:3]}"
 
-    def test_hazard_rates_positive(self, gaugehc):
+    _RATE_FIELDS = ("annual_hazard_rate_alert",
+                    "annual_hazard_rate_warning",
+                    "annual_hazard_rate_severe")
+
+    def test_hazard_rates_present_and_non_negative(self, gaugehc):
+        """Every trigger carries a rate, and no rate is negative.
+
+        Structural, so it holds at any portfolio size. A *zero* severe rate is
+        the expected answer on a small sample — 100 simulated sequences need
+        not contain a severe event — so strict positivity is asserted
+        separately against the full portfolio.
+        """
         violations = []
         for gid, g in gaugehc["hazard_curves"].items():
-            for field in ("annual_hazard_rate_alert", "annual_hazard_rate_warning", "annual_hazard_rate_severe"):
+            for field in self._RATE_FIELDS:
+                v = g.get(field)
+                if v is None or v < 0:
+                    violations.append((gid, field, v))
+        assert not violations, f"Missing or negative hazard rates: {violations[:3]}"
+
+    @full_dataset_only
+    def test_hazard_rates_positive(self, gaugehc):
+        """At full scale every trigger must actually have been observed."""
+        violations = []
+        for gid, g in gaugehc["hazard_curves"].items():
+            for field in self._RATE_FIELDS:
                 v = g.get(field, -1)
                 if v <= 0:
                     violations.append((gid, field, v))
         assert not violations, f"Non-positive hazard rates found: {violations[:3]}"
 
     def test_hazard_rate_ordering(self, gaugehc):
-        """alert > warning > severe (higher trigger = lower probability)."""
+        """alert >= warning >= severe (higher trigger = lower probability).
+
+        Non-strict: tiers that the sample never reached are all zero, which is
+        correct rather than a violation. The strict form runs at full scale.
+        """
+        violations = []
+        for gid, g in gaugehc["hazard_curves"].items():
+            ra = g.get("annual_hazard_rate_alert", 0)
+            rw = g.get("annual_hazard_rate_warning", 0)
+            rs = g.get("annual_hazard_rate_severe", 0)
+            if not (ra >= rw >= rs):
+                violations.append((gid, ra, rw, rs))
+        assert not violations, f"Hazard rate ordering violated: {violations[:3]}"
+
+    @full_dataset_only
+    def test_hazard_rate_ordering_strict(self, gaugehc):
+        """alert > warning > severe, with every tier genuinely distinct."""
         violations = []
         for gid, g in gaugehc["hazard_curves"].items():
             ra = g.get("annual_hazard_rate_alert", 0)

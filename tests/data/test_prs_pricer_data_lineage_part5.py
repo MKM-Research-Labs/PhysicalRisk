@@ -36,6 +36,8 @@ from pathlib import Path
 
 import pytest
 
+from tests._dataset import full_dataset_only
+
 from config import config
 from config.models import EA_FLOOD_ZONE_RATES
 
@@ -211,8 +213,13 @@ class TestZoneSpreadConsistency:
                 f"> {present[i+1]}={avgs[present[i+1]]:.2f}m"
             )
 
+    @full_dataset_only
     def test_all_four_zones_represented(self):
-        """All four EA flood zones should appear in the portfolio."""
+        """All four EA flood zones should appear in the portfolio.
+
+        A property count below four cannot span four zones, so this is a
+        statement about portfolio breadth, not about correctness.
+        """
         stats = self._zone_stats()
         for zone in ["Zone 3b", "Zone 3a", "Zone 2", "Zone 1"]:
             assert zone in stats and len(stats[zone]["flood_counts"]) > 0, (

@@ -33,6 +33,8 @@ import json
 import pathlib
 import pytest
 
+from tests._dataset import full_dataset_only
+
 import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parents[2]))
 from config import PortfolioConfig, STRESS_STORMS_MIN_COUNT
@@ -119,7 +121,15 @@ class TestStressStormsFilePart1:
             pytest.skip("stress_storms data not generated")
         assert len(storms) > 0
 
+    @full_dataset_only
     def test_minimum_storm_count(self, storms):
+        """An absolute floor, so it only means anything at full scale.
+
+        Stress storms are the alert-breaching subset of the simulated
+        sequences, so the count scales with ``-ns``: a 100-sequence run
+        yields ~25. That the set is non-empty is asserted unconditionally
+        by ``test_stress_storms_exist``.
+        """
         assert len(storms) >= MIN_STORM_COUNT, (
             f"Expected >= {MIN_STORM_COUNT} stress storms, got {len(storms)}. "
             "Run `python phys.py port --stressm` to regenerate."
