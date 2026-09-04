@@ -128,9 +128,15 @@ class TestPropertyHCFields:
         assert "flood_count" in pc
         assert isinstance(pc["flood_count"], int)
 
-    def test_pricing_method_is_event_count(self):
+    def test_pricing_method_is_event_frequency(self):
+        """MKM-EF-001 supersedes the event-count method.
+
+        The assertion read ``event_count`` and passed only because the
+        committed portfolio predated the event-frequency wiring; a fresh
+        generation writes ``event_frequency``.
+        """
         _, pc = _first_property()
-        assert pc.get("pricing_method") == "event_count"
+        assert pc.get("pricing_method") == "event_frequency"
 
     def test_has_gev_is_false(self):
         _, pc = _first_property()
