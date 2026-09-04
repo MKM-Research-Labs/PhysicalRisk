@@ -143,8 +143,23 @@
                 return null;
             }
 
-            // Property tooltip format: "Property: PROP-xxxxxxxx | Floods: ..."
-            var propMatch = str.match(/Property:\s*(PROP-[a-f0-9]+)/);
+            // Property tooltip is built by config.format.property_title_py:
+            //   "{Address} ({PropertyID}) | Floods: N (label)[ | Mortgaged]"
+            // falling back to "{PropertyID} | Floods: ..." when the record
+            // carries no address. Prefer the address, as the commercial
+            // branch above prefers the name.
+            //
+            // The superseded "Property: PROP-xxx" shape is still accepted:
+            // this parser reads whatever a tooltip happens to contain, and a
+            // stale cached page should degrade to the id rather than to no
+            // title at all.
+            var propAddrMatch = str.match(/^(.+?)\s*\((PROP-[a-f0-9]+)\)/);
+            if (propAddrMatch) {
+                var addr = propAddrMatch[1].trim();
+                if (addr && !addr.startsWith('PROP-')) return addr;
+                return propAddrMatch[2];
+            }
+            var propMatch = str.match(/(?:Property:\s*)?(PROP-[a-f0-9]+)/);
             if (propMatch) return propMatch[1];
 
             // Gauge tooltip: text before "GAUGE-xxx" (Thames-prefixed area

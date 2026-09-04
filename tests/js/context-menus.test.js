@@ -296,3 +296,64 @@ describe('ContextMenuHandler', () => {
         expect(menu.children[0].className).not.toContain('ctx-menu-item-disabled');
     });
 });
+
+// ---------------------------------------------------------------------------
+// Property tooltip format — the shape the app actually emits
+// ---------------------------------------------------------------------------
+//
+// The cases above feed "Property: PROP-xxx | Floods: ...", a format the app
+// stopped producing when the tooltip moved to config.format.property_title_py
+// ("{Address} ({PropertyID})"). They passed regardless, because they supply
+// the shape they assert on — so the parser returned null against the real
+// tooltip, no display name reached createMenu, and the property context menu
+// rendered without its .ctx-menu-header. The e2e suite caught it; these did
+// not.
+
+describe('extractShortName on the current property tooltip', () => {
+    let handler;
+
+    beforeEach(() => {
+        document.body.innerHTML = '';
+        const { createContextMenuHandler } = require('../../src/static/js/context-menus');
+        handler = createContextMenuHandler();
+    });
+
+    test('prefers the address from "{Address} ({PropertyID})"', () => {
+        expect(handler.extractShortName(
+            '128 Horseferry Road (PROP-e5c80163) | Floods: 3 (Frequent)'))
+            .toBe('128 Horseferry Road');
+    });
+
+    test('keeps the address when the mortgaged flag is present', () => {
+        expect(handler.extractShortName(
+            '1 Test Street (PROP-ab12cd34) | Floods: 0 (Low) | Mortgaged'))
+            .toBe('1 Test Street');
+    });
+
+    test('falls back to the id when the record has no address', () => {
+        // property_title_py returns the bare id in that case.
+        expect(handler.extractShortName('PROP-deadbeef | Floods: 5 (High)'))
+            .toBe('PROP-deadbeef');
+    });
+
+    test('still reads the superseded "Property: PROP-xxx" shape', () => {
+        // A cached page should degrade to the id, not to no title at all.
+        expect(handler.extractShortName('Property: PROP-ab12cd34 | Floods: 0 (Low)'))
+            .toBe('PROP-ab12cd34');
+    });
+
+    test('a parsed name is what gives the menu its header', () => {
+        // The end-to-end shape of the bug: tooltip -> name -> header. With the
+        // old parser the name came back null and createMenu skipped the
+        // header entirely, which is exactly what the e2e assertion saw.
+        const tooltip = '128 Horseferry Road (PROP-e5c80163) | Floods: 3 (Frequent)';
+        handler.showMenu(
+            { preventDefault() {}, stopPropagation() {}, pageX: 10, pageY: 10 },
+            'PROP-e5c80163', 'property', handler.extractShortName(tooltip));
+
+        const header = document.querySelector(
+            '#property-context-menu .ctx-menu-header');
+        expect(header).not.toBeNull();
+        expect(header.textContent).toBe('128 Horseferry Road');
+    });
+});
