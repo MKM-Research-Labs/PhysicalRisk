@@ -30,6 +30,7 @@ import json
 import pytest
 
 from app.commands.test.artefacts import run_verdict
+from config import js_coverage
 from app.commands.test.js import (
     _preflight,
     _read_counts,
@@ -136,7 +137,10 @@ class TestRunJsTests:
         monkeypatch.setattr("app.commands.test.js.sp.run", _fake_run)
         s = _run_js_tests(repo, str(audit))
         assert s == {"total": 87, "passed": 87, "failed": 0,
-                     "status": "OK", "statements_pct": 2.71}
+                     "status": "OK", "statements_pct": 2.71,
+                     "coverage_baseline_pct": js_coverage.BASELINE_PCT,
+                     "coverage_ok": True,
+                     "coverage_message": js_coverage.classify(2.71)[1]}
         # cobertura is renamed to match the Python side's coverage.xml shape
         assert (audit / "js" / "js_coverage.xml").exists()
         assert not (audit / "js" / "cobertura-coverage.xml").exists()
@@ -193,3 +197,68 @@ class TestRunVerdict:
         run_verdict(True, False, ["X"], {"failed": 2})
         out = capsys.readouterr().out
         assert "TEST FAILURES" in out and "JS TEST" in out and "STALE" in out
+
+
+class TestCoverageRatchet:
+    """The ratchet fails in both directions, through the phase's summary."""
+
+    @staticmethod
+    def _run_with_pct(repo, audit, monkeypatch, pct):
+        def _fake_run(cmd, **kw):
+            out = audit / "js"
+            out.mkdir(parents=True, exist_ok=True)
+            (out / "js_results.json").write_text(json.dumps(
+                {"numTotalTests": 87, "numPassedTests": 87,
+                 "numFailedTests": 0}))
+            (out / "coverage-summary.json").write_text(json.dumps(
+                {"total": {"statements": {"pct": pct}}}))
+            return None
+        monkeypatch.setattr("app.commands.test.js.sp.run", _fake_run)
+        return _run_js_tests(repo, str(audit))
+
+    def test_regression_below_the_baseline_fails(self, repo, monkeypatch):
+        s = self._run_with_pct(repo, repo / "audit", monkeypatch,
+                               js_coverage.BASELINE_PCT - 1)
+        assert s["status"] == "COVERAGE"
+        assert s["coverage_ok"] is False
+        assert "below" in s["coverage_message"]
+
+    def test_gain_above_the_baseline_also_fails(self, repo, monkeypatch):
+        """A rise that is not locked in leaves the baseline describing nothing."""
+        s = self._run_with_pct(repo, repo / "audit", monkeypatch,
+                               js_coverage.BASELINE_PCT
+                               + js_coverage.TOLERANCE_PCT + 1)
+        assert s["status"] == "COVERAGE"
+        assert s["coverage_ok"] is False
+        assert "raise" in s["coverage_message"]
+
+    def test_within_tolerance_passes(self, repo, monkeypatch):
+        s = self._run_with_pct(repo, repo / "audit", monkeypatch,
+                               js_coverage.BASELINE_PCT
+                               + js_coverage.TOLERANCE_PCT / 2)
+        assert s["status"] == "OK"
+        assert s["coverage_ok"] is True
+
+    def test_a_failing_suite_outranks_the_ratchet(self, repo, monkeypatch):
+        """Broken tests are the headline; the coverage figure is unreliable."""
+        audit = repo / "audit"
+
+        def _fake_run(cmd, **kw):
+            out = audit / "js"
+            out.mkdir(parents=True, exist_ok=True)
+            (out / "js_results.json").write_text(json.dumps(
+                {"numTotalTests": 87, "numPassedTests": 80,
+                 "numFailedTests": 7}))
+            (out / "coverage-summary.json").write_text(json.dumps(
+                {"total": {"statements": {"pct": 0.0}}}))
+            return None
+
+        monkeypatch.setattr("app.commands.test.js.sp.run", _fake_run)
+        s = _run_js_tests(repo, str(audit))
+        assert s["status"] == "FAILURES"
+
+    def test_skipped_phase_carries_no_coverage_verdict(self, tmp_path):
+        """No toolchain must not become a coverage failure."""
+        s = _run_js_tests(tmp_path, str(tmp_path / "audit"))
+        assert s["status"] == "SKIPPED"
+        assert s.get("coverage_ok", True) is True

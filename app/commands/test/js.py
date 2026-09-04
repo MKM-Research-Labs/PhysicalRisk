@@ -46,6 +46,8 @@ import os
 import shutil
 import subprocess as sp
 
+from config import js_coverage
+
 JEST_CONFIG = os.path.join('tests', 'js', 'jest.config.js')
 COVERAGE_FROM = 'src/static/js/**/*.js'
 _TIMEOUT_S = 600
@@ -121,6 +123,11 @@ def _run_js_tests(project_root, audit_dir):
         '--coverageReporters=cobertura',
         '--coverageReporters=text-summary',
         f'--coverageDirectory={out_dir}',
+        # The floor, so `npx jest` fails on a regression on its own. The upper
+        # edge is checked below — jest has no concept of "too good", and a
+        # baseline that never has to move stops describing anything.
+        '--coverageThreshold=' + json.dumps(
+            {'global': {'statements': js_coverage.BASELINE_PCT}}),
         '--json', f'--outputFile={results_path}',
         '--ci',
     ]
@@ -138,14 +145,28 @@ def _run_js_tests(project_root, audit_dir):
 
     total, passed, failed = _read_counts(results_path)
     pct = _read_pct(out_dir)
+    ratchet_ok, ratchet_msg = js_coverage.classify(pct)
+
+    if failed:
+        status = 'FAILURES'
+    elif not ratchet_ok:
+        status = 'COVERAGE'
+    else:
+        status = 'OK'
 
     summary = {
         'total': total, 'passed': passed, 'failed': failed,
-        'status': 'OK' if failed == 0 else 'FAILURES',
+        'status': status,
         'statements_pct': pct,
+        'coverage_baseline_pct': js_coverage.BASELINE_PCT,
+        'coverage_ok': ratchet_ok,
+        'coverage_message': ratchet_msg,
     }
     pct_txt = f'{pct:.2f}%' if isinstance(pct, (int, float)) else 'unknown'
     print(f'  JS tests: {total} tests, {passed} passed, {failed} failed '
           f'[{summary["status"]}]')
-    print(f'  JS statement coverage: {pct_txt}')
+    print(f'  JS statement coverage: {pct_txt} '
+          f'(baseline {js_coverage.BASELINE_PCT}%)')
+    if not ratchet_ok:
+        print(f'  RATCHET: {ratchet_msg}')
     return summary

@@ -135,17 +135,27 @@ def run_verdict(do_unit, pytest_ok, stale, js_results):
     earlier run off as this one. And a failing JS suite, on the same footing as
     the Python one — a front end that fails its own tests is not a passing build.
 
+    A fourth: the JS coverage ratchet. It fails in both directions — below the
+    baseline is a regression, above it is a gain that has not been locked in —
+    so it is reported separately from a failing JS test, which is a different
+    problem with a different fix.
+
     MISSING does not fail: an artefact whose phase never ran is absent by
     design, and a skipped JS phase (no node_modules) reports SKIPPED with zero
-    failures, so it cannot fail a run on a machine without a JS toolchain.
+    failures and no coverage figure, so it cannot fail a run on a machine
+    without a JS toolchain.
     """
     js_failed = int(js_results.get('failed', 0)) if js_results else 0
+    js_coverage_ok = js_results.get('coverage_ok', True) if js_results else True
 
     problems = []
     if do_unit and not pytest_ok:
         problems.append('TEST FAILURES — see junit.xml')
     if js_failed:
         problems.append(f'{js_failed} JS TEST FAILURES — see audit/js/')
+    if not js_coverage_ok:
+        problems.append(
+            f'JS COVERAGE RATCHET — {js_results.get("coverage_message", "")}')
     if stale:
         problems.append(
             f'{len(stale)} STALE ARTEFACT(S) — evidence package incomplete')
@@ -155,4 +165,5 @@ def run_verdict(do_unit, pytest_ok, stale, js_results):
     elif do_unit:
         print('Status: ALL PASS')
 
-    return 0 if (pytest_ok and not stale and not js_failed) else 1
+    return 0 if (pytest_ok and not stale and not js_failed
+                 and js_coverage_ok) else 1
