@@ -180,3 +180,38 @@ class TestCurvesErrorHandlers:
                 '/api/v1/trading/hazard-term-structure/reset',
                 json={})
             assert resp.status_code == 500
+
+
+class TestUpdateHazardTermStructureErrors:
+    """The POST arm's own error handling.
+
+    The GET arm's 500 path was covered; the POST arm's was not, so the write
+    endpoint could have started leaking a stack trace to the browser without
+    any test noticing.
+    """
+
+    def test_engine_failure_returns_500_without_leaking_detail(
+            self, trading_client, trading_env):
+        with patch('routes.trading.curves_hazard._get_engines',
+                   side_effect=RuntimeError('engine exploded')):
+            resp = trading_client.post(
+                '/api/v1/trading/hazard-term-structure',
+                json={'gauge_id': 'GAUGE-001', 'trigger': 'warning',
+                      'tenor': 3, 'rate': 0.02})
+        assert resp.status_code == 500
+        body = json.loads(resp.data)
+        assert body['status'] == 'error'
+        # The operator gets the detail via the log; the client gets a generic
+        # message. Echoing the exception here would put internals on the wire.
+        assert body['message'] == 'Internal server error'
+        assert 'engine exploded' not in resp.get_data(as_text=True)
+
+    def test_a_malformed_tenor_is_a_500_not_a_crash(
+            self, trading_client, trading_env):
+        """int() on a non-numeric tenor raises inside the try, so it lands in
+        the same handler rather than escaping as an unhandled 500 page."""
+        resp = trading_client.post(
+            '/api/v1/trading/hazard-term-structure',
+            json={'gauge_id': 'GAUGE-001', 'tenor': 'three', 'rate': 0.02})
+        assert resp.status_code == 500
+        assert json.loads(resp.data)['status'] == 'error'
