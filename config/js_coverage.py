@@ -45,6 +45,10 @@ to jest as ``--coverageThreshold`` and enforces the upper edge itself.
 #: 2026-09-04: 5.44% (554/10167, 9 of 125 files, 144 tests) — tranche 3 covered
 #: the blotter filters and sort order: what a trader reads as "the book".
 #:
+#: 2026-09-04: 6.00% (611/10177, 10 of 125 files, 168 tests) — tranche 4 covered
+#: startup.js's auth wrappers (__mkmAdminFetch / __mkmLogin), the single path
+#: every port-mutating request takes.
+#:
 #: Ceiling note: 96 of the 116 still-uncovered files (7573 statements, 74% of
 #: the tree) are concat fragments declaring bare functions, unreachable by
 #: require() and so uninstrumentable by istanbul. Counting only modules that
@@ -52,7 +56,7 @@ to jest as ``--coverageThreshold`` and enforces the upper edge itself.
 #: can only be measured browser-side by the V8 collector, which reads the
 #: bundle the Python loader assembles — that is not a nice-to-have, it is the
 #: only instrument that can see most of this code.
-BASELINE_PCT = 5.4
+BASELINE_PCT = 6.0
 
 #: How far above the baseline coverage may sit before the run asks for the
 #: baseline to be raised. Wide enough to absorb a statement or two moving
