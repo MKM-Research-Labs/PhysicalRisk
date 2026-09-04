@@ -42,11 +42,17 @@ to jest as ``--coverageThreshold`` and enforces the upper edge itself.
 #: 2026-09-04: 4.91% (500/10167, 7 of 125 files, 131 tests) — tranche 2 covered
 #: the blotter trade actions: view, close-out settlement, contract retrieval.
 #:
-#: Ceiling note: 83 of the 119 still-uncovered files (5937 statements, 58% of
+#: 2026-09-04: 5.44% (554/10167, 9 of 125 files, 144 tests) — tranche 3 covered
+#: the blotter filters and sort order: what a trader reads as "the book".
+#:
+#: Ceiling note: 96 of the 116 still-uncovered files (7573 statements, 74% of
 #: the tree) are concat fragments declaring bare functions, unreachable by
-#: require(). Jest can therefore reach roughly 40% at best; the rest needs the
-#: browser-side V8 measurement, which reads the bundle the loader assembles.
-BASELINE_PCT = 4.9
+#: require() and so uninstrumentable by istanbul. Counting only modules that
+#: assign a *function* to window, jest tops out near 23%. The remaining 74%
+#: can only be measured browser-side by the V8 collector, which reads the
+#: bundle the Python loader assembles — that is not a nice-to-have, it is the
+#: only instrument that can see most of this code.
+BASELINE_PCT = 5.4
 
 #: How far above the baseline coverage may sit before the run asks for the
 #: baseline to be raised. Wide enough to absorb a statement or two moving
