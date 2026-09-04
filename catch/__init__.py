@@ -36,13 +36,29 @@ there, so the move can be done one catchment at a time.
 Same argument as the governance data, which was moved out of ``data/`` for
 being repo-level content sitting in a shared, per-deployment area.
 
-To migrate a catchment, with the data volume attached:
+The whole tree is vendored, not a subset. Python resolves ``catch`` to a
+single package, so the repo copy replaces the one under ``data/catch``
+rather than merging with it — a partial copy shadows the complete tree and
+breaks every catchment it does not contain.
 
-    cp -R "$(python -c 'from config import config; print(config.data_root)')/catch/thames" catch/
-    # or, for a single-file catchment:
-    cp "$(...)/catch/thames.py" catch/
-
-then confirm it is being read from here rather than there:
-
-    python -c "import catch.thames as m; print(m.__file__)"
+The package API lives in ``_registry`` and is re-exported below; defining it
+here would put functions in an ``__init__``.
 """
+
+from ._registry import (  # noqa: F401
+    CATCHMENTS,
+    get_all_catchment_info,
+    get_catchment,
+    get_catchment_info,
+    is_catchment_implemented,
+    list_catchments,
+)
+
+__all__ = [
+    "CATCHMENTS",
+    "get_all_catchment_info",
+    "get_catchment",
+    "get_catchment_info",
+    "is_catchment_implemented",
+    "list_catchments",
+]
