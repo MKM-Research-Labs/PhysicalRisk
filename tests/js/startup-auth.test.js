@@ -234,3 +234,127 @@ describe('__mkmAdminFetch', () => {
         expect(opts.body).toBe('{"n":1}');
     });
 });
+
+
+// ---------------------------------------------------------------------------
+// The preloader's lookup builders
+// ---------------------------------------------------------------------------
+//
+// _runStartupPreload populates window._gaugeNames and window._propertyNames
+// from /api/v1/gauges, /api/v1/properties and /api/v1/commercial. Those two
+// tables are what propertyDisplayName and gaugeDisplayName read — and hence
+// what puts a title on a marker's context menu. A silent failure here shows
+// every asset by its raw id, which is what the .ctx-menu-header bug looked
+// like from the outside.
+//
+// _createStartupPopup and _startupMarkItem come from sibling fragments the
+// Python loader concatenates, so they are staged as globals — the same thing
+// the loader does at serve time.
+
+const RESPONSES = {
+    '/api/v1/gauges': {gauges: [
+        {gaugeId: 'GAUGE-1', name: 'Kingston'},
+        {gaugeId: 'GAUGE-2', name: 'Teddington'},
+        {gaugeId: 'GAUGE-3'},                       // no name — skipped
+        {name: 'Orphan'},                           // no id — skipped
+    ]},
+    '/api/v1/properties': {properties: [
+        {PropertyHeader: {Header: {PropertyID: 'PROP-1'},
+                          Location: {BuildingNumber: '12', StreetName: 'Elm St'}}},
+        {PropertyHeader: {Header: {PropertyID: 'PROP-2'}, Location: {}}},
+        {PropertyHeader: {Location: {StreetName: 'No Id Road'}}},
+    ]},
+    '/api/v1/commercial': {commercial_assets: [
+        {CommercialAsset: {Header: {PropertyID: 'CPROP-1'},
+                           Location: {BuildingName: 'Shard Tower',
+                                      BuildingNumber: '1', StreetName: 'High St'}}},
+        {CommercialAsset: {Header: {PropertyID: 'CPROP-2'},
+                           Location: {BuildingNumber: '9', StreetName: 'Low St'}}},
+    ]},
+};
+
+function loadWithPreloader() {
+    global.fetch = jest.fn((url) => {
+        const match = Object.keys(RESPONSES).find((k) => url.endsWith(k));
+        return Promise.resolve({
+            ok: true, status: 200,
+            json: () => Promise.resolve(match ? RESPONSES[match] : {}),
+        });
+    });
+    const style = {};
+    global._createStartupPopup = jest.fn(() => ({style, remove: jest.fn()}));
+    global._startupMarkItem = jest.fn();
+    Object.defineProperty(document, 'readyState', {
+        configurable: true, get: () => 'complete',
+    });
+    window._propertyNames = {};
+    window._gaugeNames = {};
+    jest.isolateModules(() => { require(FRAGMENT); });
+}
+
+const settle = async () => { for (let i = 0; i < 60; i++) await Promise.resolve(); };
+
+describe('preloader lookup tables', () => {
+    beforeEach(loadWithPreloader);
+
+    test('gauge names are indexed by id', async () => {
+        await settle();
+        expect(window._gaugeNames).toEqual({
+            'GAUGE-1': 'Kingston', 'GAUGE-2': 'Teddington'});
+    });
+
+    test('a gauge missing its id or name is left out, not stored blank', async () => {
+        // A blank entry would render as " (GAUGE-3)" with a leading space.
+        await settle();
+        expect(window._gaugeNames).not.toHaveProperty('GAUGE-3');
+        expect(Object.values(window._gaugeNames)).not.toContain('');
+    });
+
+    test('property addresses are built from number and street', async () => {
+        await settle();
+        expect(window._propertyNames['PROP-1']).toBe('12 Elm St');
+    });
+
+    test('a property with no address is recorded as empty, not skipped', async () => {
+        // The id must still be present so display falls back to the bare id
+        // rather than looking the property up and finding nothing.
+        await settle();
+        expect(window._propertyNames).toHaveProperty('PROP-2', '');
+    });
+
+    test('commercial assets prefer the building name', async () => {
+        // Commercial tooltips show the building name, so the lookup must too
+        // or the menu title and the tooltip disagree.
+        await settle();
+        expect(window._propertyNames['CPROP-1']).toBe('Shard Tower');
+    });
+
+    test('a commercial asset with no building name falls back to the street', async () => {
+        await settle();
+        expect(window._propertyNames['CPROP-2']).toBe('9 Low St');
+    });
+
+    test('commercial ids share the property lookup', async () => {
+        // One table serves both PROP-* and CPROP-*; splitting them would
+        // leave commercial markers untitled.
+        await settle();
+        expect(window._propertyNames).toHaveProperty('PROP-1');
+        expect(window._propertyNames).toHaveProperty('CPROP-1');
+    });
+
+    test('the preload completion flag is set', async () => {
+        await settle();
+        expect(window._tdPreloadDone).toBe(true);
+    });
+
+    test('a failing endpoint does not stop the others', async () => {
+        // One dead endpoint must not leave every lookup empty.
+        global.fetch = jest.fn((url) => url.endsWith('/api/v1/gauges')
+            ? Promise.reject(new Error('down'))
+            : Promise.resolve({ok: true, json: () => Promise.resolve(
+                RESPONSES['/api/v1/properties'])}));
+        jest.isolateModules(() => { require(FRAGMENT); });
+        await settle();
+        expect(window._propertyNames['PROP-1']).toBe('12 Elm St');
+    });
+});
