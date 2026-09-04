@@ -70,6 +70,15 @@ if [ ! -e "$REPO/catch/$CATCHMENT.py" ] && [ ! -d "$REPO/catch/$CATCHMENT" ]; th
   echo "note: using catchment parameters from data/catch/ (not yet vendored)"
 fi
 
+# `port` is behind an admin-password gate. The credential lives beside the
+# portfolio (<data root>/.port_admin), so a throwaway root always starts
+# without one and takes the first-run setup branch. Supplying a value here
+# lets that branch run unattended — the point of the gate is to stop an
+# accidental overwrite of the shared tree, and this root is a fresh temp
+# directory deleted a few minutes from now. A caller who exports their own
+# value keeps it.
+export MKM_PORT_ADMIN_PASSWORD="${MKM_PORT_ADMIN_PASSWORD:-throwaway-portfolio}"
+
 DATA_ROOT="$(mktemp -d "${PREFIX}-XXXXXX")"
 
 # EXIT covers success, failure and `set -e`; INT/TERM cover Ctrl-C and kill.
