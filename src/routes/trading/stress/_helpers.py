@@ -128,7 +128,12 @@ def _synthesize_hydrograph(base_level, level_change, duration_hours,
             frac = math.sin(t_rise * math.pi / 2)
         else:
             remaining = num_hours - peak_hour
-            if remaining <= 0:
+            if remaining <= 0:  # pragma: no cover - unreachable
+                # peak_hour is capped at num_hours - 1 by the min() above, so
+                # remaining is always >= 1. Kept as a division guard rather
+                # than deleted, because the cap and this guard are three
+                # screens apart and the next person to change the cap will
+                # not read this far.
                 frac = 1.0
             else:
                 t_decay = (h - peak_hour) / remaining
