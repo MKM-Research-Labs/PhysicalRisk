@@ -92,13 +92,19 @@ def pg_function_scope(file_scope: str):
 # The real, on-disk ``data/input`` tree, captured at import time (before any
 # per-test monkeypatch of ``config.get_input_dir``). Used by the write-guard to
 # tell a genuine real-data write apart from a tmp/monkeypatched one.
-_REAL_INPUT_ROOT = (config.get_project_root() / "data" / "input").resolve()
-
-
 def _is_under_real_data(path: Path) -> bool:
-    """True if ``path`` resolves inside the real ``data/input`` tree."""
+    """True if ``path`` resolves inside the live ``input`` tree.
+
+    Resolved per call from ``config.get_input_root()`` rather than pinned to
+    ``<repo>/data/input``, because what needs protecting is *the portfolio the
+    suite is reading*, not one particular disk. Under ``MKM_DATA_ROOT`` the
+    hardcoded root never matched, so the guard was inert exactly where it was
+    needed most: a throwaway portfolio is generated once and read by the whole
+    run, and an unguarded ``save`` clobbered ``gauge.json`` mid-suite (13
+    downstream failures reading a list where a dict belonged).
+    """
     try:
-        path.resolve().relative_to(_REAL_INPUT_ROOT)
+        path.resolve().relative_to(config.get_input_root().resolve())
         return True
     except (ValueError, OSError):
         return False
