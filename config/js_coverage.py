@@ -37,7 +37,9 @@ to jest as ``--coverageThreshold`` and enforces the upper edge itself.
 
 #: Measured statement coverage the suite must hold, as a percentage.
 #: 2026-09-04: 2.71% (276/10167 statements, 4 of 125 files touched, 87 tests).
-BASELINE_PCT = 2.7
+#: 2026-09-04: 3.76% (383/10167, 6 of 125 files, 110 tests) — tranche 1 covered
+#: the two PRS trade-commit paths, the modules the plan ranks first on risk.
+BASELINE_PCT = 3.7
 
 #: How far above the baseline coverage may sit before the run asks for the
 #: baseline to be raised. Wide enough to absorb a statement or two moving

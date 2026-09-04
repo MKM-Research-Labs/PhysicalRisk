@@ -129,18 +129,23 @@ class TestRunJsTests:
             out.mkdir(parents=True, exist_ok=True)
             (out / "js_results.json").write_text(json.dumps(
                 {"numTotalTests": 87, "numPassedTests": 87, "numFailedTests": 0}))
+            # Report exactly the baseline rather than a literal: a fixed
+            # number here would fail the moment the ratchet is raised, which
+            # is a test pinning a config value instead of a behaviour.
             (out / "coverage-summary.json").write_text(json.dumps(
-                {"total": {"statements": {"pct": 2.71}}}))
+                {"total": {"statements": {"pct": js_coverage.BASELINE_PCT}}}))
             (out / "cobertura-coverage.xml").write_text("<coverage/>")
             return None
 
         monkeypatch.setattr("app.commands.test.js.sp.run", _fake_run)
         s = _run_js_tests(repo, str(audit))
         assert s == {"total": 87, "passed": 87, "failed": 0,
-                     "status": "OK", "statements_pct": 2.71,
+                     "status": "OK",
+                     "statements_pct": js_coverage.BASELINE_PCT,
                      "coverage_baseline_pct": js_coverage.BASELINE_PCT,
                      "coverage_ok": True,
-                     "coverage_message": js_coverage.classify(2.71)[1]}
+                     "coverage_message": js_coverage.classify(
+                         js_coverage.BASELINE_PCT)[1]}
         # cobertura is renamed to match the Python side's coverage.xml shape
         assert (audit / "js" / "js_coverage.xml").exists()
         assert not (audit / "js" / "cobertura-coverage.xml").exists()
