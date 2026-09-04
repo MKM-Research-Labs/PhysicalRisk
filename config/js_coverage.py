@@ -49,6 +49,10 @@ to jest as ``--coverageThreshold`` and enforces the upper edge itself.
 #: startup.js's auth wrappers (__mkmAdminFetch / __mkmLogin), the single path
 #: every port-mutating request takes.
 #:
+#: 2026-09-04: 10.32% (1051/10177, 18 of 125 files, 227 tests) — the top-10
+#: return list: market commit, EOD submit, blotter table, FS01 grid, market
+#: setup, aggregate map, curve/PL history, hazard trigger.
+#:
 #: Ceiling note: 96 of the 116 still-uncovered files (7573 statements, 74% of
 #: the tree) are concat fragments declaring bare functions, unreachable by
 #: require() and so uninstrumentable by istanbul. Counting only modules that
@@ -56,7 +60,7 @@ to jest as ``--coverageThreshold`` and enforces the upper edge itself.
 #: can only be measured browser-side by the V8 collector, which reads the
 #: bundle the Python loader assembles — that is not a nice-to-have, it is the
 #: only instrument that can see most of this code.
-BASELINE_PCT = 6.0
+BASELINE_PCT = 10.3
 
 #: How far above the baseline coverage may sit before the run asks for the
 #: baseline to be raised. Wide enough to absorb a statement or two moving
