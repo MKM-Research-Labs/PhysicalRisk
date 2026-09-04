@@ -203,9 +203,25 @@ class TestCommercialLoanReport:
                                      has_text="Generate Loan Report")
         # Sibling tests confirm window.generateLoanReport exists and the route
         # returns a PDF, so the menu item missing is a UI gap, not absent data.
+        #
+        # Report which menu actually opened. createMenu builds one element per
+        # type ('{type}-context-menu') and only removes the one it is
+        # replacing, so several can coexist with one displayed — "no item"
+        # therefore means either the commercial menu lacks it or the
+        # right-click landed on a property/gauge marker, and those want
+        # different fixes.
+        menus = map_page.evaluate("""() => Array.from(
+            document.querySelectorAll('.ctx-menu')).map(function (m) {
+                return {
+                    id: m.id,
+                    shown: m.style.display !== 'none',
+                    items: Array.from(m.querySelectorAll('.ctx-menu-item'))
+                                .map(function (i) { return i.textContent; })
+                };
+            })""")
         assert loan_item.count() > 0, (
             "Commercial context menu has no 'Generate Loan Report' item — the "
-            "entry point this test exercises is missing"
+            f"entry point this test exercises is missing. Menus present: {menus}"
         )
         loan_item.first.click()
 

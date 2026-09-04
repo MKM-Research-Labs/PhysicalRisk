@@ -28,6 +28,36 @@ import subprocess as sp
 from .reports import _write_combined_junit
 
 
+def _clear_previous_artefacts(e2e_out_dir):
+    """Remove the previous run's artefacts before writing this run's.
+
+    Batch JUnit files are named by index, so a run producing fewer batches
+    than its predecessor leaves the extra ones behind and they read as part
+    of this run. Worse, a run that dies partway overwrites some batches and
+    not others while ``e2e_results.json`` still describes the earlier run —
+    the summary then reports a set of failures whose detail no longer exists,
+    and the directory holds several runs blended into one evidence package.
+
+    Observed on 2026-09-04: three runs' batches side by side, a results.json
+    two days older than most of them, and 15 of one run's 22 batch files
+    overwritten by a later partial run. Clearing first costs nothing; the
+    previous package has already been read by the time the next run starts.
+    """
+    for name in os.listdir(e2e_out_dir):
+        if name.startswith('e2e_junit') and name.endswith('.xml'):
+            _unlink_quietly(os.path.join(e2e_out_dir, name))
+        elif name == 'e2e_results.json':
+            _unlink_quietly(os.path.join(e2e_out_dir, name))
+
+
+def _unlink_quietly(path):
+    """Delete a file, ignoring a race with something else removing it."""
+    try:
+        os.remove(path)
+    except OSError:
+        pass
+
+
 def _run_e2e_tests(project_root, audit_dir, python_exe):
     """Run Playwright e2e tests headless and return summary dict."""
     import json
@@ -37,6 +67,7 @@ def _run_e2e_tests(project_root, audit_dir, python_exe):
     # dedicated audit/e2e/ subfolder to keep the audit root uncluttered.
     e2e_out_dir = os.path.join(audit_dir, 'e2e')
     os.makedirs(e2e_out_dir, exist_ok=True)
+    _clear_previous_artefacts(e2e_out_dir)
     e2e_xml = os.path.join(e2e_out_dir, 'e2e_junit.xml')
     e2e_dir = os.path.join(str(project_root), 'tests', 'e2e')
 

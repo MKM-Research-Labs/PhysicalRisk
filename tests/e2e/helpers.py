@@ -125,6 +125,14 @@ def open_trading_desk(page, tab=None):
                 page.wait_for_timeout(1_500)
 
     if tab:
+        # Check the panel first. A view is not "visible" while its parent is
+        # hidden, so asserting on the view alone would blame the tab switch
+        # for a panel that never opened — naming the wrong cause is what this
+        # helper is meant to stop doing.
+        assert page.locator("#trading-desk-panel").is_visible(), (
+            "#trading-desk-panel is not visible — the trading desk did not "
+            f"open, so the {tab} tab was never reachable"
+        )
         tab_btn = page.locator(f"#td-tab-{tab}")
         # A missing tab button used to fall through to the wait, leaving the
         # requested view hidden — every later assertion then failed as though
@@ -137,8 +145,9 @@ def open_trading_desk(page, tab=None):
         tab_btn.click(force=True)
         page.wait_for_timeout(3_000)
         assert page.locator(f"#td-{tab}-view").is_visible(), (
-            f"#td-{tab}-view is still hidden after clicking #td-tab-{tab} — "
-            f"the tab switch did not take effect"
+            f"#td-{tab}-view is still hidden after clicking #td-tab-{tab}, "
+            f"with the panel itself visible — switchTab did not reveal the "
+            f"view (see trading/tradingdesk/panel_tabs.js)"
         )
 
 

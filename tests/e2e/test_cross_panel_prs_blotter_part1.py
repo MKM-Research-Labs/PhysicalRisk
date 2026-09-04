@@ -122,7 +122,8 @@ class TestGaugePRSToBlotterRoundTrip:
 
         map_page.evaluate(CLOSE_ALL_JS)
 
-    def test_04_blotter_button_muted_for_gauge_without_trades(self, map_page):
+    def test_04_blotter_button_muted_for_gauge_without_trades(
+            self, map_page, first_gauge_id):
         """The blotter button is muted for a gauge with no open trades.
 
         The muted state is decided in gauge/gaugehc/panel_data.js: the panel
@@ -141,8 +142,11 @@ class TestGaugePRSToBlotterRoundTrip:
         the response itself, which has its own coverage in
         tests/routes/trading.
         """
-        gauge_id = self._any_real_gauge(map_page)
-        assert gauge_id, "no real (non-synthetic) gauge available"
+        # first_gauge_id, not a scan of /api/v1/gauges: that endpoint is not
+        # used by any other e2e test, and a helper built on it returned
+        # nothing here. Whether this gauge really has trades does not matter —
+        # the stub below is what the panel reads.
+        gauge_id = first_gauge_id
 
         def _serve(gauge_ids):
             def handler(route):
@@ -181,19 +185,6 @@ class TestGaugePRSToBlotterRoundTrip:
             close_gauge_panel(map_page)
         finally:
             map_page.unroute("**/trading/blotter/active-gauges")
-
-    @staticmethod
-    def _any_real_gauge(map_page):
-        """First non-synthetic gauge id, whatever the book looks like."""
-        return map_page.evaluate("""async () => {
-            var cfg = window.__BACKEND_CONFIG || {};
-            var all = await (await fetch((cfg.url || '') + '/api/v1/gauges')).json();
-            var ids = (all.gauges || all || []).map(function(g) {
-                return g.gauge_id || (g.Header && g.Header.GaugeID) || g.id;
-            }).filter(Boolean);
-            var real = ids.filter(function(i) { return i.indexOf('SYNTH-') !== 0; });
-            return real[0] || null;
-        }""")
 
 
 class TestBlotterNewPRSButton:
