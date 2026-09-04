@@ -39,15 +39,24 @@ from config import config
 
 
 @pytest.fixture
-def halong_active():
-    """Switch to halong for these tests; restore at teardown."""
-    with config.use_catchment("halong"):
-        yield
+def commercial_input_dir():
+    """Input dir of the active catchment, for reading the commercial records.
+
+    These tests used to pin themselves to halong and then read
+    ``data/input/halong/commercial.json`` as a literal — so the fixture read
+    the real tree while the app under test resolved through ``config``. The
+    two agreed only as long as config pointed at the real tree, and split
+    apart under ``MKM_DATA_ROOT`` (the app found no record for an ID the
+    fixture had just read). Nothing here is halong-specific: it is PDF
+    emission, route shapes and hazard payloads. Follow the active catchment
+    and read through the accessor, so both halves see one portfolio.
+    """
+    return config.get_input_dir()
 
 
 @pytest.fixture
-def first_commercial_id(halong_active):
-    with open("data/input/halong/commercial.json") as f:
+def first_commercial_id(commercial_input_dir):
+    with open(commercial_input_dir / "commercial.json") as f:
         data = json.load(f)
     return data["commercial_assets"][0]["CommercialAsset"]["Header"]["PropertyID"]
 
@@ -56,13 +65,13 @@ def first_commercial_id(halong_active):
 # Shared section renderers
 # ---------------------------------------------------------------------------
 
-def test_asset_renderers_produce_flowables_for_real_record(halong_active):
+def test_asset_renderers_produce_flowables_for_real_record(commercial_input_dir):
     from reports.asset import (
         AssetBasePage, render_header, render_location, render_construction,
         render_risk_assessment, render_valuation, render_energy,
         render_protection, render_history, render_transactions,
     )
-    with open("data/input/halong/commercial.json") as f:
+    with open(commercial_input_dir / "commercial.json") as f:
         rec = json.load(f)["commercial_assets"][0]
     asset = rec["CommercialAsset"]
 
@@ -100,7 +109,7 @@ def test_generator_emits_valid_pdf(first_commercial_id, tmp_path):
     assert pdf_path.read_bytes()[:4] == b"%PDF"
 
 
-def test_generator_returns_none_for_unknown_id(halong_active, tmp_path):
+def test_generator_returns_none_for_unknown_id(commercial_input_dir, tmp_path):
     from reports.commercial import generate_commercial_report
     assert generate_commercial_report(
         property_id="CPROP-doesnotexist", output_dir=tmp_path,
@@ -112,7 +121,7 @@ def test_generator_returns_none_for_unknown_id(halong_active, tmp_path):
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
-def app(halong_active):
+def app(commercial_input_dir):
     from flask import Flask
     from routes import register_blueprints
     a = Flask(__name__)

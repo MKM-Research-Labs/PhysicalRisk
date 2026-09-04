@@ -39,22 +39,31 @@ from config import config
 
 
 @pytest.fixture
-def halong_active():
-    """Switch to halong for these tests; restore at teardown."""
-    with config.use_catchment("halong"):
-        yield
+def commercial_input_dir():
+    """Input dir of the active catchment, for reading the commercial records.
+
+    These tests used to pin themselves to halong and then read
+    ``data/input/halong/commercial.json`` as a literal — so the fixture read
+    the real tree while the app under test resolved through ``config``. The
+    two agreed only as long as config pointed at the real tree, and split
+    apart under ``MKM_DATA_ROOT`` (the app found no record for an ID the
+    fixture had just read). Nothing here is halong-specific: it is PDF
+    emission, route shapes and hazard payloads. Follow the active catchment
+    and read through the accessor, so both halves see one portfolio.
+    """
+    return config.get_input_dir()
 
 
 @pytest.fixture
-def first_commercial_id(halong_active):
-    with open("data/input/halong/commercial.json") as f:
+def first_commercial_id(commercial_input_dir):
+    with open(commercial_input_dir / "commercial.json") as f:
         data = json.load(f)
     return data["commercial_assets"][0]["CommercialAsset"]["Header"]["PropertyID"]
 
 
 
 @pytest.fixture
-def app(halong_active):
+def app(commercial_input_dir):
     from flask import Flask
     from routes import register_blueprints
     a = Flask(__name__)
@@ -69,7 +78,7 @@ def app(halong_active):
 # ---------------------------------------------------------------------------
 
 def test_load_commercial_record_returns_none_when_file_missing(
-    halong_active, tmp_path,
+    commercial_input_dir, tmp_path,
 ):
     """``_load_commercial_record`` logs + returns None when
     commercial.json is absent from the catchment dir."""
@@ -78,7 +87,7 @@ def test_load_commercial_record_returns_none_when_file_missing(
 
 
 def test_load_loan_record_returns_none_when_file_missing(
-    halong_active, tmp_path,
+    commercial_input_dir, tmp_path,
 ):
     """``_load_cloan_record`` returns None when commercial_loan.json
     is absent (silent — same convention as a missing mortgage on the
@@ -88,13 +97,13 @@ def test_load_loan_record_returns_none_when_file_missing(
 
 
 def test_load_loan_record_returns_none_when_id_not_in_file(
-    halong_active,
+    commercial_input_dir,
 ):
     """``_load_cloan_record`` returns None when the file exists but no
     record matches the given PropertyID."""
     from pathlib import Path
     from reports.commercial.commercial_report import _load_cloan_record
-    assert _load_cloan_record("CPROP-NOTREAL", Path("data/input/halong")) is None
+    assert _load_cloan_record("CPROP-NOTREAL", commercial_input_dir) is None
 
 
 def test_generate_commercial_report_open_pdf_branch(
@@ -130,7 +139,7 @@ def test_generate_commercial_report_open_pdf_failure_is_swallowed(
 
 
 def test_generate_loan_report_returns_none_when_no_linked_loan(
-    halong_active, tmp_path, monkeypatch,
+    commercial_input_dir, tmp_path, monkeypatch,
 ):
     """Asset exists but has no commercial-loan record → returns None."""
     from reports.commercial import commercial_report as cr
@@ -138,7 +147,7 @@ def test_generate_loan_report_returns_none_when_no_linked_loan(
     monkeypatch.setattr(cr, "_load_cloan_record", lambda pid, _dir: None)
     # Use a real commercial id so _load_commercial_record finds the asset.
     import json as _json
-    with open("data/input/halong/commercial.json") as f:
+    with open(commercial_input_dir / "commercial.json") as f:
         pid = _json.load(f)["commercial_assets"][0]["CommercialAsset"]["Header"]["PropertyID"]
     assert cr.generate_cloan_report(pid, output_dir=tmp_path) is None
 
@@ -172,7 +181,7 @@ def test_generate_loan_report_open_pdf_failure_is_swallowed(
     assert path is not None
 
 
-def test_commercial_generator_default_output_dir(halong_active):
+def test_commercial_generator_default_output_dir(commercial_input_dir):
     """``CommercialReportGenerator()`` with no output_dir uses
     config.get_reports_dir('commercial')."""
     from reports.commercial import CommercialReportGenerator
