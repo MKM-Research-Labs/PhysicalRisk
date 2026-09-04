@@ -170,8 +170,18 @@ class TestPropertyHCFields:
             f"Term structure not flat: {spreads}"
         )
 
-    def test_spread_equals_event_count_formula(self):
-        """Spread should equal flood_count / num_storms * 10000."""
+    def test_spread_equals_annualised_probability(self):
+        """The published spread is the annual exceedance probability in bps.
+
+        Named for the event-count formula (flood_count / num_storms * 10000)
+        until MKM-EF-001 replaced it; the body already read the annualised
+        probability, so only the name and docstring described a model that no
+        longer exists.
+
+        Weak by construction: both fields are written by the same function
+        from one variable, so this catches an inconsistent writer and little
+        else. Worth keeping at that value, not more.
+        """
         _, pc = _first_property()
         flood_count = pc.get("flood_count", 0)
         dt = pc.get("depth_thresholds", {}).get("severe", {})
