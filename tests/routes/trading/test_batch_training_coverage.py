@@ -185,3 +185,75 @@ class TestBatchJobNullMidTraining:
         # Should not have trained any gauges since _batch_job was None
         assert call_count == 0
         assert cl_mod._batch_job is None
+
+
+class TestCancellationDuringTraining:
+    """A cancelled batch must stop writing, not write into a dead job.
+
+    ``_batch_job = None`` is how cancellation is signalled. The worker checks
+    it again after each gauge, under the lock, because the gauge it just spent
+    minutes on may have been cancelled while it ran. Both re-checks were
+    uncovered, so a change dropping either would have let a cancelled run keep
+    appending results — and the status endpoint would then report progress for
+    a job the user had stopped.
+    """
+
+    @staticmethod
+    def _job(gauge_ids):
+        return {
+            "status": "running",
+            "total": len(gauge_ids),
+            "completed": 0,
+            "current_gauge_id": None,
+            "results": [],
+            "started": time.time(),
+            "avg_per_gauge": 0,
+            "gauge_ids": list(gauge_ids),
+        }
+
+    def test_cancellation_while_a_gauge_fails_stops_the_write(self, trading_env):
+        """Cancelled mid-failure: the failure result is not recorded."""
+        cl_mod._batch_job = self._job(["GAUGE-FAIL"])
+
+        def mock_train(gid):
+            cl_mod._batch_job = None      # cancelled while this gauge ran
+            raise RuntimeError("training exploded")
+
+        with patch("routes.trading.stress.training._train_single_gauge",
+                   mock_train):
+            cl_mod._run_batch_training(["GAUGE-FAIL"])
+
+        assert cl_mod._batch_job is None
+
+    def test_cancellation_while_a_gauge_succeeds_stops_the_write(self, trading_env):
+        """Cancelled mid-success: the trained result is not recorded either."""
+        cl_mod._batch_job = self._job(["GAUGE-OK"])
+
+        def mock_train(gid):
+            cl_mod._batch_job = None
+            return None
+
+        with patch("routes.trading.stress.training._train_single_gauge",
+                   mock_train):
+            cl_mod._run_batch_training(["GAUGE-OK"])
+
+        assert cl_mod._batch_job is None
+
+    def test_an_unreadable_summary_does_not_fail_the_gauge(self, trading_env):
+        """Metrics are a read-back for display. If the summary cannot be read
+        the gauge still counts as trained, with empty metrics — losing the
+        AUC display is not a reason to report a successful training as
+        failed."""
+        cl_mod._batch_job = self._job(["GAUGE-OK"])
+
+        with patch("routes.trading.stress.training._train_single_gauge",
+                   lambda gid: None), \
+             patch("routes.trading.classifiers.batch_training.database."
+                   "get_classifier_training_summary",
+                   side_effect=RuntimeError("summary unreadable")):
+            cl_mod._run_batch_training(["GAUGE-OK"])
+
+        results = cl_mod._batch_job["results"]
+        assert results[0]["status"] == "trained"
+        assert results[0]["auc_roc"] is None
+        cl_mod._batch_job = None

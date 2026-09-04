@@ -291,3 +291,50 @@ def test_simulate_portfolio_initiation(config, office):
     results = simulate_portfolio_initiation(portfolio, config, _rng())
     assert len(results) == 2
     assert [r.asset_id for r in results] == ["ASSET-001", "ASSET-002"]
+
+
+# ---------------------------------------------------------------------------
+# Guards that stop a mis-calibrated prior sampling silently
+# ---------------------------------------------------------------------------
+
+def test_a_recent_minor_fire_uses_its_own_multiplier(config):
+    """Three history bands, not two.
+
+    'Recent and severe' and 'old' were both covered; the middle band — a
+    recent fire that was only minor — was not, so a mis-keyed lookup there
+    would have gone unnoticed.
+    """
+    recent_minor = AssetFireFeatures(
+        asset_id="ASSET-RM",
+        commercial_type="Office",
+        fire_damage_severity="Minor",
+        years_since_last_fire=1,
+    )
+    expected = config.initiation.m_history.get("recent_minor", 1.0)
+    assert m_history(recent_minor, config.initiation) == expected
+
+
+def test_an_unknown_type_with_no_fallback_row_raises(config, monkeypatch):
+    """Sampling must fail loudly when neither the type nor 'Other' has a prior.
+
+    The alternative is a KeyError or an empty draw much further downstream,
+    where the cause is no longer visible.
+    """
+    cfg = config.initiation
+    monkeypatch.setattr(cfg, "initiation_class_priors_by_type", {}, raising=False)
+    with pytest.raises(ValueError, match="No initiation-class prior"):
+        sample_initiation_class("Spaceport", cfg, _rng())
+
+
+def test_a_prior_summing_to_zero_raises(config, monkeypatch):
+    """A calibration that zeroes every class is not a uniform draw.
+
+    The renormalisation divides by the sum, so a zero row would otherwise
+    produce NaN probabilities and an opaque failure inside the RNG.
+    """
+    cfg = config.initiation
+    monkeypatch.setattr(
+        cfg, "initiation_class_priors_by_type",
+        {"Office": [0.0] * len(cfg.initiation_classes)}, raising=False)
+    with pytest.raises(ValueError, match="must sum to a positive value"):
+        sample_initiation_class("Office", cfg, _rng())
