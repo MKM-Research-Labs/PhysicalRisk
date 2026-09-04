@@ -113,3 +113,47 @@ class TestGaugeLoaderStatus:
         assert "entity_name" in status
         assert "path" in status
         assert "exists" in status
+
+
+class TestGaugeLoaderMisses:
+    """The not-found arms of the lookups.
+
+    ``tests/services/gauge_loader`` covers the hits, using SAMPLE_GAUGE from
+    ``tests/conftest/data``. That fixture carries ``Latitude``/``Longitude``
+    in the Header — a shape the real ``gauge.json`` does not have (its
+    coordinates live under ``SensorDetails.GaugeInformation`` as
+    ``GaugeLatitude``/``GaugeLongitude``). So ``get_coordinates`` returns None
+    for every real gauge and the fixture hides it. Pinned here against the
+    production shape; see the note in the loader review.
+    """
+
+    @staticmethod
+    def _loader(tmp_path, n=2):
+        from loaders.gauge_loader import GaugeLoader
+        write_json(tmp_path / "gauge.json", gauge_json(n))
+        return GaugeLoader(tmp_path)
+
+    def test_find_by_name_with_no_match_returns_none(self, tmp_path):
+        assert self._loader(tmp_path).find_by_name("Nonexistent Weir") is None
+
+    def test_find_by_name_matches_on_a_substring(self, tmp_path):
+        """Confirms the miss above is a real miss, not a broken matcher."""
+        assert self._loader(tmp_path).find_by_name("gauge 1") is not None
+
+    def test_coordinates_for_an_unknown_gauge_are_none(self, tmp_path):
+        assert self._loader(tmp_path).get_coordinates("GAUGE-999") is None
+
+    def test_coordinates_are_none_when_the_header_omits_them(self, tmp_path):
+        """The production shape: the Header carries no Latitude/Longitude.
+
+        This is the case that makes the accessor useless against real data.
+        Its only caller is get_gauges_in_radius, which nothing in src/ calls,
+        so the effect today is dead surface rather than a broken feature.
+        """
+        assert self._loader(tmp_path).get_coordinates("GAUGE-000") is None
+
+    def test_flood_stages_for_an_unknown_gauge_are_none(self, tmp_path):
+        assert self._loader(tmp_path).get_flood_stages("GAUGE-999") is None
+
+    def test_flood_stages_absent_from_a_known_gauge_are_none(self, tmp_path):
+        assert self._loader(tmp_path).get_flood_stages("GAUGE-000") is None

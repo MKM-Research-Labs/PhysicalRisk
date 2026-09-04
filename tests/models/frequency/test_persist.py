@@ -246,3 +246,55 @@ class TestFamilyIsRecorded:
             doc = calibrate_catchment("test", ProvenanceClass.GENERATOR_DERIVED)
 
         json.dumps(doc)  # must not raise
+
+
+class TestUnreadableGaugeRecordsAreSkipped:
+    """A gauge whose history cannot be read must not abort the catchment.
+
+    The loop's contract is in its own docstring — "Gauges whose record cannot
+    be read are skipped and counted in the metadata rather than aborting the
+    run" — but the except arm had no test, so a change that let one bad record
+    take down a whole calibration would have gone unnoticed.
+    """
+
+    @staticmethod
+    def _calibrate_with(monkeypatch, tmp_path, ids, getter):
+        from db_helpers import tmp_catchment
+        import database
+        from models.frequency import calibrate_catchment
+
+        monkeypatch.setattr(database, "iter_gauge_history_ids",
+                            lambda _c: iter(ids))
+        monkeypatch.setattr(database, "get_gauge_history", getter)
+        with tmp_catchment(tmp_path):
+            return calibrate_catchment("test", ProvenanceClass.GENERATOR_DERIVED)
+
+    @pytest.mark.parametrize("exc", [OSError, ValueError, KeyError])
+    def test_a_broken_record_is_skipped_not_raised(
+            self, monkeypatch, tmp_path, exc):
+        doc = self._calibrate_with(
+            monkeypatch, tmp_path, ["GAUGE-BAD"],
+            lambda _c, _g: (_ for _ in ()).throw(exc("unreadable")))
+        assert doc["rates"] == {}
+
+    def test_one_bad_record_does_not_lose_the_good_ones(
+            self, monkeypatch, tmp_path):
+        """The failure mode worth guarding: a single corrupt file silently
+        costing the whole catchment its rates."""
+        def _get(_catchment, gauge_id):
+            if gauge_id == "GAUGE-BAD":
+                raise OSError("unreadable")
+            return None  # readable but empty — skipped by the next guard
+
+        doc = self._calibrate_with(
+            monkeypatch, tmp_path, ["GAUGE-BAD", "GAUGE-OK"], _get)
+        assert doc["metadata"]["num_gauges"] == 0
+        assert doc["rates"] == {}
+
+    def test_an_unexpected_error_still_propagates(self, monkeypatch, tmp_path):
+        """Only OSError/ValueError/KeyError are 'unreadable'. A TypeError is a
+        bug in the caller and must not be silently counted as a skip."""
+        with pytest.raises(TypeError):
+            self._calibrate_with(
+                monkeypatch, tmp_path, ["GAUGE-X"],
+                lambda _c, _g: (_ for _ in ()).throw(TypeError("bug")))
