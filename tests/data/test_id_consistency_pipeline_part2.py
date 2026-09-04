@@ -52,7 +52,7 @@ from tests.data._id_consistency_helpers import (
 #
 # It clears itself: the next full `phys.py port` should take this to 0, at
 # which point the second branch fails and asks for the baseline to follow.
-KNOWN_HASH_DRIFT = 23
+KNOWN_HASH_DRIFT = 14
 
 
 

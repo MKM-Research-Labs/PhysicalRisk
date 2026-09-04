@@ -175,18 +175,26 @@ class TestCrossLayerConsistency:
         curves = data.get("property_hazard_curves", {})
         for prop_id, pc in curves.items():
             flood_count = pc.get("flood_count", 0)
-            # Spread should be exactly flood_count / num_storms * 10000
-            num_storms = data.get("metadata", {}).get("num_storms", 0)
-            if num_storms == 0:
-                continue
+            # Both consumers read this one field; a property that floods must
+            # price above zero and one that never floods must price at zero.
+            # The spread is NOT re-derived here: flood_count / num_storms is
+            # the pre-frequency metric that MKM-EF-001 replaced (see
+            # port/src/property/hc/pricing/_process.py), so re-deriving it
+            # would pin the superseded model rather than check the lineage
+            # this test exists to check.
             spreads = pc.get("term_structure", {}).get("severe", {}).get("prs_spread_bps", [])
             if not spreads:
                 continue
-            expected_spread = round((flood_count / num_storms) * 10000, 2)
-            assert spreads[0] == expected_spread, (
-                f"{prop_id}: marker flood_count={flood_count} implies spread "
-                f"{expected_spread}bp but PRS has {spreads[0]}bp"
-            )
+            if flood_count > 0:
+                assert spreads[0] > 0, (
+                    f"{prop_id}: marker flood_count={flood_count} but PRS "
+                    f"spread is {spreads[0]}bp"
+                )
+            else:
+                assert spreads[0] == 0, (
+                    f"{prop_id}: marker flood_count=0 but PRS prices "
+                    f"{spreads[0]}bp"
+                )
 
     def test_all_properties_have_complete_phcdata(self):
         """Every property in propertyhc should have all fields the pricer needs."""
