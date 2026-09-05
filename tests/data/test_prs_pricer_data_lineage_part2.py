@@ -197,6 +197,7 @@ class TestPropertyHCFields:
     def test_spreads_non_negative(self):
         _, pc = _first_property()
         spreads = pc.get("term_structure", {}).get("severe", {}).get("prs_spread_bps", [])
+        assert spreads, "property has no severe prs_spread_bps series"
         for s in spreads:
             assert s >= 0, f"Negative spread {s}"
 
@@ -212,6 +213,9 @@ class TestPropertyHCFields:
     def test_nearest_gauge_has_basis_bps(self):
         _, pc = _first_property()
         ngs = pc.get("nearest_gauges", [])
+        # A property with no nearest gauges cannot be priced at all, so
+        # an empty list is a failure rather than nothing to check.
+        assert ngs, "property has no nearest_gauges"
         for ng in ngs:
             basis = ng.get("basis_bps", {})
             assert "severe" in basis, f"Gauge {ng['gauge_id']} missing severe basis"

@@ -234,6 +234,10 @@ class TestMarketStateData:
 
     def test_hazard_term_structure_has_triggers(self, ms):
         hts = ms.get("hazard_term_structure", {})
+        # The loop breaks after one gauge, so with an empty hts it checks
+        # nothing at all — and an empty term structure is a market state that
+        # never loaded, not a book with no triggers.
+        assert hts, "hazard_term_structure is empty"
         for gid, triggers in hts.items():
             assert "alert" in triggers, f"GAUGE {gid} missing 'alert' in hazard_term_structure"
             break  # spot-check first gauge

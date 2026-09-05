@@ -210,6 +210,9 @@ class TestElevationConsistency:
         gauge_elev = self._gauge_elevation_lookup()
         props = _load_json(_input_dir() / "property.json")
 
+        # Without this the loop body is the only thing that checks
+        # anything, so an empty portfolio would pass silently.
+        assert props["properties"], "property.json has no properties"
         for p in props["properties"]:
             ph = p["PropertyHeader"]
             risk = ph.get("RiskAssessment", {})
@@ -231,6 +234,7 @@ class TestElevationConsistency:
         gauge_elev = self._gauge_elevation_lookup()
         props = _load_json(_input_dir() / "property.json")
 
+        assert props["properties"], "property.json has no properties"
         for p in props["properties"][:20]:
             ph = p["PropertyHeader"]
             risk = ph.get("RiskAssessment", {})
@@ -252,6 +256,7 @@ class TestElevationConsistency:
 
     def test_river_distance_positive_for_all_properties(self):
         props = _load_json(_input_dir() / "property.json")
+        assert props["properties"], "property.json has no properties"
         for p in props["properties"]:
             risk = p["PropertyHeader"].get("RiskAssessment", {})
             dist = risk.get("RiverDistanceMeters", 0)

@@ -128,6 +128,75 @@ def _is_exact_negation(skip_src, assert_src):
             or a == f"not ({b})" or b == f"not ({a})")
 
 
+
+
+def _is_runtime_data(fn, iter_node):
+    """True when the loop iterates over data, not a literal written in the test.
+
+    A `for name, value in TYPE.items()` over a module constant, or over a list
+    spelled out in the test body, cannot be unexpectedly empty — flagging
+    those buries the real cases. What matters is a loop over something loaded
+    at run time: a call result, a fixture attribute, a subscript into parsed
+    JSON. If that comes back empty the loop body never runs and the test
+    passes having checked nothing.
+    """
+    node = iter_node
+    # unwrap .items() / .values() / .keys()
+    while isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+        if node.func.attr in ('items', 'values', 'keys'):
+            node = node.func.value
+        else:
+            return True                      # any other call is runtime data
+    if isinstance(node, (ast.Attribute, ast.Subscript)):
+        return True
+    if isinstance(node, (ast.List, ast.Tuple, ast.Dict, ast.Set)):
+        return False                          # literal in the test
+    if isinstance(node, ast.Name):
+        # A name assigned from a literal in this function is not runtime data.
+        for a in ast.walk(fn):
+            if isinstance(a, ast.Assign) and any(
+                    isinstance(t, ast.Name) and t.id == node.id for t in a.targets):
+                return not isinstance(a.value, (ast.List, ast.Tuple, ast.Dict, ast.Set))
+        return True                           # fixture arg or module constant
+    return True
+
+
+def _loop_iterables(fn):
+    """Iterable source of every for-loop that contains an assertion."""
+    out = []
+    for n in ast.walk(fn):
+        if isinstance(n, ast.For) and any(_is_assertion(c) for c in ast.walk(n)):
+            if not _is_runtime_data(fn, n.iter):
+                continue
+            try:
+                out.append(ast.unparse(n.iter))
+            except Exception:
+                pass
+    return out
+
+
+def _guarantees_non_empty(fn, iterable_src):
+    """True when the test proves the iterable is non-empty before looping.
+
+    Counts an assertion mentioning it (`assert rows`, `assert len(rows) > 0`,
+    `assert rows, "..."`) or an explicit length comparison. Without one, a
+    loop that never runs is a silent pass — the loop body is the only place
+    the test checks anything.
+    """
+    base = iterable_src.split('(')[0].split('[')[0].split('.')[0].strip()
+    if not base:
+        return False
+    for n in ast.walk(fn):
+        if isinstance(n, ast.Assert):
+            txt = ast.unparse(n.test)
+            if base in txt and ('len(' in txt or txt.strip() == base
+                                or txt.startswith(f'{base} ')
+                                or f'{base} !=' in txt or f'{base} >' in txt
+                                or f'not {base}' in txt):
+                return True
+    return False
+
+
 def _guard_kinds(fn):
     """Which construct guards the assertions: {'if'}, {'loop'} or both."""
     kinds = set()
@@ -211,8 +280,15 @@ def scan(root):
                     findings.append(('IF_GUARDED', rel, fn.name,
                         f"{len(asserts)} assertion(s), all inside if — pass when false"))
                 elif kinds == {'loop'}:
-                    findings.append(('LOOP_ONLY', rel, fn.name,
-                        f"{len(asserts)} assertion(s), all inside a loop — pass when empty"))
+                    # Only when nothing proves the collection is non-empty.
+                    # `for r in rows: assert ...` preceded by `assert rows` is
+                    # fine; without it, an empty rows is a silent pass.
+                    unguarded = [it for it in _loop_iterables(fn)
+                                 if not _guarantees_non_empty(fn, it)]
+                    if unguarded:
+                        findings.append(('LOOP_ONLY', rel, fn.name,
+                            f"{len(asserts)} assertion(s) only inside "
+                            f"`for ... in {unguarded[0]}` — pass when empty"))
     return findings
 
 
