@@ -218,3 +218,63 @@ class TestCommitTradeBasic:
         assert data["status"] == "error"
         assert "gauge_id" in data["message"].lower()
 
+
+
+class TestCommitRejectsUntradeableSpread:
+    """The commit endpoint validates spread_bps.
+
+    Nothing checked it until 2026-09-05. The gauge panel's input carries
+    min/max attributes, but those are native form constraints and nothing
+    submits a form — so a negative spread priced, reached this endpoint, and
+    was written into the trade as a negative FixedLegRate. Server-side is the
+    guard that covers every caller rather than one form.
+    """
+
+    @staticmethod
+    def _payload(spread_bps):
+        return {
+            "gauge_id": "GAUGE-001",
+            "gauge_name": "Test Gauge",
+            "counterparty_id": "CTPY-001",
+            "counterparty_name": "Test Bank",
+            "trigger": "warning",
+            "notional": 1_000_000,
+            "tenor": 3,
+            "spread_bps": spread_bps,
+            "fair_spread_bps": 145.0,
+            "npv": -50000.0,
+            "premium_leg_pv": 100000.0,
+            "protection_leg_pv": 150000.0,
+            "risky_annuity": 2.5,
+            "recovery": 0.0,
+        }
+
+    def test_a_negative_spread_is_refused(self, prs_env):
+        r = prs_env.post("/api/v1/prs/commit", json=self._payload(-50.0))
+        assert r.status_code == 400
+        body = r.get_json()
+        assert body["status"] == "error"
+        assert "outside the tradeable range" in body["message"]
+
+    def test_a_spread_above_the_ceiling_is_refused(self, prs_env):
+        r = prs_env.post("/api/v1/prs/commit", json=self._payload(5_000.0))
+        assert r.status_code == 400
+        assert "outside the tradeable range" in r.get_json()["message"]
+
+    def test_the_bounds_themselves_are_tradeable(self, prs_env):
+        """Inclusive, not exclusive — a zero spread is a real trade and the
+        ceiling is a limit, not a forbidden value."""
+        from config.models import (
+            PRS_TRADE_SPREAD_MAX_BPS,
+            PRS_TRADE_SPREAD_MIN_BPS,
+        )
+        for edge in (PRS_TRADE_SPREAD_MIN_BPS, PRS_TRADE_SPREAD_MAX_BPS):
+            r = prs_env.post("/api/v1/prs/commit", json=self._payload(edge))
+            assert r.status_code != 400 or (
+                "outside the tradeable range" not in r.get_json().get("message", "")
+            ), f"{edge} bps was refused but is within bounds"
+
+    def test_an_ordinary_spread_still_commits(self, prs_env):
+        # Guards the tests above from passing because everything is refused.
+        r = prs_env.post("/api/v1/prs/commit", json=self._payload(150.0))
+        assert "outside the tradeable range" not in r.get_json().get("message", "")

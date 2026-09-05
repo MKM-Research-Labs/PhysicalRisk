@@ -23,6 +23,18 @@
                 if (btn) { btn.disabled = true; btn.textContent = isCloseOut ? 'Closing...' : 'Committing...'; }
 
                 try {
+                    // Independent of the button's disabled state: that is a
+                    // display property and can be stale or bypassed, and this
+                    // is the last point before a trade is written. A negative
+                    // spread reached the server until 2026-09-05.
+                    if (typeof validatePrsSpread === 'function' && !validatePrsSpread()) {
+                        if (window.showError) {
+                            window.showError('Cannot commit: spread is outside the tradeable range');
+                        }
+                        if (btn) { btn.disabled = false; btn.textContent = isCloseOut ? 'Close Out' : 'Commit'; }
+                        return;
+                    }
+
                     var result = computePRSCashflows();
                     if (!result) {
                         if (btn) { btn.disabled = false; }

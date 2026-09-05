@@ -53,6 +53,10 @@ function loadFragment(overrides = {}) {
         : { gauge_id: 'GAUGE-1f4e46a9', gauge_name: 'Kingston' };
     global.computePRSCashflows = overrides.computePRSCashflows
         || jest.fn(() => CASHFLOWS);
+    // Supplied by ghc_prs_controls.js in the assembled bundle. Default to
+    // a valid spread so existing cases are unaffected.
+    global.validatePrsSpread = overrides.validatePrsSpread
+        || jest.fn(() => true);
     jest.isolateModules(() => { require(FRAGMENT); });
     return window.commitPRSTrade;
 }
@@ -238,5 +242,59 @@ describe('commitPRSTrade', () => {
         const payload = JSON.parse(adminFetch.mock.calls[0][1].body);
         expect(payload.gauge_id).toBe('');
         expect(payload.gauge_name).toBe('');
+    });
+});
+
+
+describe('commitPRSTrade spread validation', () => {
+    // The commit path re-validates rather than trusting the button's disabled
+    // state: that is a display property, can be stale, and is the last thing
+    // standing between bad input and a booked trade. A negative spread reached
+    // the server until 2026-09-05.
+    let adminFetch;
+
+    beforeEach(() => {
+        document.body.innerHTML = `
+            <button id="prs-commit-btn">Commit</button>
+            <select id="prs-counterparty"><option value="CTPY-001">Barclays</option></select>
+            <div id="hazard-status"></div>`;
+        window.__BACKEND_CONFIG = { url: 'http://localhost:5013' };
+        adminFetch = jest.fn(() => Promise.resolve(
+            { json: () => Promise.resolve({ status: 'success', swap_id: 'S1' }) }));
+        window.__mkmAdminFetch = adminFetch;
+        window.showError = jest.fn();
+        window.showSuccess = jest.fn();
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+    afterEach(() => jest.restoreAllMocks());
+
+    test('an invalid spread is never sent', async () => {
+        await loadFragment({ validatePrsSpread: jest.fn(() => false) })();
+
+        expect(adminFetch).not.toHaveBeenCalled();
+        expect(window.showError).toHaveBeenCalledWith(
+            expect.stringContaining('outside the tradeable range'));
+    });
+
+    test('the button is restored so the trader can correct it', async () => {
+        // Leaving it disabled with "Committing..." would strand the form.
+        await loadFragment({ validatePrsSpread: jest.fn(() => false) })();
+
+        const btn = document.getElementById('prs-commit-btn');
+        expect(btn.disabled).toBe(false);
+        expect(btn.textContent).toBe('Commit');
+    });
+
+    test('a valid spread commits as before', async () => {
+        await loadFragment({ validatePrsSpread: jest.fn(() => true) })();
+        expect(adminFetch).toHaveBeenCalledTimes(1);
+    });
+
+    test('a bundle without the validator still commits', async () => {
+        // The guard is `typeof validatePrsSpread === 'function'`, so a build
+        // that has not loaded the controls fragment must not be bricked.
+        global.validatePrsSpread = undefined;
+        await loadFragment({ validatePrsSpread: undefined })();
+        expect(adminFetch).toHaveBeenCalledTimes(1);
     });
 });

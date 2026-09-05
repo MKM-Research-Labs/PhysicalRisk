@@ -27,6 +27,11 @@ from pathlib import Path
 
 from flask import Blueprint, jsonify, request, send_file
 
+from config.models import (
+    PRS_TRADE_SPREAD_MAX_BPS,
+    PRS_TRADE_SPREAD_MIN_BPS,
+)
+
 logger = logging.getLogger(__name__)
 
 import database
@@ -88,6 +93,21 @@ def commit_prs_trade():
         trigger = data.get("trigger", "warning")
         notional = float(data.get("notional", 10_000_000))
         spread_bps = float(data.get("spread_bps", 100))
+
+        # Reject an out-of-range traded spread. The form carries min/max
+        # attributes, but those are native form constraints and nothing here
+        # submits a form — so until 2026-09-05 a negative spread reached this
+        # point, was written into the trade as a negative FixedLegRate, and
+        # booked. Validating server-side covers every caller, not just the
+        # gauge panel that happened to be tested.
+        if not PRS_TRADE_SPREAD_MIN_BPS <= spread_bps <= PRS_TRADE_SPREAD_MAX_BPS:
+            return jsonify({
+                "status": "error",
+                "message": (
+                    f"spread_bps {spread_bps:g} is outside the tradeable range "
+                    f"{PRS_TRADE_SPREAD_MIN_BPS:g}-{PRS_TRADE_SPREAD_MAX_BPS:g}"
+                ),
+            }), 400
 
         # Determine trade type: PropertyPRS when committed from property panel
         trade_type = "PropertyPRS" if property_id else "PRS"

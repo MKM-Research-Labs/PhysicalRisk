@@ -66,6 +66,15 @@ RECOVERY_RATES: Dict[str, float] = {
 # Minimum PRS spread floor — FloodRE minimum insurance rate equivalent
 MIN_PRS_SPREAD_BPS: float = 2.0
 
+# Bounds on a *traded* PRS spread, as opposed to the modelled floor above.
+# The commit endpoint rejects anything outside them. Until 2026-09-05 nothing
+# checked: the form carried min/max attributes, but those are native form
+# constraints and no form is ever submitted, so a negative spread reached the
+# pricer, was written into the trade as a negative FixedLegRate, and booked.
+# The UI input's min/max are kept in step with these.
+PRS_TRADE_SPREAD_MIN_BPS: float = 0.0
+PRS_TRADE_SPREAD_MAX_BPS: float = 1000.0
+
 # EA Flood Zone representative annual hazard rates (midpoint of EA ranges)
 EA_FLOOD_ZONE_RATES: Dict[str, float] = {
     'Zone 3b': 0.050,   # Functional floodplain

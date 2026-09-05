@@ -73,7 +73,60 @@
                     var el = document.getElementById(id);
                     if (el) el.addEventListener('change', function() { if (activeTab === 0) renderPRSPricing(); });
                 });
+
+                // Spread validation. The input carries min/max, but those are
+                // native form constraints and nothing here submits a form, so
+                // a negative or oversized spread used to price and commit
+                // silently. Validate on input as well as change, so typing a
+                // bad value locks the commit immediately rather than after
+                // the field loses focus.
+                var spreadEl = document.getElementById('prs-spread');
+                if (spreadEl) {
+                    spreadEl.addEventListener('input', validatePrsSpread);
+                    spreadEl.addEventListener('change', validatePrsSpread);
+                    validatePrsSpread();
+                }
             }
+
+            // Returns true when the spread is tradeable. Bounds come from the
+            // input's own min/max so there is one source of truth in the DOM,
+            // kept in step with config.models.PRS_TRADE_SPREAD_{MIN,MAX}_BPS.
+            //
+            // On window rather than a bare declaration: the commit fragment in
+            // ghc_prs_commit.js needs it, and a bare function is only visible
+            // inside the IIFE the loader assembles — which also puts it beyond
+            // reach of any unit test.
+            window.validatePrsSpread = function validatePrsSpread() {
+                var el = document.getElementById('prs-spread');
+                var msg = document.getElementById('prs-spread-error');
+                var btn = document.getElementById('prs-commit-btn');
+                if (!el) return true;
+
+                var raw = el.value;
+                var val = parseFloat(raw);
+                var min = parseFloat(el.min);
+                var max = parseFloat(el.max);
+                var ok = raw !== '' && !isNaN(val)
+                    && (isNaN(min) || val >= min)
+                    && (isNaN(max) || val <= max);
+
+                if (!msg) {
+                    msg = document.createElement('span');
+                    msg.id = 'prs-spread-error';
+                    msg.className = 'prs-validation-error';
+                    msg.style.cssText = 'font-size:var(--size-xxs);color:var(--red-dark);margin-left:var(--space-3);';
+                    el.parentNode.insertBefore(msg, el.nextSibling);
+                }
+                msg.textContent = ok ? '' : 'Spread must be ' + el.min + '-' + el.max + ' bps';
+                el.style.borderColor = ok ? '' : 'var(--red-dark)';
+
+                if (btn) {
+                    btn.disabled = !ok;
+                    btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+                    btn.style.opacity = ok ? '' : '0.5';
+                }
+                return ok;
+            };
 
             // Maturity schedule popup
             window.showMaturityPopup = function() {
