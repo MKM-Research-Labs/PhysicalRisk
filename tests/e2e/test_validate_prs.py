@@ -81,6 +81,7 @@ class TestPRSFormValidation:
             .or_(panel.locator("button:has-text('Trade')")))
         )
 
+        is_disabled = False
         if commit_btn.count() > 0:
             is_disabled = commit_btn.first.is_disabled()
             if not is_disabled:
@@ -96,5 +97,11 @@ class TestPRSFormValidation:
             .or_(panel.locator("[class*='validation']"))
         )
 
-        # Accept: error shown, button disabled, or no crash
-        assert True
+        # Both values above were computed and then discarded by an
+        # `assert True`, so the test passed whatever the panel did — including
+        # accepting the invalid input and leaving Commit live. Asserting the
+        # contract: bad input must either disable the commit or say why.
+        assert is_disabled or error_el.count() > 0, (
+            "Invalid PRS input left the commit button enabled with no "
+            "validation message — the trade can be booked on bad input"
+        )

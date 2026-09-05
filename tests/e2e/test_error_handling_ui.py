@@ -103,8 +103,18 @@ class TestEscapeKeyClosesPanels:
         map_page.keyboard.press("Escape")
         map_page.wait_for_timeout(3_000)
 
-        # Escape may or may not close the trading desk — verify it doesn't crash
-        assert True, "Escape key did not crash the page"
+        # The test is named for closing the desk, so that is what it now
+        # checks. Previously it asserted True with the comment "may or may not
+        # close" — a name promising one thing and an assertion checking
+        # another, which is the worst combination because the name is what
+        # gets read in a report.
+        #
+        # If Escape does not close the trading desk, this fails and the answer
+        # is either to wire the handler or to rename the test — not to go back
+        # to asserting nothing.
+        assert not panel.is_visible(), (
+            "Escape did not close the trading desk panel"
+        )
 
 
 
