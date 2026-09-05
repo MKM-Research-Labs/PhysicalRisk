@@ -150,9 +150,24 @@ def _guard_kinds(fn):
     return kinds
 
 
+def _python_files(root):
+    """Every .py under *root*, or *root* itself when it is a file.
+
+    rglob on a file path matches nothing, so passing one file used to scan
+    zero files and report "0 findings" — a clean bill of health for work
+    never done, which is the shape this whole tool exists to find.
+    """
+    p = pathlib.Path(root)
+    if p.is_file():
+        return [p]
+    return sorted(p.rglob('*.py'))
+
+
 def scan(root):
     findings = []
-    for path in sorted(pathlib.Path(root).rglob('*.py')):
+    if not pathlib.Path(root).exists():
+        raise SystemExit(f"no such path: {root}")
+    for path in _python_files(root):
         if '__pycache__' in str(path):
             continue
         try:
