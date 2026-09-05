@@ -134,6 +134,17 @@ class TestFormatDistance:
         result = DataFormatter.format_distance(0.5)
         assert "m" in result
 
+    def test_a_non_numeric_distance_returns_na(self):
+        """None is guarded above; a string or other non-number reaches the
+        comparison and raises, and the caller gets "N/A" rather than a
+        traceback in the middle of a popup."""
+        assert DataFormatter.format_distance("far") == "N/A"
+        assert DataFormatter.format_distance([1.0]) == "N/A"
+
+    def test_a_non_numeric_distance_in_metres_also_returns_na(self):
+        # unit="m" takes the other side of the branch before the format.
+        assert DataFormatter.format_distance("far", unit="m") == "N/A"
+
     def test_explicit_m_unit(self):
         result = DataFormatter.format_distance(2.5, unit="m")
         assert "m" in result

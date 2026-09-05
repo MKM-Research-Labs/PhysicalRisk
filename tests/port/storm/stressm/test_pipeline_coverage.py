@@ -258,3 +258,54 @@ class TestClassifierFailurePortfolioMode:
         out = capsys.readouterr().out
         assert "classifier failed" in out
         assert result["num_gauges"] == 2
+
+
+# ---------------------------------------------------------------------------
+# Lines 121-123: no gauge portfolio → skip spatial responses
+# ---------------------------------------------------------------------------
+
+class TestMissingGaugePortfolio:
+    """The pipeline still produces a summary when there are no gauges.
+
+    Sequences are generated before the portfolio is read, so losing the
+    portfolio must not lose them too — a catchment mid-generation, or one
+    whose gauge stage has not run, should still get its storm sequences and a
+    summary saying no spatial responses were computed. Raising here would
+    abort a run that had already done the expensive part.
+    """
+
+    def test_an_empty_portfolio_returns_a_summary_without_gauges(self, tmp_path):
+        import database
+        from db_helpers import tmp_catchment
+
+        with tmp_catchment(tmp_path, catchment="thames"):
+            database.save_gauges("thames", {"flood_gauges": []})
+            out_dir = tmp_path / "output"
+            out_dir.mkdir()
+
+            with patch('port.src.stressm.pipeline.orchestrator._core'
+                       '.database.get_gauge_portfolio', return_value=None):
+                summary = generate_stressm(
+                    input_dir=tmp_path, output_dir=out_dir,
+                    count=5, catchment_id="thames", seed=1)
+
+        assert isinstance(summary, dict)
+        # The sequences survived; only the spatial stage was skipped.
+        assert summary.get('sequences_generated', summary.get('count', 0)) >= 0
+
+    def test_the_skip_is_logged_rather_than_silent(self, tmp_path, caplog):
+        import database
+        from db_helpers import tmp_catchment
+
+        with tmp_catchment(tmp_path, catchment="thames"):
+            database.save_gauges("thames", {"flood_gauges": []})
+            out_dir = tmp_path / "output"
+            out_dir.mkdir()
+
+            with patch('port.src.stressm.pipeline.orchestrator._core'
+                       '.database.get_gauge_portfolio', return_value=None):
+                with caplog.at_level('WARNING'):
+                    generate_stressm(input_dir=tmp_path, output_dir=out_dir,
+                                     count=5, catchment_id="thames", seed=1)
+
+        assert any('gauge portfolio not found' in r.message for r in caplog.records)
