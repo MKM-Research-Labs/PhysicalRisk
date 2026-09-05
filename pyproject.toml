@@ -52,7 +52,13 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_empty = true
-fail_under = 99
+# Raised from 99 to 99.4 on 2026-09-05, when the suite measured 99.48%
+# (29,371/29,524). At 99 the gate carried half a point of slack — roughly 150
+# statements could have been lost without it noticing — so it was describing
+# an older state of the repo rather than this one. Kept just under the
+# measured figure so ordinary churn does not trip it; raise it again when a
+# tranche earns the next tenth, the same ceremony as config.js_coverage.
+fail_under = 99.4
 exclude_lines = [
     "pragma: no cover",
     "if __name__ == .__main__.",
