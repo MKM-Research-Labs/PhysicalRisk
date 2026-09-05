@@ -54,9 +54,16 @@ from config import config
 from config.data_layout import DEFAULT_MODE
 
 
-def test_backend() -> str:
+def active_test_backend() -> str:
     """The backend the suite runs against — ``file`` (default) or ``pg`` (WP4.2).
-    Set ``MKM_TEST_BACKEND=pg`` to exercise the whole suite on Postgres."""
+    Set ``MKM_TEST_BACKEND=pg`` to exercise the whole suite on Postgres.
+
+    Renamed from ``test_backend``: the ``test_`` prefix made pytest collect
+    this helper as a test in every module that imported it. It returned a
+    string rather than asserting, so each collection "passed" while checking
+    nothing, inflated the test count, and emitted a
+    PytestReturnNotNoneWarning that will become an error in a future pytest.
+    """
     return os.getenv("MKM_TEST_BACKEND", "file").strip().lower()
 
 
@@ -86,7 +93,7 @@ def pg_function_scope(file_scope: str):
     the shared catchment. Every fixture in a dependency chain that reaches such a
     fixture must use this same callable, or pytest raises ``ScopeMismatch``."""
     def _scope(fixture_name, config):
-        return "function" if test_backend() == "pg" else file_scope
+        return "function" if active_test_backend() == "pg" else file_scope
     return _scope
 
 # The real, on-disk ``data/input`` tree, captured at import time (before any
@@ -231,7 +238,7 @@ def tmp_catchment(
     catchment to a clean slate and makes it active — writes land in Postgres and
     are rolled back with the rest of the test.
     """
-    if test_backend() == "pg":
+    if active_test_backend() == "pg":
         _purge_catchment(catchment)
         with database.catchment_context(catchment):
             yield active_backend()

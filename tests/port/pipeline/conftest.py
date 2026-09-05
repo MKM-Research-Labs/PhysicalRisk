@@ -154,8 +154,8 @@ def pipeline_dir(tmp_path_factory):
     disk) and every test asserts by reading the output files, so it can't run on
     Postgres until those generators move onto the seam.
     """
-    from db_helpers import test_backend
-    if test_backend() == "pg":
+    from db_helpers import active_test_backend
+    if active_test_backend() == "pg":
         pytest.skip("end-to-end file pipeline + output-file assertions — file backend "
                     "only until the remaining directory-injected generators are migrated")
     d = tmp_path_factory.mktemp("pipeline")

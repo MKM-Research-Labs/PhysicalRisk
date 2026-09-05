@@ -27,7 +27,7 @@ from database import FileRepository, InMemoryRepository
 from database.backend import active_backend
 from config import config
 
-from db_helpers import tmp_catchment, memory_catchment, test_backend
+from db_helpers import tmp_catchment, memory_catchment, active_test_backend
 
 # These self-tests assert the file-backend behaviour of tmp_catchment and the
 # write-guard (a FileRepository rooted at the scratch dir, on-disk gauge.json, the
@@ -35,7 +35,7 @@ from db_helpers import tmp_catchment, memory_catchment, test_backend
 # Postgres instead (purge + rolled-back transaction, no FileRepository / disk file /
 # guard) by design, so they are file-backend-only.
 _file_mode_only = pytest.mark.skipif(
-    test_backend() == "pg",
+    active_test_backend() == "pg",
     reason="validates the file-backend behaviour of tmp_catchment / the write-guard; "
            "under pg the helper binds Postgres instead.")
 

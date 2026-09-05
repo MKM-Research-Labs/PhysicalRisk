@@ -29,7 +29,7 @@ import pytest
 
 import database
 from port.src.property.main import PropertyPortfolioGenerator
-from db_helpers import test_backend, tmp_catchment
+from db_helpers import active_test_backend, tmp_catchment
 
 from .conftest import make_portfolio_gen, make_portfolio_params
 
@@ -166,7 +166,7 @@ class TestGaugeJsonLoading:
         assert isinstance(gen._gauge_id_map, dict)
 
     @pytest.mark.skipif(
-        test_backend() == "pg",
+        active_test_backend() == "pg",
         reason="legacy 'gauges'-only doc shape; Postgres normalises a gauge "
                "collection to 'flood_gauges' (no generator saves the legacy shape).")
     def test_gauge_id_map_works_with_gauges_key(self, tmp_path):

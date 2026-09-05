@@ -37,8 +37,8 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _database_file_backend():
-    from db_helpers import pg_test_isolation, test_backend, use_guarded_file_backend
-    if test_backend() == "pg":
+    from db_helpers import pg_test_isolation, active_test_backend, use_guarded_file_backend
+    if active_test_backend() == "pg":
         # WP4.2: run the test against Postgres in a rolled-back transaction.
         with pg_test_isolation():
             yield

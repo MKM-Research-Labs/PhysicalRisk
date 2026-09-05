@@ -37,7 +37,7 @@ from port.src.commercial import (
     CommercialPortfolioGenerator,
     generate_commercials,
 )
-from db_helpers import test_backend, tmp_catchment
+from db_helpers import active_test_backend, tmp_catchment
 
 
 @pytest.fixture(autouse=True)
@@ -239,7 +239,7 @@ class TestGaugeIdMap:
         assert gen._gauge_id_map == {0: "GAUGE-001", 1: "GAUGE-002"}
 
     @pytest.mark.skipif(
-        test_backend() == "pg",
+        active_test_backend() == "pg",
         reason="exercises the legacy 'gauges'-only doc shape; Postgres normalises a "
                "gauge collection to 'flood_gauges', so the fallback can't be reproduced "
                "(no generator ever saves the legacy shape — file-only round-trip edge).")
@@ -254,7 +254,7 @@ class TestGaugeIdMap:
         assert gen._gauge_id_map == {0: "G-9"}
 
     @pytest.mark.skipif(
-        test_backend() == "pg",
+        active_test_backend() == "pg",
         reason="seeds a gauge record with no GaugeID; the Postgres gauge table keys "
                "on GaugeID so it can't store a malformed record — a file-only edge case.")
     def test_entries_without_gauge_id_are_skipped(self, tmp_path):

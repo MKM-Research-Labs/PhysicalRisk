@@ -23,7 +23,7 @@
 import pytest
 
 import database
-from db_helpers import test_backend, tmp_catchment
+from db_helpers import active_test_backend, tmp_catchment
 from tests.port.gauge.conftest import write_nrfa_csv, SAMPLE_GAUGE_ENTRY
 
 
@@ -77,7 +77,7 @@ class TestGenerateAllGaugeHistories:
         assert len(result) == 1
 
     @pytest.mark.skipif(
-        test_backend() == "pg",
+        active_test_backend() == "pg",
         reason="seeds a malformed gauge with no GaugeID to exercise the error-continue "
                "path; Postgres keys gauges on GaugeID so such a record cannot be stored "
                "(save_gauges raises) — file-only behaviour.")

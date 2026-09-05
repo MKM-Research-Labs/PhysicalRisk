@@ -108,7 +108,7 @@ class TestGaugetsMain:
         receives the per-gauge timeseries writes through ``database``.
         """
         import runpy
-        from db_helpers import test_backend, tmp_catchment
+        from db_helpers import active_test_backend, tmp_catchment
 
         gauge_portfolio = {
             'flood_gauges': [{
@@ -133,5 +133,5 @@ class TestGaugetsMain:
         # On the file backend the per-gauge timeseries land physically under
         # tmp_path/gaugets; on pg they are rows, so the seam assertion above is
         # the cross-backend proof and this file check is file-only.
-        if test_backend() != "pg":
+        if active_test_backend() != "pg":
             assert (tmp_path / 'gaugets').exists()

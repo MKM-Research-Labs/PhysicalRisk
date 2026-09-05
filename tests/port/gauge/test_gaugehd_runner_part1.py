@@ -27,7 +27,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from db_helpers import test_backend, tmp_catchment
+from db_helpers import active_test_backend, tmp_catchment
 from tests.port.gauge.conftest import SAMPLE_GAUGE_ENTRY, setup_gauge_env, write_nrfa_csv
 
 
@@ -44,7 +44,7 @@ def _iso_catchment(tmp_path):
 # ===========================================================================
 
 @pytest.mark.skipif(
-    test_backend() == "pg",
+    active_test_backend() == "pg",
     reason="asserts stale per-gauge history FILES are deleted; on Postgres history is "
            "rows, not files, so there are no stale files to clean — file-only behaviour.")
 class TestStaleFileCleanup:
@@ -118,7 +118,7 @@ class TestGenerateAllErrorPaths:
         assert "GAUGE-BADONE" in caplog.text
 
     @pytest.mark.skipif(
-        test_backend() == "pg",
+        active_test_backend() == "pg",
         reason="seeds a completely empty gauge entry (no GaugeID) to exercise the "
                "UNKNOWN-id error path; Postgres keys gauges on GaugeID so such a record "
                "cannot be stored (setup_gauge_env raises) — file-only behaviour.")
@@ -134,7 +134,7 @@ class TestGenerateAllErrorPaths:
         assert "UNKNOWN" in caplog.text
 
     @pytest.mark.skipif(
-        test_backend() == "pg",
+        active_test_backend() == "pg",
         reason="seeds two gauge entries that share GaugeID GAUGE-TEST01 to fail the first "
                "and pass the second; Postgres keys gauges on GaugeID so the duplicates "
                "collapse to a single row and the two-gauge scenario cannot exist — "

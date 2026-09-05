@@ -23,7 +23,7 @@
 import pytest
 
 import database
-from db_helpers import seed_gauge_hazard_curves, test_backend, tmp_catchment
+from db_helpers import seed_gauge_hazard_curves, active_test_backend, tmp_catchment
 from models.trading.market_state import MarketStateManager
 
 
@@ -202,7 +202,7 @@ class TestMissingCoverage:
         assert isinstance(state, dict)
 
     @pytest.mark.skipif(
-        test_backend() == "pg",
+        active_test_backend() == "pg",
         reason="seeds the raw {'gauges': [...]} file shape, a MarketStateManager "
                "tolerance; pg stores gauge hazard curves as shredded rows under the "
                "canonical 'hazard_curves' container, so the gauges-key shape can't "

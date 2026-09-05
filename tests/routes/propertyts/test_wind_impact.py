@@ -29,7 +29,7 @@ import json
 
 import pytest
 
-from db_helpers import test_backend
+from db_helpers import active_test_backend
 from routes.propertyts import wind_impact as wi
 
 
@@ -125,7 +125,7 @@ def test_load_property_address_lookup_bad_json(cfg_tmp):
 
 
 @pytest.mark.skipif(
-    test_backend() == "pg",
+    active_test_backend() == "pg",
     reason="seeds a property record with no PropertyID to exercise the skip-missing-id "
            "branch; pg keys properties on PropertyID so save_properties shreds and "
            "raises — file-only (the file backend stores the whole doc).")
