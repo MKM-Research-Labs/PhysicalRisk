@@ -118,6 +118,11 @@ class TestEODSubmit:
             "button:has-text('PDF'), [class*='pdf']"
         )
         has_pdf = pdf_link.count() > 0 or "pdf" in text
-        if not has_pdf:
-            pytest.skip("No PDF link found in EOD history (may need prior snapshots)")
-        assert has_pdf
+        # The skip and the assertion were the same condition, so this could
+        # never fail. A snapshot with no report link is the thing worth
+        # catching; if the history is genuinely empty that is also worth
+        # knowing, and the message says which.
+        assert has_pdf, (
+            "EOD history shows no PDF link. History text was: "
+            f"{text[:200]!r}"
+        )

@@ -87,10 +87,16 @@ class TestTradeCloseOut:
         modal = map_page.locator("[class*='modal'], [class*='dialog'], [id*='close-modal'], [id*='closeout']")
         spread_input = map_page.locator("input[id*='spread'], input[name*='spread'], input[id*='close']")
 
+        # The dialog failing to appear IS the regression this test exists to
+        # catch, so it fails rather than skips. Previously it skipped on
+        # exactly the condition it then asserted, so it could pass or skip but
+        # never fail — a close-out button that stopped opening its dialog
+        # would have been reported as a green run.
         has_dialog = modal.count() > 0 or spread_input.count() > 0
-        if not has_dialog:
-            pytest.skip("Close-out dialog/modal did not appear")
-        assert has_dialog
+        assert has_dialog, (
+            "Clicking the close-out button opened no dialog: found no modal "
+            "and no spread input"
+        )
 
 # Note: spread/confirm coverage is provided by tests/e2e/test_lifecycle_closeout.py,
 # which uses the real #td-closeout-* element IDs end-to-end.

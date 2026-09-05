@@ -140,8 +140,12 @@ class TestGaugeBlotterFlow:
         map_page.wait_for_timeout(3_000)
 
         td_panel = map_page.locator("#trading-desk-panel")
-        if not td_panel.is_visible():
-            pytest.skip("Trading desk did not open from gauge link")
+        # Skipping here and asserting the same thing below meant the test
+        # could never fail. The sibling test above already asserts this
+        # transition, so a skip here also hid a disagreement between the two.
+        assert td_panel.is_visible(), (
+            "The gauge panel's blotter link did not open the trading desk"
+        )
 
         # Blotter view or tab should be active
         blotter_view = map_page.locator("#td-blotter-view")

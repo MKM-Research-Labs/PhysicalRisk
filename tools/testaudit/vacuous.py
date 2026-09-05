@@ -120,6 +120,14 @@ def _tautology(a):
 
 
 
+
+def _is_exact_negation(skip_src, assert_src):
+    """True when the assertion is precisely `not <skip condition>`."""
+    a, b = skip_src.strip(), assert_src.strip()
+    return (a == f"not {b}" or b == f"not {a}"
+            or a == f"not ({b})" or b == f"not ({a})")
+
+
 def _guard_kinds(fn):
     """Which construct guards the assertions: {'if'}, {'loop'} or both."""
     kinds = set()
@@ -173,8 +181,12 @@ def scan(root):
                         continue
                     txt = ast.unparse(a.test)
                     for s in srcs:
-                        neg = s.lstrip('not ').strip()
-                        if neg and neg in txt and ('not ' in s) != ('not ' in txt):
+                        # Only the exact negation. `skip on not pts` followed
+                        # by `'elevation_m' in pts` is NOT this shape: the
+                        # skip guards absent data and the assertion checks a
+                        # different property of it. Substring matching flagged
+                        # 30 of those as vacuous when 1 was.
+                        if _is_exact_negation(s, txt):
                             findings.append(('SKIP_THEN_NOT', rel, fn.name,
                                              f"skip on `{s}` then `{txt}`"[:90]))
                             break

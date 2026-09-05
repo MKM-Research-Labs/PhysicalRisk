@@ -30,6 +30,8 @@ from pathlib import Path
 
 import pytest
 
+from tests._dataset import full_dataset_only
+
 from tests.data._id_consistency_helpers import (
     ROOT,
     INPUT_DIR,
@@ -145,18 +147,24 @@ class TestPipelineCompleteness:
             # only after a complete generation.
             pytest.skip("\n".join(lines))
 
+    @full_dataset_only
     def test_no_empty_output_directories(self):
-        """Directories that exist but are empty are just as broken as missing."""
+        """Directories that exist but are empty are just as broken as missing.
+
+        This used to `skip` when it found empty directories and then assert
+        there were none — so it could pass or skip but never fail, while its
+        own docstring claimed the opposite. The skip existed because a
+        partial dev dataset legitimately lacks outputs; the right expression
+        of that is the full-dataset mark, which skips only a run that
+        generated its own portfolio and asserts everywhere else.
+        """
         from lineage.validation import check_pipeline_complete
         result = check_pipeline_complete(INPUT_DIR)
         empty = [m for m in result["missing"] if m["type"] == "empty_directory"]
-        if empty:
-            # See test_all_pipeline_outputs_exist: partial/dev datasets skip.
-            pytest.skip(
-                "Empty output directories (full pipeline not generated): "
-                + ", ".join(f"{m['step']}/{m['output']}" for m in empty)
-            )
-        assert not empty
+        assert not empty, (
+            "Empty output directories: "
+            + ", ".join(f"{m['step']}/{m['output']}" for m in empty)
+        )
 
     def test_classifiers_match_storm_data(self):
         """At least one trained classifier must be documented in training_summary."""
