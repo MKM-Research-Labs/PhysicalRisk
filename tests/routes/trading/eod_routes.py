@@ -234,3 +234,47 @@ class TestEODErrorHandlers:
             mock_cfg.get_eod_dir.side_effect = RuntimeError('dir fail')
             resp = trading_client.get('/api/v1/trading/eod/2026-03-01/pdf')
             assert resp.status_code == 500
+
+
+class TestSubmitEODPdfFailures:
+    """The snapshot must survive a failure to render its report.
+
+    The EOD record is the book's official history; the PDF beside it is a
+    convenience. Letting a reporting error abort the submit would mean a day
+    with no snapshot because a chart would not draw — so both arms swallow and
+    return success with pdf_base64 null.
+    """
+
+    def test_a_broken_generator_still_stores_the_snapshot(
+            self, trading_client, trading_env):
+        with patch('reports.trading.eod_generator.EODReportGenerator',
+                   side_effect=RuntimeError('renderer exploded')):
+            resp = trading_client.post('/api/v1/trading/eod',
+                                       json={'date': '2026-03-01'})
+        data = json.loads(resp.data)
+        assert resp.status_code == 200
+        assert data['status'] == 'success'
+        assert data['eod_id']
+        # Initialised to '' and only replaced on a successful render.
+        assert not data['pdf_base64']
+
+    def test_an_absent_generator_module_still_stores_the_snapshot(
+            self, trading_client, trading_env):
+        """The ImportError arm: the report generator is optional, so a
+        deployment without it must still be able to close the book."""
+        import builtins
+        real_import = builtins.__import__
+
+        def _no_eod_generator(name, *a, **kw):
+            if name == 'reports.trading.eod_generator':
+                raise ImportError('not installed')
+            return real_import(name, *a, **kw)
+
+        with patch('builtins.__import__', side_effect=_no_eod_generator):
+            resp = trading_client.post('/api/v1/trading/eod',
+                                       json={'date': '2026-03-02'})
+        data = json.loads(resp.data)
+        assert resp.status_code == 200
+        assert data['status'] == 'success'
+        # Initialised to '' and only replaced on a successful render.
+        assert not data['pdf_base64']

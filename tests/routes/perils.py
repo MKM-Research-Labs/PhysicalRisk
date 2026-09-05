@@ -87,3 +87,26 @@ class TestSeismic:
 
     def test_missing_file_returns_empty(self, tmp_path, monkeypatch):
         assert _client(tmp_path, monkeypatch).get("/api/v1/seismic").get_json() == {}
+
+    def test_malformed_file_returns_empty(self, tmp_path, monkeypatch):
+        """The seismic twin of the fire case above.
+
+        Fire had this covered and seismic did not, so a corrupt seismic model
+        file would have propagated a JSONDecodeError as a 500 instead of the
+        documented empty payload — and the commercial PRS panel reads this
+        endpoint on open, so the whole panel would have failed rather than
+        showing no seismic component.
+        """
+        (tmp_path / "seismic").mkdir()
+        (tmp_path / "seismic" / "seismic.json").write_text("{not json")
+        r = _client(tmp_path, monkeypatch).get("/api/v1/seismic")
+        assert r.status_code == 200
+        assert r.get_json() == {}
+
+    def test_an_unreadable_file_returns_empty(self, tmp_path, monkeypatch):
+        """A directory where the file should be raises OSError, not a decode
+        error — the handler catches both for the same reason."""
+        (tmp_path / "seismic" / "seismic.json").mkdir(parents=True)
+        r = _client(tmp_path, monkeypatch).get("/api/v1/seismic")
+        assert r.status_code == 200
+        assert r.get_json() == {}
