@@ -103,6 +103,21 @@ def open_trading_desk(page, tab=None):
         if (p) p.style.display = '';
     }""")
 
+    # Wait for the startup preload before opening. TradingDesk.show() takes
+    # two paths: with window._tdPreloadDone it opens immediately, without it
+    # it runs an async preload and opens in the callback — and that callback
+    # ends in switchTab('blotter'). Opening before the preload lands means a
+    # tab selected here is silently switched back to the blotter a moment
+    # later, which is what made the EOD view "still hidden after clicking
+    # #td-tab-eod": the view was revealed and then hidden again.
+    try:
+        page.wait_for_function(
+            "() => window._tdPreloadDone === true", timeout=60_000)
+    except Exception:
+        # Preload never signalled; carry on rather than failing every trading
+        # desk test on it, but the race above may recur.
+        pass
+
     page.evaluate("""() => {
         if (window.TradingDesk && window.TradingDesk.show) {
             window.TradingDesk.show();
@@ -119,6 +134,12 @@ def open_trading_desk(page, tab=None):
             try:
                 td.wait_for(state="visible", timeout=5_000)
             except Exception:
+                # Last resort. Forcing display makes the panel visible without
+                # _tdOpenPanel having run, so no tab has been selected and a
+                # late preload callback can still call switchTab('blotter')
+                # over the top of whatever the test picks. Kept so a panel
+                # that never opens still produces a specific failure further
+                # down rather than a timeout here.
                 page.evaluate(
                     "document.getElementById('trading-desk-panel').style.display = ''"
                 )
@@ -144,10 +165,18 @@ def open_trading_desk(page, tab=None):
         )
         tab_btn.click(force=True)
         page.wait_for_timeout(3_000)
-        assert page.locator(f"#td-{tab}-view").is_visible(), (
-            f"#td-{tab}-view is still hidden after clicking #td-tab-{tab}, "
-            f"with the panel itself visible — switchTab did not reveal the "
-            f"view (see trading/tradingdesk/panel_tabs.js)"
+        # is_visible() is False both for a hidden element and for one that is
+        # not in the DOM at all, and those want different fixes — so say which.
+        view = page.locator(f"#td-{tab}-view")
+        assert view.count() > 0, (
+            f"#td-{tab}-view is not in the DOM — the panel was built without "
+            f"it (see trading/tradingdesk/panel_create.js)"
+        )
+        assert view.is_visible(), (
+            f"#td-{tab}-view exists but is hidden after clicking "
+            f"#td-tab-{tab}, with the panel itself visible — switchTab did "
+            f"not reveal it, or something switched away afterwards (see "
+            f"trading/tradingdesk/panel_tabs.js)"
         )
 
 

@@ -34,8 +34,14 @@
             function _tdOpenPanel() {
                 createPanel();
                 tdPanel.style.display = 'flex';
-                tdActiveTab = 'blotter';
-                switchTab('blotter');
+                // Blotter is the default, not an override. showPanel may have
+                // run an async preload, and the user can click a tab while it
+                // is in flight — switching them back when the callback lands
+                // discards a deliberate choice. Honour whatever is already
+                // selected and fall back to the blotter on a fresh open.
+                var target = tdActiveTab || 'blotter';
+                tdActiveTab = target;
+                switchTab(target);
             }
 
             function hidePanel() {
