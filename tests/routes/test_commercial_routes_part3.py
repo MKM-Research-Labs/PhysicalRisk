@@ -27,6 +27,7 @@ report renderers.
 """
 
 import json
+from unittest.mock import patch
 
 import pytest
 
@@ -260,3 +261,51 @@ def test_portfolio_impact_skips_asset_without_property_id(client, cfg_tmp):
     resp = client.get("/api/v1/commercial/STORM-0001/portfolio-impact")
     assert resp.status_code == 200
     assert resp.get_json()["portfolio"]["total_assets"] == 0
+
+
+# ---------------------------------------------------------------------------
+# portfolio-impact — the three skip arms
+# ---------------------------------------------------------------------------
+
+def test_portfolio_impact_without_asset_or_loan_files(client, cfg_tmp):
+    """Both joins are optional: the damage figures come from commercialts, and
+    the asset and loan lookups only decorate them.
+
+    Each lookup swallows FileNotFoundError so a catchment whose commercial or
+    loan stage has not run still returns damage rather than a 404 — the storm
+    view degrades to unnamed assets instead of disappearing.
+    """
+    cts_dir = cfg_tmp / "commercialts"
+    cts_dir.mkdir()
+    (cts_dir / f"{CPID}.json").write_text(json.dumps({
+        "property_id": CPID,
+        "flood_events": [{"storm_id": "STORM-0001", "flooded": True,
+                          "damage_ratio": 0.1, "flood_depth_m": 0.5}],
+    }))
+
+    resp = client.get("/api/v1/commercial/STORM-0001/portfolio-impact")
+
+    assert resp.status_code == 200
+    assert resp.get_json()["status"] == "success"
+
+
+def test_portfolio_impact_skips_an_unreadable_timeseries(client, cfg_tmp):
+    """A commercialts id the seam cannot return is skipped, not dereferenced.
+
+    iter names the id and get returns None when the document is absent or
+    unreadable — indexing it would 500 the whole storm view over one asset.
+    """
+    _write_commercial(cfg_tmp)
+    cts_dir = cfg_tmp / "commercialts"
+    cts_dir.mkdir()
+    (cts_dir / f"{CPID}.json").write_text(json.dumps({
+        "property_id": CPID, "flood_events": []}))
+
+    with patch("routes.commercial.portfolio._impact.database"
+               ".get_commercial_timeseries", return_value=None):
+        resp = client.get("/api/v1/commercial/STORM-0001/portfolio-impact")
+
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data["status"] == "success"
+    assert data["assets"] == []
