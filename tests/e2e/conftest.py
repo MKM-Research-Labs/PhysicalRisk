@@ -380,28 +380,10 @@ def map_page(_browser_page):
     """
     page = _browser_page
 
-    # Clean up: close ALL open panels from previous test
-    page.evaluate("""() => {
-        // Close every known panel
-        const panels = [
-            'trading-desk-panel',
-            'hazard-curve-panel',
-            'property-hc-panel',
-            'prop-storm-panel',
-            'mortgage-detail-panel',
-            'property-pdf-panel',
-            'storm-portfolio-panel',
-            'gauge-pdf-panel',
-            'gauge-graph-panel',
-            'loan-pricer-panel',
-        ];
-        panels.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.style.display = 'none';
-        });
-        // Close any context menus
-        document.querySelectorAll('.ctx-menu').forEach(m => m.remove());
-    }""")
+    # Clean up: close ALL open panels and overlays left by the previous test.
+    # This used to inline its own copy of the id list, which drifted from the
+    # others; it now shares the one in _helpers.py.
+    page.evaluate(CLOSE_PANELS_JS)
 
     return page
 

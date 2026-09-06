@@ -32,17 +32,9 @@ import pytest
 # Panel IDs
 # ---------------------------------------------------------------------------
 
-PANEL_IDS_TO_CLOSE = [
-    "trading-desk-panel",
-    "hazard-curve-panel",
-    "property-hc-panel",
-    "prop-storm-panel",
-    "mortgage-detail-panel",
-    "property-pdf-panel",
-    "storm-portfolio-panel",
-    "gauge-pdf-panel",
-    "gauge-graph-panel",
-]
+# One list, defined in _helpers.py. This module's cleanup additionally clears
+# notifications, so it builds its own snippet from the shared ids.
+from tests.e2e._helpers import PANEL_IDS_TO_CLOSE  # noqa: E402
 
 CLOSE_PANELS_JS = """() => {
     %s.forEach(id => {
@@ -173,43 +165,48 @@ def open_trading_desk(page, tab=None):
             f"it (see trading/tradingdesk/panel_create.js)"
         )
         if not view.is_visible():
-            # Two rounds of source reading have not explained this, so probe
-            # the page rather than guess a third time. switchTab hides every
-            # view, then reveals the active one — if it throws in between
-            # (Theme.value is the only call that can), every view stays
-            # hidden and the error is otherwise invisible from here.
-            probe = page.evaluate("""(tab) => {
-                var views = ['client', 'blotter', 'market', 'risk', 'map',
-                             'eod', 'curves', 'stress', 'portstress',
-                             'classifiers'];
-                var display = {};
-                views.forEach(function (v) {
-                    var el = document.getElementById('td-' + v + '-view');
-                    display[v] = el ? getComputedStyle(el).display : 'absent';
-                });
-                var err = null;
-                try {
-                    if (typeof switchTab === 'function') switchTab(tab);
-                    else err = 'switchTab is not a function';
-                } catch (e) {
-                    err = String(e && e.message || e);
-                }
-                var after = document.getElementById('td-' + tab + '-view');
-                return {
-                    hasTheme: typeof Theme,
-                    hasThemeValue: (typeof Theme === 'object' && Theme)
-                        ? typeof Theme.value : 'n/a',
-                    activeTab: (typeof tdActiveTab !== 'undefined')
-                        ? tdActiveTab : '<undefined>',
-                    displayBefore: display,
-                    switchTabError: err,
-                    displayAfterDirectCall: after
-                        ? getComputedStyle(after).display : 'absent',
-                };
-            }""", tab)
+            # The cause here is almost always an overlay left up by an earlier
+            # test on this shared page: force=True skips the actionability
+            # check but still dispatches the click at the button's
+            # coordinates, so a scrim above it eats the click and the tab
+            # never switches. Name the element that would actually receive
+            # the click rather than leaving it to be guessed at.
+            box = tab_btn.bounding_box()
+            probe = page.evaluate(
+                """([tab, box]) => {
+                    var views = ['client', 'blotter', 'market', 'risk', 'map',
+                                 'eod', 'curves', 'stress', 'portstress',
+                                 'classifiers'];
+                    var display = {};
+                    views.forEach(function (v) {
+                        var el = document.getElementById('td-' + v + '-view');
+                        display[v] = el ? getComputedStyle(el).display
+                                        : 'absent';
+                    });
+                    var hit = null;
+                    if (box) {
+                        var el = document.elementFromPoint(
+                            box.x + box.width / 2, box.y + box.height / 2);
+                        if (el) {
+                            hit = el.id || el.tagName;
+                            var owner = el.closest('[id]');
+                            if (owner && owner.id) hit += ' (in #' + owner.id + ')';
+                        }
+                    }
+                    return {
+                        clickWouldHit: hit,
+                        expected: 'td-tab-' + tab,
+                        displays: display,
+                    };
+                }""",
+                [tab, box],
+            )
             raise AssertionError(
                 f"#td-{tab}-view exists but is hidden after clicking "
-                f"#td-tab-{tab}, with the panel visible. Probe: {probe}"
+                f"#td-tab-{tab}, with the panel visible. If clickWouldHit is "
+                f"not the tab button, an overlay is swallowing the click and "
+                f"its id belongs in PANEL_IDS_TO_CLOSE "
+                f"(tests/e2e/_helpers.py). Probe: {probe}"
             )
 
 

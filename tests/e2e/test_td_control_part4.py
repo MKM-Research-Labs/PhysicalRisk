@@ -48,24 +48,11 @@ def _stub_prompt(page, value):
 # Helpers
 # ---------------------------------------------------------------------------
 
-PANEL_IDS_TO_CLOSE = [
-    "trading-desk-panel",
-    "hazard-curve-panel",
-    "property-hc-panel",
-    "prop-storm-panel",
-    "mortgage-detail-panel",
-    "property-pdf-panel",
-    "storm-portfolio-panel",
-    "gauge-pdf-panel",
-]
-
-CLOSE_PANELS_JS = """() => {
-    %s.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
-    document.querySelectorAll('.ctx-menu').forEach(m => m.remove());
-}""" % str(PANEL_IDS_TO_CLOSE).replace("'", '"')
+# Panel ids and the cleanup snippet live in one place; see tests/e2e/_helpers.py.
+from tests.e2e._helpers import (  # noqa: F401  (re-exported for this module's tests)
+    CLOSE_PANELS_JS,
+    PANEL_IDS_TO_CLOSE,
+)
 
 
 def _close_all_panels(page):

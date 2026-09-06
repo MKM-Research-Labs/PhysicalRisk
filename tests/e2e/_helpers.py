@@ -79,6 +79,14 @@ def close_all_data_panels(page):
 # Storm Portfolio panel helpers (shared by test_storm_portfolio_part*.py)
 # ---------------------------------------------------------------------------
 
+# The single list of things that must be out of the way before a test drives
+# the UI. It covers overlays as well as panels: a full-screen scrim left up by
+# an earlier test in the same session swallows clicks at the coordinates
+# force=True dispatches them to, so the click silently does nothing and the
+# next assertion blames whatever it was looking for. Six copies of this list
+# used to exist and had already drifted apart, which is how td-closeout-modal
+# and loan-pricer-panel came to be missing from most of them. Add new ids here
+# and nowhere else.
 PANEL_IDS_TO_CLOSE = [
     "trading-desk-panel",
     "hazard-curve-panel",
@@ -88,6 +96,9 @@ PANEL_IDS_TO_CLOSE = [
     "property-pdf-panel",
     "storm-portfolio-panel",
     "gauge-pdf-panel",
+    "gauge-graph-panel",
+    "loan-pricer-panel",
+    "td-closeout-modal",
 ]
 
 CLOSE_PANELS_JS = """() => {
