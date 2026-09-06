@@ -239,3 +239,134 @@ def td_close_trading_desk(page):
         const el = document.getElementById('trading-desk-panel');
         if (el) el.style.display = 'none';
     }""")
+
+
+# ---------------------------------------------------------------------------
+# Commercial marker helpers
+# ---------------------------------------------------------------------------
+
+# Purple is unique to commercial markers: the property layer only ever emits
+# red/orange/green (property_layer/layer.py::_get_property_icon) and the gauge
+# layer blue/orange/red/gray (gauge_layer/marker.py::get_gauge_icon). No
+# client-side code creates map markers at all, so anything purple came from
+# commercial_layer/layer.py, where _MARKER_COLOR = "purple".
+COMMERCIAL_MARKER_SELECTOR = "[class*='awesome-marker-icon-purple']"
+
+
+def find_commercial_markers(page):
+    """Locator over every commercial (purple) marker on the map."""
+    return page.locator(COMMERCIAL_MARKER_SELECTOR)
+
+
+def _commercial_marker_diagnostics(page):
+    """State needed to tell the ways this can fail apart.
+
+    ``_markerType`` / ``_hasContextMenu`` are stamped by initializeMenus() onto
+    the Leaflet *layer*, not onto the icon element, so this walks the map's
+    layers the same way context-menus.js does rather than reading attributes
+    off the DOM node (which would silently report null for everything).
+    """
+    return page.evaluate("""(sel) => {
+        var pane = document.querySelector('.leaflet-marker-pane');
+        var mapKey = Object.keys(window).find(
+            function (k) { return k.startsWith('map_'); });
+        var map = mapKey ? window[mapKey] : (window.mapInstance || null);
+        var purpleLayers = [];
+        if (map && window.L) {
+            map.eachLayer(function (layer) {
+                if (!(layer instanceof L.Marker)) return;
+                var icon = layer._icon;
+                if (!icon || !icon.className ||
+                    icon.className.indexOf('awesome-marker-icon-purple') < 0) {
+                    return;
+                }
+                purpleLayers.push({
+                    id: layer._markerId || null,
+                    type: layer._markerType || null,
+                    bound: !!layer._hasContextMenu,
+                });
+            });
+        }
+        return {
+            mapFound: !!map,
+            markerPaneChildren: pane ? pane.children.length : 0,
+            purpleElements: document.querySelectorAll(sel).length,
+            allMarkerElements: document.querySelectorAll(
+                "[class*='awesome-marker-icon-']").length,
+            purpleLayers: purpleLayers,
+            menus: Array.from(document.querySelectorAll('.ctx-menu')).map(
+                function (m) {
+                    return {
+                        id: m.id,
+                        shown: m.style.display !== 'none',
+                        items: Array.from(
+                            m.querySelectorAll('.ctx-menu-item')).map(
+                                function (i) { return i.textContent; }),
+                    };
+                }),
+        };
+    }""", COMMERCIAL_MARKER_SELECTOR)
+
+
+def open_commercial_context_menu(page):
+    """Open the commercial context menu and prove it is the commercial one.
+
+    Dispatches ``contextmenu`` on the marker element rather than pixel-clicking
+    its centre. At the zoom the map fits the whole portfolio to, markers pack
+    tightly — the nearest commercial/property pair in the thames set is 123 m
+    apart, a few pixels, well inside a ~35 px icon — so a coordinate click can
+    land on whichever marker paints on top. Dispatching on the element bypasses
+    hit-testing entirely.
+
+    That is not sufficient on its own, which is why this helper verifies the
+    result. The tests here previously asserted only that *a* menu appeared, so
+    a run that opened the property menu passed just as happily as one that
+    opened the commercial menu, and the single test that looked for a specific
+    commercial item was left to fail alone and unexplained. Each purple marker
+    is tried in turn and the helper returns only once
+    ``#commercial-context-menu`` is actually displayed.
+    """
+    # Remove rather than hide: a stale hidden menu from an earlier test is
+    # indistinguishable from one this call created if we only toggle display.
+    page.evaluate("""() => {
+        if (window.hideAllMenus) window.hideAllMenus();
+        document.querySelectorAll('.ctx-menu').forEach(m => m.remove());
+    }""")
+
+    markers = find_commercial_markers(page)
+    count = markers.count()
+    if count == 0:
+        pytest.skip(
+            "No commercial markers on the map. Diagnostics: "
+            f"{_commercial_marker_diagnostics(page)}"
+        )
+
+    for i in range(count):
+        marker = markers.nth(i)
+        box = marker.bounding_box()
+        detail = {"bubbles": True, "cancelable": True, "button": 2}
+        if box:
+            detail["clientX"] = int(box["x"] + box["width"] / 2)
+            detail["clientY"] = int(box["y"] + box["height"] / 2)
+        marker.dispatch_event("contextmenu", detail)
+        # showMenu() builds the menu synchronously; this only covers the
+        # Leaflet event plumbing in between.
+        page.wait_for_timeout(500)
+        opened = page.evaluate("""() => {
+            const m = document.getElementById('commercial-context-menu');
+            return !!m && m.style.display !== 'none';
+        }""")
+        if opened:
+            return
+        page.evaluate(
+            "() => document.querySelectorAll('.ctx-menu')"
+            ".forEach(m => m.remove())")
+
+    raise AssertionError(
+        f"Dispatched contextmenu on all {count} commercial (purple) markers "
+        "and #commercial-context-menu never appeared. If a property menu "
+        "opened instead, the marker was registered as type 'property' by "
+        "initializeMenus() in context-menus.js — check that the popup still "
+        "carries the CPROP- id, since the tooltip deliberately omits it. "
+        f"Diagnostics: {_commercial_marker_diagnostics(page)}"
+    )

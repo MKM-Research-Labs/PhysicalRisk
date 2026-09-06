@@ -49,70 +49,10 @@ _COMMERCIAL_ICON_CLASSES = [
 ]
 
 
-def _find_commercial_markers(page):
-    """Find commercial markers on the map (purple is unique to commercial)."""
-    return page.locator("[class*='awesome-marker-icon-purple']")
-
-
-def _right_click_commercial_marker(page):
-    """Right-click the first commercial marker and wait for context menu.
-
-    Dismisses any menu lingering from a previous test before the click —
-    map_page is session-scoped so a menu opened by an earlier test would
-    sit on top of the marker, intercept the click, and prevent the new
-    contextmenu event from firing.
-    """
-    # Best-effort menu dismissal (JS helper at window.hideAllMenus is
-    # registered by context-menus.js; an inline click on body also fires
-    # the document-level click listener that calls hideAllMenus()).
-    try:
-        page.evaluate("""() => {
-            if (window.hideAllMenus) window.hideAllMenus();
-            document.querySelectorAll('.ctx-menu').forEach(m => {
-                m.style.display = 'none';
-            });
-        }""")
-    except Exception:
-        pass
-
-    markers = _find_commercial_markers(page)
-    if markers.count() == 0:
-        diag = page.evaluate("""() => {
-            const pane = document.querySelector('.leaflet-marker-pane');
-            return {
-                marker_pane_children: pane ? pane.children.length : 0,
-                purple_markers: document.querySelectorAll(
-                    "[class*='awesome-marker-icon-purple']"
-                ).length,
-                all_markers: document.querySelectorAll(
-                    "[class*='awesome-marker-icon-']"
-                ).length,
-            }
-        }""")
-        pytest.skip(f"No commercial markers on map. Diagnostics: {diag}")
-
-    # Dispatch the contextmenu event directly on the commercial (purple) marker
-    # element rather than pixel-clicking its centre. When the map is framed to
-    # the whole portfolio, dense areas (Hanoi) pack markers tightly and a
-    # property marker can overlap the commercial marker's centre pixel — a
-    # coordinate right-click then lands on the property (opening the property
-    # panel). Dispatching on the element bypasses hit-testing so the commercial
-    # marker's own Leaflet contextmenu handler fires regardless of overlap.
-    box = markers.first.bounding_box()
-    if box:
-        markers.first.dispatch_event("contextmenu", {
-            "bubbles": True,
-            "cancelable": True,
-            "button": 2,
-            "clientX": int(box["x"] + box["width"] / 2),
-            "clientY": int(box["y"] + box["height"] / 2),
-        })
-    else:
-        markers.first.dispatch_event(
-            "contextmenu", {"bubbles": True, "cancelable": True, "button": 2})
-    # Short wait — the menu DOM is created synchronously in showMenu().
-    page.wait_for_timeout(1_500)
-
+from tests.e2e._helpers import (
+    find_commercial_markers,
+    open_commercial_context_menu,
+)
 
 def _active_commercial_id(page):
     """Return a real CPROP id from the *active* catchment via the server.
@@ -160,7 +100,7 @@ class TestCommercialStormsPanel:
             timeout=10_000,
         )
 
-        _right_click_commercial_marker(map_page)
+        open_commercial_context_menu(map_page)
         menu = map_page.locator(".ctx-menu")
         if menu.count() == 0:
             pytest.skip("No context menu appeared")
@@ -242,7 +182,7 @@ class TestCommercialHazardPanel:
             timeout=10_000,
         )
 
-        _right_click_commercial_marker(map_page)
+        open_commercial_context_menu(map_page)
         menu = map_page.locator(".ctx-menu")
         if menu.count() == 0:
             pytest.skip("No context menu appeared")
