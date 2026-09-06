@@ -115,7 +115,12 @@
                     btn.textContent = tab.label;
                     btn.style.cssText = 'padding:var(--space-2) var(--space-7);font-size:var(--size-xs);border:none;cursor:pointer;font-weight:600;' +
                         (tab.id === 'blotter' ? 'background:var(--accent);color:var(--inverse);' : 'background:var(--sunken);color:var(--text-2);');
-                    btn.onclick = function() { switchTab(tab.id); };
+                    btn.onclick = function() {
+                        // Remembered so a preload callback landing
+                        // afterwards does not switch away from it.
+                        window._tdTabClickedDuringOpen = tab.id;
+                        switchTab(tab.id);
+                    };
                     toggleWrap.appendChild(btn);
                 });
 

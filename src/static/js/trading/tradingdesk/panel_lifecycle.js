@@ -20,6 +20,8 @@
 
             function showPanel() {
                 console.log('[TradingDesk] Opening panel');
+                // Fresh open: forget any tab clicked during a previous one.
+                window._tdTabClickedDuringOpen = null;
                 if (window._tdPreloadDone) {
                     // Data already cached — open immediately
                     _tdOpenPanel();
@@ -34,12 +36,17 @@
             function _tdOpenPanel() {
                 createPanel();
                 tdPanel.style.display = 'flex';
-                // Blotter is the default, not an override. showPanel may have
-                // run an async preload, and the user can click a tab while it
-                // is in flight — switching them back when the callback lands
-                // discards a deliberate choice. Honour whatever is already
-                // selected and fall back to the blotter on a fresh open.
-                var target = tdActiveTab || 'blotter';
+                // Opening the desk shows the blotter. The exception is a tab
+                // the user clicked while this open's preload was still in
+                // flight — switching them back when the callback lands
+                // discards a deliberate choice.
+                //
+                // Scoped to this open cycle on purpose: tdActiveTab persists
+                // for the life of the page, so keying off it made the desk
+                // reopen on whatever tab was last used, which is a different
+                // behaviour from the one this fixes.
+                var target = window._tdTabClickedDuringOpen || 'blotter';
+                window._tdTabClickedDuringOpen = null;
                 tdActiveTab = target;
                 switchTab(target);
             }

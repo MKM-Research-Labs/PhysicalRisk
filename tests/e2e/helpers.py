@@ -172,12 +172,45 @@ def open_trading_desk(page, tab=None):
             f"#td-{tab}-view is not in the DOM — the panel was built without "
             f"it (see trading/tradingdesk/panel_create.js)"
         )
-        assert view.is_visible(), (
-            f"#td-{tab}-view exists but is hidden after clicking "
-            f"#td-tab-{tab}, with the panel itself visible — switchTab did "
-            f"not reveal it, or something switched away afterwards (see "
-            f"trading/tradingdesk/panel_tabs.js)"
-        )
+        if not view.is_visible():
+            # Two rounds of source reading have not explained this, so probe
+            # the page rather than guess a third time. switchTab hides every
+            # view, then reveals the active one — if it throws in between
+            # (Theme.value is the only call that can), every view stays
+            # hidden and the error is otherwise invisible from here.
+            probe = page.evaluate("""(tab) => {
+                var views = ['client', 'blotter', 'market', 'risk', 'map',
+                             'eod', 'curves', 'stress', 'portstress',
+                             'classifiers'];
+                var display = {};
+                views.forEach(function (v) {
+                    var el = document.getElementById('td-' + v + '-view');
+                    display[v] = el ? getComputedStyle(el).display : 'absent';
+                });
+                var err = null;
+                try {
+                    if (typeof switchTab === 'function') switchTab(tab);
+                    else err = 'switchTab is not a function';
+                } catch (e) {
+                    err = String(e && e.message || e);
+                }
+                var after = document.getElementById('td-' + tab + '-view');
+                return {
+                    hasTheme: typeof Theme,
+                    hasThemeValue: (typeof Theme === 'object' && Theme)
+                        ? typeof Theme.value : 'n/a',
+                    activeTab: (typeof tdActiveTab !== 'undefined')
+                        ? tdActiveTab : '<undefined>',
+                    displayBefore: display,
+                    switchTabError: err,
+                    displayAfterDirectCall: after
+                        ? getComputedStyle(after).display : 'absent',
+                };
+            }""", tab)
+            raise AssertionError(
+                f"#td-{tab}-view exists but is hidden after clicking "
+                f"#td-tab-{tab}, with the panel visible. Probe: {probe}"
+            )
 
 
 def close_trading_desk(page):
