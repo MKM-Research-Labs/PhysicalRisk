@@ -38,5 +38,24 @@ module.exports = {
   // which turned a real 2% into a fictitious 58%. testMatch only matches
   // **/tests/js/**/*.test.js, so adding the source tree cannot pull in tests.
   roots: ['<rootDir>/tests/js', '<rootDir>/src/static/js'],
+  // These five files are not JavaScript. They are Python format-string
+  // templates that happen to carry a .js extension: they open with a literal
+  // <script> tag, escape braces as {{ }}, and hold placeholders ({panel_width},
+  // __PANEL_W__) that js_static() substitutes before the fragment is injected.
+  // Babel cannot parse them, so each run emitted a ~400-line stack trace while
+  // contributing nothing — verified against coverage-summary.json, which lists
+  // 125 files and none of these. Excluding them is numerically inert; the
+  // percentage and the ratchet in config/js_coverage.py are unaffected.
+  //
+  // This is a blind spot, not a solved problem: ~1,185 lines of live UI JS (the
+  // loan pricer panel, property storm analysis) that no tool can measure.
+  // Removing it means making the files real JS — placeholders read off window
+  // at runtime rather than substituted by .format(). Tracked as item 3 in
+  // docs/refactor/ui_test_coverage_plan.md.
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '<rootDir>/src/static/js/property/loanpricer/template/',
+    '<rootDir>/src/static/js/propertysa\\.js$',
+  ],
   setupFiles: ['<rootDir>/tests/js/setup.js']
 };

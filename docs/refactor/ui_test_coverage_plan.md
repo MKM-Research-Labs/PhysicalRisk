@@ -173,12 +173,47 @@ Work the never-touched list from Phase 0, in this order:
    is how a coverage push turns into theatre.
 
 ### Phase 4 — the five uninstrumentable files
-`propertysa.js` and four `loanpricer/template/_part*.js` fail babel because
-their embedded HTML parses as JSX. They are concat fragments assembled by the
-Python loader, not modules. Either exclude them explicitly from
-`collectCoverageFrom` (and say so in the report) or teach the loader to emit
-whole modules. Until then the denominator is quietly wrong in the other
-direction.
+
+**Step 1 — excluded explicitly. Done 2026-09-06 (jest.config.js).**
+`propertysa.js` and the four `loanpricer/template/_part*.js` now sit in
+`coveragePathIgnorePatterns`, with the reason recorded at the exclusion.
+Verified numerically inert before the change: `coverage-summary.json` listed
+125 files and 10,217 statements and contained none of the five, so babel had
+already been dropping them. The reported 12.04% and the ratchet in
+`config/js_coverage.py` are unchanged. What it buys is ~400 lines of stack
+trace off every run, and an exclusion that is deliberate and documented rather
+than accidental.
+
+**The diagnosis was more specific than "embedded HTML parses as JSX."** These
+files are not JavaScript at all — they are Python format-string templates with
+a `.js` extension. `_part1.js` opens with a literal `<script>` tag, escapes
+every brace as `{{ }}`, and carries `{panel_width}`-style placeholders;
+`propertysa.js` uses `__PANEL_W__` sentinels. `js_static()` reads them and
+`.format()` substitutes before injection. So teaching the loader to emit whole
+modules would not be enough on its own: the placeholders are the blocker, and
+they would still have to go.
+
+**Step 2 — make them real JavaScript. Not started, and it is the only step
+that removes the blind spot.** Placeholder values move to runtime: the panel
+reads them off `window` (alongside the existing `window.__BACKEND_CONFIG`)
+instead of having them substituted at render time, and the `<script>` wrapper
+moves to the injection site rather than living inside the fragment. That makes
+all five parse, instrument, and become testable.
+
+Size and honesty: **~1,185 lines of live UI JavaScript** — the whole loan
+pricer panel and property storm analysis — that no tool can currently measure.
+Their statement count is itself unmeasurable until they parse, but the
+direction is not in doubt: including them would carry mostly-uncovered code
+into the denominator and **lower** the reported percentage. The number in the
+audit package is therefore a ceiling on a smaller codebase, not a measurement
+of all of it, and the ratchet should expect a one-off step down when this step
+lands. That step down is a more honest number, not a regression — treat it as
+a baseline reset rather than a gate failure.
+
+These files originate in the no-JS-in-.py rule (see the coding rules): the
+fragments were moved out of the Python modules correctly, but the ones holding
+placeholders could not survive the move as valid JS. Any future extraction of
+a parameterised fragment should take Step 2's shape from the start.
 
 ## D. What to tell a reviewer
 
