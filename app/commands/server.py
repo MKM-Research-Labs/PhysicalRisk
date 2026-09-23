@@ -102,7 +102,7 @@ def cmd_server(args):
         # The catchment cannot travel in the `with` block across an exec, so it is
         # passed in the environment -- MKM_CATCHMENT is what config/catch.py reads,
         # which is the same route the agent and a shell both use.
-        repo_root = Path(__file__).resolve().parents[2]
+        repo_root = Path(config.get_project_root())
         argv = [
             str(repo_root / ".venv" / "bin" / "gunicorn"),
             "--config", str(repo_root / "gunicorn.conf.py"),
