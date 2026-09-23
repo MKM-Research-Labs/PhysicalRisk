@@ -89,9 +89,8 @@ class TestNostressFlag:
     def test_nostress_skips_stressm_when_all(self, port_admin_pw):
         """With --all --nostress, generate_stressm must not be called.
 
-        Uses the ``port_admin_pw`` fixture to authenticate via
-        ``MKM_PORT_ADMIN_PASSWORD`` env var rather than mocking
-        ``_authenticate`` — the password gate is exercised, not bypassed.
+        Uses the ``port_admin_pw`` fixture, which redirects input_dir to tmp
+        so a stray generator cannot write to real input data.
         """
         import unittest.mock as mock
         from app.commands.port import cmd_port
@@ -156,7 +155,7 @@ class TestNostressFlag:
     def test_explicit_stressm_flag_runs_despite_nostress(self, port_admin_pw):
         """--stressm alone must always run stressm regardless of --nostress.
 
-        Uses the ``port_admin_pw`` fixture for proper authentication and
+        Uses the ``port_admin_pw`` fixture to keep writes in tmp, and
         mocks every generator the prerequisite chain may invoke
         (synthetic_gauges, properties, gaugehd etc.) — without these
         mocks ``cmd_port`` would write to ``data/input/<catchment>/``

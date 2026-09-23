@@ -31,7 +31,6 @@ from database import backend_configured
 from database.config_binding import use_configured_backend
 
 from .._catchment import resolve_catchment
-from .auth import _authenticate
 from .context import StageContext
 from .pdf_reports import run_lineage_chain_validation, run_pdf_reports
 from .stages import (
@@ -217,10 +216,6 @@ def cmd_port(args):
         _ensure_backend()
 
         output_dir = config.get_input_dir()
-
-        # --- Admin gate (skipped for read-only repair-manifest) ---------------
-        if not getattr(args, 'repair_manifest', False):
-            _authenticate()
 
         # --- Optional backup --------------------------------------------------
         if getattr(args, 'backup', False) and output_dir.exists():

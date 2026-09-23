@@ -20,56 +20,33 @@
 
 """Shared fixtures for pipeline integration tests."""
 
-import hashlib
-import json
-import os
 
 import pytest
 
 from config import config
 
-# Known password used by `port_admin_pw` fixture. The fixture installs a
-# tmp ``.port_admin`` file with this password's hash and points
-# ``app.commands.port._admin_file_path`` at it; tests then authenticate via
-# the ``MKM_PORT_ADMIN_PASSWORD`` env var rather than mocking out the
-# ``_authenticate`` function. Mocking the gate hides any breakage in
-# the auth path itself; this fixture exercises the real verification.
-_TEST_PORT_PW = "test-port-admin-pw"
 
 
 @pytest.fixture
 def port_admin_pw(monkeypatch, tmp_path):
-    """Authenticate cmd_port without bypassing the password gate.
+    """Point cmd_port's input directory at tmp_path.
 
-    Sets up a tmp admin file with a known password's hash, points the
-    ``_admin_file_path`` locator at it, and exposes the password via the
-    ``MKM_PORT_ADMIN_PASSWORD`` env var. Also redirects
-    ``config.input_dir`` to ``tmp_path`` as defence-in-depth so any
-    generator that slips through unmocked writes to tmp rather than
-    ``data/input/<catchment>/`` (regression: 2026-05-04 incident where
-    a test mocked ``_authenticate`` but missed prerequisite generators,
-    overwriting real ``gauge.json``).
+    The admin password gate this fixture used to satisfy was removed on
+    2026-09-23, but the other half of what it did must not go with it:
+    redirecting ``config.input_dir`` to ``tmp_path`` is defence-in-depth, so a
+    generator that slips through unmocked writes to tmp rather than to
+    ``data/input/<catchment>/``. That is not hypothetical -- on 2026-05-04 a test
+    mocked the gate, missed a prerequisite generator, and overwrote the real
+    ``gauge.json``. With no gate left to mock, this redirect is now the only
+    thing standing between a stray generator and real input data.
+
+    The name is kept so the five call sites do not churn; what it guards has
+    changed, not which tests need it.
     """
-    from app.commands import port as port_cmd
-    from app.commands.port import auth as port_auth
-
-    admin_file = tmp_path / ".port_admin"
-    salt = os.urandom(16).hex()
-    h = hashlib.sha256((salt + _TEST_PORT_PW).encode()).hexdigest()
-    admin_file.write_text(json.dumps({"salt": salt, "hash": h}))
-
-    # Patch both the re-exported alias in app.commands.port and the
-    # actual module-level binding in app.commands.port.auth — the verify
-    # function looks up the name locally in auth.py, so patching only
-    # the re-export silently misses.
-    monkeypatch.setattr(port_cmd, "_admin_file_path", lambda: admin_file)
-    monkeypatch.setattr(port_auth, "_admin_file_path", lambda: admin_file)
-    monkeypatch.setenv("MKM_PORT_ADMIN_PASSWORD", _TEST_PORT_PW)
-
     original_input_dir = getattr(config, "input_dir", None)
     config.input_dir = tmp_path
     try:
-        yield _TEST_PORT_PW
+        yield tmp_path
     finally:
         if original_input_dir is not None:
             config.input_dir = original_input_dir
