@@ -24,6 +24,10 @@
 Server command - Flask web server.
 """
 
+import os
+import sys
+from pathlib import Path
+
 from config import config
 
 from ._catchment import add_catchment_flags, resolve_catchment
@@ -66,7 +70,9 @@ def cmd_server(args):
         port = args.port or config.SERVER_PORT
         debug = args.debug or config.DEBUG
 
-        app = create_app()
+        # Build the app once here so the database backend is configured for the
+        # check below. The server itself is a fresh process (see the exec).
+        create_app()
 
         # Warn if no PRS trades exist — blotter will be empty until generated.
         # Done after create_app(), which configures the database backend.
@@ -80,5 +86,37 @@ def cmd_server(args):
             print(f"     to generate the {config.CATCHMENT} trading book.")
             print()
 
-        print(f"Starting {config.CATCHMENT} server on http://{host}:{port}")
-        app.run(host=host, port=port, debug=debug)
+        # Hand over to gunicorn rather than app.run().
+        #
+        # There must be ONE way this application is served. The launchd agent runs
+        # gunicorn from gunicorn.conf.py; if this command ran Werkzeug instead, the
+        # supervised service and the one a developer starts would be different
+        # servers with different defaults -- and the difference would be discovered
+        # at the worst moment. It also meant `--debug` exposed the Werkzeug
+        # debugger, which is arbitrary code execution to anything that can reach
+        # the port.
+        #
+        # exec rather than spawn: the server replaces this process, so Ctrl-C and
+        # every other signal reach gunicorn directly with no wrapper in between.
+        #
+        # The catchment cannot travel in the `with` block across an exec, so it is
+        # passed in the environment -- MKM_CATCHMENT is what config/catch.py reads,
+        # which is the same route the agent and a shell both use.
+        repo_root = Path(__file__).resolve().parents[2]
+        argv = [
+            str(repo_root / ".venv" / "bin" / "gunicorn"),
+            "--config", str(repo_root / "gunicorn.conf.py"),
+            "--bind", f"{host}:{port}",
+        ]
+        if debug:
+            # Reload on edit and talk more. Deliberately NOT the Werkzeug debugger:
+            # the useful half of debug mode without the remote-code-execution half.
+            argv += ["--reload", "--log-level", "debug"]
+        argv.append("wsgi:app")
+
+        env = dict(os.environ, MKM_CATCHMENT=config.CATCHMENT)
+        print(f"Starting {config.CATCHMENT} server on http://{host}:{port} (gunicorn)")
+        if debug:
+            print("  --debug: auto-reload on, no interactive debugger")
+        sys.stdout.flush()
+        os.execve(argv[0], argv, env)
