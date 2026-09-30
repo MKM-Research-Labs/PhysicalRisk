@@ -89,7 +89,7 @@ def classify(path, phase, run_started, phases_run):
         return 'MISSING', ''
 
     try:
-        age = os.path.getmtime(path)
+        age = _written_at(path)
     except OSError:
         return 'MISSING', ''
 
@@ -99,6 +99,27 @@ def classify(path, phase, run_started, phases_run):
     if phase in phases_run:
         return 'STALE', _describe_age(run_started - age)
     return 'OK', f'{phase} phase not run; from an earlier run'
+
+
+def _written_at(path):
+    """When the artefact was last written: for a directory, its newest file.
+
+    A directory's own mtime moves only when an entry is added, removed or
+    renamed. Overwriting the files already in it leaves it untouched, so a
+    coverage HTML tree rewritten on every run still carried the date it was
+    first created and was reported STALE — 26 days old, on a run whose
+    index.html was minutes old. That marked every audit package incomplete.
+
+    The newest file is the right measure rather than, say, the oldest: the HTML
+    report rewrites only the pages whose source changed, so most of a current
+    tree legitimately predates the run.
+    """
+    newest = os.path.getmtime(path)
+    if os.path.isdir(path):
+        for root, _dirs, files in os.walk(path):
+            for name in files:
+                newest = max(newest, os.path.getmtime(os.path.join(root, name)))
+    return newest
 
 
 def _describe_age(seconds):

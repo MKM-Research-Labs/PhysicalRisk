@@ -87,6 +87,74 @@ class TestClassify:
         assert classify(str(d), 'unit', NOW, ALL_PHASES)[0] == 'OK'
 
 
+class TestDirectoryArtefact:
+    """A directory is as fresh as its newest file, not as its own mtime."""
+
+    OLD = NOW - 26 * 86400
+
+    def _dir(self, tmp_path):
+        d = tmp_path / 'coverage'
+        d.mkdir()
+        return d
+
+    def _age_dir(self, d):
+        os.utime(d, (self.OLD, self.OLD))
+
+    def test_rewritten_files_in_an_old_directory_are_fresh(self, tmp_path):
+        """The regression. Overwriting existing files does not touch the
+        directory's mtime, so a coverage tree rewritten this run still showed
+        the date it was first created and the package read as incomplete."""
+        d = self._dir(tmp_path)
+        _touch(d / 'index.html', NOW + 30)
+        self._age_dir(d)
+        assert classify(str(d), 'unit', NOW, ALL_PHASES) == ('OK', '')
+
+    def test_one_rewritten_file_among_old_ones_is_enough(self, tmp_path):
+        """The HTML report rewrites only pages whose source changed, so most
+        of a current tree predates the run."""
+        d = self._dir(tmp_path)
+        _touch(d / 'unchanged_py.html', self.OLD)
+        _touch(d / 'index.html', NOW + 30)
+        self._age_dir(d)
+        assert classify(str(d), 'unit', NOW, ALL_PHASES)[0] == 'OK'
+
+    def test_a_rewritten_file_in_a_subdirectory_counts(self, tmp_path):
+        d = self._dir(tmp_path)
+        sub = d / 'assets'
+        sub.mkdir()
+        _touch(sub / 'style.css', NOW + 30)
+        os.utime(sub, (self.OLD, self.OLD))
+        self._age_dir(d)
+        assert classify(str(d), 'unit', NOW, ALL_PHASES)[0] == 'OK'
+
+    def test_all_files_old_is_stale(self, tmp_path):
+        """The generator really did fail: nothing in the tree is from this run."""
+        d = self._dir(tmp_path)
+        _touch(d / 'index.html', self.OLD)
+        self._age_dir(d)
+        status, note = classify(str(d), 'unit', NOW, ALL_PHASES)
+        assert status == 'STALE'
+        assert '26 days old' in note
+
+    def test_empty_old_directory_is_stale(self, tmp_path):
+        d = self._dir(tmp_path)
+        self._age_dir(d)
+        assert classify(str(d), 'unit', NOW, ALL_PHASES)[0] == 'STALE'
+
+    def test_a_file_vanishing_mid_walk_reads_as_missing(self, tmp_path, monkeypatch):
+        d = self._dir(tmp_path)
+        _touch(d / 'index.html', NOW + 30)
+        real = os.path.getmtime
+
+        def _boom(path):
+            if str(path).endswith('index.html'):
+                raise OSError('vanished')
+            return real(path)
+
+        monkeypatch.setattr(os.path, 'getmtime', _boom)
+        assert classify(str(d), 'unit', NOW, ALL_PHASES) == ('MISSING', '')
+
+
 class TestDescribeAge:
     @pytest.mark.parametrize('seconds,expected', [
         (120, '2 min old'),
