@@ -59,6 +59,10 @@ to jest as ``--coverageThreshold`` and enforces the upper edge itself.
 #:
 #: 2026-09-05: 12.05% (1231/10213, 268 tests) — PRS spread validation.
 #:
+#: 2026-09-30: 12.58% (1292/10267, 281 tests) — the long-press marker menu and
+#: the trading desk Escape handler. Set to 12.5, not the 12.6 the ratchet's
+#: message rounds to: 12.58 is below 12.6, so that figure would fail the floor.
+#:
 #: Ceiling note: 96 of the 116 still-uncovered files (7573 statements, 74% of
 #: the tree) are concat fragments declaring bare functions, unreachable by
 #: require() and so uninstrumentable by istanbul. Counting only modules that
@@ -66,7 +70,7 @@ to jest as ``--coverageThreshold`` and enforces the upper edge itself.
 #: can only be measured browser-side by the V8 collector, which reads the
 #: bundle the Python loader assembles — that is not a nice-to-have, it is the
 #: only instrument that can see most of this code.
-BASELINE_PCT = 12.0
+BASELINE_PCT = 12.5
 
 #: How far above the baseline coverage may sit before the run asks for the
 #: baseline to be raised. Wide enough to absorb a statement or two moving

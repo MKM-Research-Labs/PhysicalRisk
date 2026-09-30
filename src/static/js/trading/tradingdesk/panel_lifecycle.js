@@ -64,6 +64,15 @@
                 if (typeof clCleanupCharts === 'function') clCleanupCharts();
             }
 
+            // Escape closes the desk, as it does the other panels. Only while it
+            // is showing: hidePanel tears down every chart and the map, which
+            // must not run on each stray Escape when the desk is already shut.
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tdPanel && tdPanel.style.display !== 'none') {
+                    hidePanel();
+                }
+            });
+
             // Global entry points
             window.TradingDesk = { show: showPanel, hide: hidePanel };
             window.showTradingDesk = showPanel;
