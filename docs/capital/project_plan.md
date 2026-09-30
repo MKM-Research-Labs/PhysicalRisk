@@ -1,6 +1,7 @@
 # PRS Capital Relief — project proposal
 
-**Status:** 2026-09-30. WP0 (recover and baseline) and WP1 (the package) are done. All four decisions
+**Status:** 2026-09-30. WP0 (recover and baseline) and WP1 (the package) are done.
+WP2 is paused with its design decided and no code written (section 7). All four decisions
 in section 6 are taken. Nothing built in `src/` yet.
 **Aim:** turn the illustrative study in `docs/capital/` into a governed model and
 surface it in the loan pricer / standalone loan calculator as a "PRS cover and
@@ -118,7 +119,7 @@ result back into the traded PRS book.
 |---|---|---|
 | 0 | **Recover and baseline.** Done 2026-09-30: both studies run, 23 tests pass, both recorded runs reproduce exactly (config hashes `fceb7d75…` and `f5bc1cdf…`) | done |
 | 1 | **Make it a model.** Done 2026-09-30: package `src/models/capital/` (`regulatory`, `hazard`, `one_year`, `over_term`; largest 168 lines, `__init__` re-exports only), every parameter in `config/capital.py` with the investment-grade spread benefit taken from `config.loan`. 39 tests in `tests/models/capital/` at 100% coverage, including one that reproduces both recorded runs from the package | done |
-| 2 | **Replace the illustrative hazard.** Adapters that build the hazard and loss inputs for one asset from the gauge GEV fit, floor level and depth-damage curve, read only through `database`. Premium from the PRS pricer at the loan tenor, reconciled against the study's level premium | M |
+| 2 | **Replace the illustrative hazard.** Build one asset's hazard, losses, PRS and borrower from platform data. Paused 2026-09-30 after the investigation and the four design decisions — see section 7 | L |
 | 3 | **Pricing bridge.** `routes/_loan_pricing/_capital.py`; new override keys (cover mode, notional, attach, exhaust, liquidity, EBITDA vol); a `capital` block in the calculator payload with two views — `one_year` (PD, grade, IRB and SA RW, capital, capital cost in bps, premium in bps, net benefit, default attribution) and `over_term` (cumulative and annualised PD, IRB RW and marginal default by year for each cover mode). Read-only beside the coupon: `price_loan` and `_build_coupon` are not touched | M |
 | 4 | **Calculator UI.** A "PRS cover and capital" section in `static/js/property/loanpricer/`: the one-year capital view, the over-term cover-mode comparison with marginal default by year, and the note explaining why the two PDs differ. Jest and Playwright tests, JS coverage gate | M |
 | 5 | **Governance.** Register the model as Tier 1 (suggest `MKM-CR-001`) with its documentation, sensitivity tables and validation evidence. Model registration, model documentation and test-to-model attribution moved to MKM-ModelRisk in the governance extraction (September 2026), so this work package is done there, not in this repo; `docs/models/new_model.md` still describes the old in-repo process. Here: a page in the rloan / commercial loan report | L |
@@ -157,3 +158,59 @@ Taken on 2026-09-30:
 Nothing is open. One assumption to confirm when WP3 starts: IRB stays the
 headline, and the one-year view also shows the standardised risk weight, because
 the grade migration it reports is exactly what moves that weight (100% to 75%).
+
+---
+
+## 7. WP2 — design decided, paused 2026-09-30
+
+No code written yet. The investigation below was done from code only: the
+external data drive was unmounted at the time, so nothing was checked against
+real data.
+
+### What the platform has, and where it differs from the study
+
+| input | study | platform | source |
+|---|---|---|---|
+| Gauge hazard | GEV of the **annual maximum** level | GEV of **per-storm peak** stage levels; annual probabilities come from the storm catalogue as `1 - exp(-lambda * p_event)` | `models/hazard/gev.py`, `builder.py:136-183`; read with `database.get_gauge_hazard_curves` |
+| GEV shape | xi | stored as xi in `gev_shape` (positive = heavy tail). Data written before the xi fix in `gev.py:44-49` may hold scipy's c under the same name, with no version marker | `gev.py:37-57` |
+| Asset to gauge | one gauge | depth is driven by the nearest **synthetic** gauge; the property PRS book triggers on the nearest **real** gauge. No gauge is stamped on the commercial CDM; it is chosen by haversine distance | `property/ts/flood/nearest.py:30`, `book_property/_core.py:150-160` |
+| Gauge level to depth | `slope * (level - site level) + noise` | `max(0, (peak - bankfull) * retention - threshold)`, with bankfull = severe - 0.5 m, retention = `exp(-(dist / terrain scale) / 10 km)`, threshold = relative ground elevation + floor level. So slope = retention and site level = bankfull + threshold / retention. Deterministic: no basis noise | `property/ts/flood/propagation.py:119-176`, `velocity.py:84`, `floodrisk/elevation.py:24-47` |
+| Damage | `1 - exp(-depth / 0.6)` | piecewise-linear depth-damage curve on depth above floor (`scalar_depth_damage`); a BRI polynomial variant. No commercial curve: `PROPERTY_TYPE_DAMAGE_FACTORS` is defined but unused | `floodrisk/depth_damage.py:66, 114`, `config/damage.py:40-55` |
+| Business interruption | downtime = 3 months x damage | none anywhere in the platform | — |
+| PRS payout | linear, attach 5.50 m to exhaust 6.05 m | binary: full notional once the reference gauge exceeds Severe Flood Warning. Property notionals are random, not tied to value | `hc/pricing/_process.py:41-83`, `_prs_schema.py:133-184` |
+| PRS price | E[payout] x (1 + loading) | `compute_prs_spread(annual_hazard_rate, tenor, ...)`, CDS-style, floor 2 bps | `models/hazard/prs_analytical.py:69` |
+| Borrower | operating company: revenue, EBITDA, liquidity | property investor: value, net initial yield, outstanding balance, rate, remaining term, LTV. No EBITDA, revenue or liquidity | `commercial.json`, `commercial_loan.json`; `database.list_commercial`, `list_commercial_loans` |
+
+### Decisions (2026-09-30)
+
+1. **A year's flood is simulated from storms.** Each year draws a Poisson number
+   of storms at the gauge's rate and takes the highest per-storm GEV peak; a year
+   with no storms has no flood. This matches how the platform turns storms into
+   annual probabilities. Calibrated runs will not reproduce the illustrative
+   ones, which stay available as the reference case.
+2. **Two gauges, with basis risk modelled.** Depth from the controlling
+   (synthetic) gauge, payout from the PRS reference (real) gauge, drawn jointly
+   from the same storms. This replaces the study's random depth noise as the
+   source of basis risk.
+3. **The platform's binary Severe trigger** is the default payout, priced with
+   `compute_prs_spread`. The linear layer stays available as an option.
+4. **A property-investor borrower built from the CDM.** Income is passing rent
+   (net initial yield x value); debt service from the loan's balance, rate and
+   term; damage costed against the building's value; business interruption as
+   lost rent. Liquidity and income volatility come from config defaults until
+   calibrated.
+
+### Things to resolve when WP2 resumes
+
+- **Joint storm draws for two gauges.** The platform stores per-storm peaks per
+  gauge (`database.get_gauge_timeseries`, `storm_responses`), which is where the
+  dependence between the controlling and reference gauges would come from.
+- **The GEV shape convention** of the stored data needs checking against real
+  records once the drive is back.
+- **`database.get_commercial` and `get_commercial_loan` look unable to find real
+  records.** They match only top-level id fields, and real records are nested
+  (`CommercialAsset.Header.PropertyID`, `Mortgage.Header.MortgageID`). Routes work
+  around it by scanning the lists. Needs confirming against data, then either a
+  fix in `database` or the same workaround.
+- **Doc drift:** the retention length is documented as 3 km and set to 10 km
+  (`velocity.py:89`, `config/models/_flood.py:108-113`).
