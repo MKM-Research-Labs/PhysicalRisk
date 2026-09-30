@@ -357,3 +357,121 @@ describe('extractShortName on the current property tooltip', () => {
         expect(header.textContent).toBe('128 Horseferry Road');
     });
 });
+
+
+// Touch devices have no right-click and iPad Safari fires no 'contextmenu' on
+// a long-press, so a held finger on the marker icon opens the menu instead.
+describe('long-press opens the menu on touch devices', () => {
+    let handler;
+    let el;
+    let onLongPress;
+
+    function touch(type, x, y) {
+        const e = new Event(type, { bubbles: true, cancelable: true });
+        e.touches = type === 'touchend' ? [] : [{ pageX: x, pageY: y }];
+        el.dispatchEvent(e);
+        return e;
+    }
+
+    beforeEach(() => {
+        jest.useFakeTimers();
+        document.body.innerHTML = '';
+        handler = createContextMenuHandler({
+            property: [{ id: 'view_details', label: 'View Details', action: 'viewPropertyDetails' }]
+        });
+        el = document.createElement('div');
+        document.body.appendChild(el);
+        onLongPress = jest.fn();
+        handler.bindLongPress(el, onLongPress);
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    test('a held finger fires at the touch position', () => {
+        touch('touchstart', 120, 80);
+        jest.advanceTimersByTime(499);
+        expect(onLongPress).not.toHaveBeenCalled();
+        jest.advanceTimersByTime(1);
+        expect(onLongPress).toHaveBeenCalledTimes(1);
+        expect(onLongPress.mock.calls[0][0].pageX).toBe(120);
+        expect(onLongPress.mock.calls[0][0].pageY).toBe(80);
+    });
+
+    test('a quick tap does not fire and is left to open the popup', () => {
+        touch('touchstart', 10, 10);
+        jest.advanceTimersByTime(200);
+        const end = touch('touchend');
+        jest.advanceTimersByTime(1000);
+        expect(onLongPress).not.toHaveBeenCalled();
+        expect(end.defaultPrevented).toBe(false);
+    });
+
+    test('dragging the map under the finger cancels it', () => {
+        touch('touchstart', 10, 10);
+        touch('touchmove', 40, 10);
+        jest.advanceTimersByTime(1000);
+        expect(onLongPress).not.toHaveBeenCalled();
+    });
+
+    test('a small wobble does not cancel it', () => {
+        touch('touchstart', 10, 10);
+        touch('touchmove', 14, 13);
+        jest.advanceTimersByTime(500);
+        expect(onLongPress).toHaveBeenCalledTimes(1);
+    });
+
+    test('a second finger (pinch) does not fire', () => {
+        const e = new Event('touchstart', { bubbles: true });
+        e.touches = [{ pageX: 1, pageY: 1 }, { pageX: 50, pageY: 50 }];
+        el.dispatchEvent(e);
+        jest.advanceTimersByTime(1000);
+        expect(onLongPress).not.toHaveBeenCalled();
+    });
+
+    test('lifting after a long-press does not become a click', () => {
+        touch('touchstart', 10, 10);
+        jest.advanceTimersByTime(500);
+        expect(touch('touchend').defaultPrevented).toBe(true);
+    });
+
+    test('the menu survives the click that follows the lift', () => {
+        // Every handler built by this file leaves its own click listener on
+        // the shared jsdom document, so capture this handler's and call it
+        // directly; the page only ever has one.
+        const spy = jest.spyOn(document, 'addEventListener');
+        const h = createContextMenuHandler({
+            property: [{ id: 'view_details', label: 'View Details', action: 'viewPropertyDetails' }]
+        });
+        const onDocClick = spy.mock.calls.find(c => c[0] === 'click')[1];
+        spy.mockRestore();
+
+        const marker = document.body.appendChild(document.createElement('div'));
+        h.bindLongPress(marker, e => h.showMenu(e, 'PROP-ab12cd34', 'property', 'Home'));
+        el = marker;
+        touch('touchstart', 10, 10);
+        jest.advanceTimersByTime(500);
+        const menu = document.getElementById('property-context-menu');
+        expect(menu.style.display).toBe('block');
+
+        onDocClick();
+        expect(menu.style.display).toBe('block');
+
+        // A later tap elsewhere still dismisses it.
+        jest.advanceTimersByTime(800);
+        onDocClick();
+        expect(menu.style.display).toBe('none');
+    });
+
+    test('binding the same element twice fires once', () => {
+        handler.bindLongPress(el, onLongPress);
+        touch('touchstart', 10, 10);
+        jest.advanceTimersByTime(500);
+        expect(onLongPress).toHaveBeenCalledTimes(1);
+    });
+
+    test('a marker with no element yet is skipped', () => {
+        expect(() => handler.bindLongPress(null, onLongPress)).not.toThrow();
+    });
+});

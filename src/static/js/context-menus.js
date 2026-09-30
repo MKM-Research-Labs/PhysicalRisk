@@ -106,8 +106,71 @@
             hideMenu('commercial-context-menu');
         }
 
-        // Hide all menus on document click
-        root.document.addEventListener('click', hideAllMenus);
+        // Hide all menus on document click. A long-press opens the menu while
+        // the finger is still down; some browsers still deliver a click when
+        // it lifts, so that one click is ignored.
+        var suppressHideUntil = 0;
+        root.document.addEventListener('click', function() {
+            if (Date.now() < suppressHideUntil) return;
+            hideAllMenus();
+        });
+
+        // Touch devices have no right-click, and iPad Safari does not fire
+        // 'contextmenu' on a long-press, so a held finger opens the menu
+        // instead. A double tap is not used: it already zooms the map.
+        var LONG_PRESS_MS = 500;
+        var LONG_PRESS_MOVE_PX = 10;
+
+        function bindLongPress(el, onLongPress) {
+            if (!el || el._ctxLongPress) return;
+            el._ctxLongPress = true;
+
+            var timer = null, startX = 0, startY = 0, fired = false;
+
+            function cancel() {
+                if (timer) { clearTimeout(timer); timer = null; }
+            }
+
+            el.addEventListener('touchstart', function(e) {
+                cancel();
+                fired = false;
+                if (!e.touches || e.touches.length !== 1) return;
+                var t = e.touches[0];
+                startX = t.pageX;
+                startY = t.pageY;
+                timer = setTimeout(function() {
+                    timer = null;
+                    fired = true;
+                    suppressHideUntil = Date.now() + 700;
+                    onLongPress({
+                        preventDefault: function() {},
+                        stopPropagation: function() {},
+                        pageX: startX,
+                        pageY: startY
+                    });
+                }, LONG_PRESS_MS);
+            }, { passive: true });
+
+            el.addEventListener('touchmove', function(e) {
+                var t = e.touches && e.touches[0];
+                if (!t) return;
+                if (Math.abs(t.pageX - startX) > LONG_PRESS_MOVE_PX ||
+                    Math.abs(t.pageY - startY) > LONG_PRESS_MOVE_PX) cancel();
+            }, { passive: true });
+
+            el.addEventListener('touchend', function(e) {
+                cancel();
+                // Stop the lift from becoming a click, which would open the
+                // marker popup and close the menu just shown.
+                if (fired && e.cancelable) e.preventDefault();
+                fired = false;
+            }, { passive: false });
+
+            el.addEventListener('touchcancel', function() {
+                cancel();
+                fired = false;
+            });
+        }
 
         function extractId(content, pattern) {
             if (!content) return null;
@@ -233,6 +296,15 @@
                         var name = extractShortName(content, type);
                         (function(boundId, boundType, boundName) {
                             layer.on('contextmenu', function(e) { showMenu(e.originalEvent, boundId, boundType, boundName); });
+                            // The icon element is rebuilt when a marker is
+                            // re-added to the map, so bind again on 'add'.
+                            function bindTouch() {
+                                bindLongPress(layer.getElement && layer.getElement(), function(e) {
+                                    showMenu(e, boundId, boundType, boundName);
+                                });
+                            }
+                            bindTouch();
+                            layer.on('add', bindTouch);
                         })(id, type, name);
                         layer._hasContextMenu = true;
                         layer._markerId = id;
@@ -279,6 +351,7 @@
             showMenu: showMenu,
             hideMenu: hideMenu,
             hideAllMenus: hideAllMenus,
+            bindLongPress: bindLongPress,
             extractId: extractId,
             extractShortName: extractShortName,
             initializeMenus: initializeMenus,
