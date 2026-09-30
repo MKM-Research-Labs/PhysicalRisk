@@ -59,6 +59,12 @@ skip_empty = true
 # measured figure so ordinary churn does not trip it; raise it again when a
 # tranche earns the next tenth, the same ceremony as config.js_coverage.
 fail_under = 99.4
+# Without this coverage.py rounds the total to a whole number before comparing
+# it with fail_under, so a fractional gate can only be met from 99.5 upward:
+# 99.499% was reported as "total of 99 is less than fail-under=99" and failed
+# the run, while pytest-cov printed "Required test coverage of 99.4% reached"
+# a few lines later. Two decimals makes the comparison the one the gate states.
+precision = 2
 exclude_lines = [
     "pragma: no cover",
     "if __name__ == .__main__.",
