@@ -1,6 +1,6 @@
 # PRS Capital Relief — project proposal
 
-**Status:** 2026-09-30. WP0 (recover and baseline) is done. All four decisions
+**Status:** 2026-09-30. WP0 (recover and baseline) and WP1 (the package) are done. All four decisions
 in section 6 are taken. Nothing built in `src/` yet.
 **Aim:** turn the illustrative study in `docs/capital/` into a governed model and
 surface it in the loan pricer / standalone loan calculator as a "PRS cover and
@@ -117,11 +117,11 @@ result back into the traded PRS book.
 | WP | what | size |
 |---|---|---|
 | 0 | **Recover and baseline.** Done 2026-09-30: both studies run, 23 tests pass, both recorded runs reproduce exactly (config hashes `fceb7d75…` and `f5bc1cdf…`) | done |
-| 1 | **Make it a model.** New package `src/models/capital/` (borrower, cover, dynamics, capital, engine — each under 300 lines, no logic in `__init__`, licence headers). Every parameter to a new `config/capital.py`; reuse `config.loan` spreads. Tests to `tests/models/capital/`, an attribution rule in `TEST_MODEL_RULES`, coverage at the gate | M |
+| 1 | **Make it a model.** Done 2026-09-30: package `src/models/capital/` (`regulatory`, `hazard`, `one_year`, `over_term`; largest 168 lines, `__init__` re-exports only), every parameter in `config/capital.py` with the investment-grade spread benefit taken from `config.loan`. 39 tests in `tests/models/capital/` at 100% coverage, including one that reproduces both recorded runs from the package | done |
 | 2 | **Replace the illustrative hazard.** Adapters that build the hazard and loss inputs for one asset from the gauge GEV fit, floor level and depth-damage curve, read only through `database`. Premium from the PRS pricer at the loan tenor, reconciled against the study's level premium | M |
 | 3 | **Pricing bridge.** `routes/_loan_pricing/_capital.py`; new override keys (cover mode, notional, attach, exhaust, liquidity, EBITDA vol); a `capital` block in the calculator payload with two views — `one_year` (PD, grade, IRB and SA RW, capital, capital cost in bps, premium in bps, net benefit, default attribution) and `over_term` (cumulative and annualised PD, IRB RW and marginal default by year for each cover mode). Read-only beside the coupon: `price_loan` and `_build_coupon` are not touched | M |
 | 4 | **Calculator UI.** A "PRS cover and capital" section in `static/js/property/loanpricer/`: the one-year capital view, the over-term cover-mode comparison with marginal default by year, and the note explaining why the two PDs differ. Jest and Playwright tests, JS coverage gate | M |
-| 5 | **Governance.** Register the model as Tier 1 (suggest `MKM-CR-001`), LaTeX documentation and sensitivity tables per `docs/models/new_model.md`, lineage entry, a page in the rloan / commercial loan report | L |
+| 5 | **Governance.** Register the model as Tier 1 (suggest `MKM-CR-001`) with its documentation, sensitivity tables and validation evidence. Model registration, model documentation and test-to-model attribution moved to MKM-ModelRisk in the governance extraction (September 2026), so this work package is done there, not in this repo; `docs/models/new_model.md` still describes the old in-repo process. Here: a page in the rloan / commercial loan report | L |
 | 6 | **Calibration and validation.** Replace uncalibrated parameters, IRB formula checked against Basel worked values, path-count convergence, sensitivity to drift and renewal assumptions. Until done, every output carries the ILLUSTRATIVE label | L |
 
 WP0 to WP3 give a working, tested back end; WP4 makes it visible; WP5 and WP6
