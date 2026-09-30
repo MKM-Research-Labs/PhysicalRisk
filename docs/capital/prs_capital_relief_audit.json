@@ -1,0 +1,94 @@
+{
+  "audit": {
+    "run_utc": "2026-09-30T12:25:14+00:00",
+    "config_sha256": "fceb7d7567a1aeac10b47b609a433e0114b0dc205cf2e069b3a6c2b09cd6b574",
+    "seed": 20260930,
+    "n_paths": 2000000,
+    "status": "ILLUSTRATIVE - parameters not calibrated to observed data",
+    "config": {
+      "borrower": {
+        "revenue": 50.0,
+        "ebitda": 8.0,
+        "ebitda_vol": 0.32,
+        "debt": 32.0,
+        "interest_rate": 0.07,
+        "amortisation": 2.0,
+        "maintenance_capex": 1.5,
+        "liquidity": 5.0,
+        "site_asset_value": 8.0,
+        "contribution_margin": 0.4,
+        "insured_share_of_damage": 0.5
+      },
+      "hazard": {
+        "gev_loc": 4.0,
+        "gev_scale": 0.3,
+        "gev_shape_xi": 0.1,
+        "site_flood_level": 5.55,
+        "depth_slope": 1.0,
+        "depth_noise_sd": 0.15,
+        "damage_depth_scale": 0.6,
+        "max_downtime_months": 3.0
+      },
+      "prs": {
+        "notional": 6.0,
+        "attach_level": 5.5,
+        "exhaust_level": 6.05,
+        "premium_loading": 0.5
+      },
+      "capital": {
+        "lgd": 0.45,
+        "maturity_years": 2.5,
+        "capital_ratio": 0.105,
+        "cost_of_equity": 0.12,
+        "ig_credit_spread_benefit": 0.0125
+      },
+      "n_paths": 2000000,
+      "seed": 20260930
+    }
+  },
+  "results": {
+    "without_prs": {
+      "pd_1y": 0.00538,
+      "pd_std_error": 5.1725504347468665e-05,
+      "grade": "BB+",
+      "pd_given_site_flood": 0.191570763956905,
+      "pd_given_no_flood": 0.0022878747214496007,
+      "sa_rw": 1.0,
+      "sa_rwa": 32.0,
+      "irb_rw": 0.7194050793093495,
+      "irb_rwa": 23.020962537899184,
+      "expected_loss": 0.077472
+    },
+    "with_prs": {
+      "pd_1y": 0.002693,
+      "pd_std_error": 3.664524355902141e-05,
+      "grade": "BBB-",
+      "pd_given_site_flood": 0.010039177277179236,
+      "pd_given_no_flood": 0.0025709998536085493,
+      "sa_rw": 0.75,
+      "sa_rwa": 24.0,
+      "irb_rw": 0.5143649219970134,
+      "irb_rwa": 16.45967750390443,
+      "expected_loss": 0.0387792
+    }
+  },
+  "attribution": {
+    "pd_no_hazard_component": 0.002285,
+    "pd_hazard_attributable": 0.003095,
+    "p_site_flood": 0.016336,
+    "defaults_averted_by_prs": 0.00297,
+    "defaults_caused_by_premium": 0.000283,
+    "residual_flood_defaults_with_prs": 0.000164,
+    "p_site_flood_but_no_payout": 0.001843
+  },
+  "economics": {
+    "prs_expected_payout": 0.060367143191022286,
+    "prs_premium": 0.09055071478653343,
+    "prs_rate_on_line": 0.015091785797755572,
+    "prs_net_cost_loading": 0.03018357159551114,
+    "bank_capital_cost_saving_sa": 0.10079999999999995,
+    "bank_capital_cost_saving_irb": 0.08267219142833393,
+    "bank_expected_loss_saving": 0.0386928,
+    "borrower_funding_saving_if_ig": 0.4
+  }
+}

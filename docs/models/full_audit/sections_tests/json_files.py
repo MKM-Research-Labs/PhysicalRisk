@@ -197,6 +197,10 @@ _ALLOWLIST = {
     'docs/capital/prs_multi_year.py':
         'standalone illustrative capital-relief study; writes its own '
         'prs_multi_year_audit.json run record, not live port state',
+    'docs/capital/prs_capital_relief_example.py':
+        'standalone illustrative capital-relief study (one-year base case); '
+        'writes its own prs_capital_relief_audit.json run record, not live '
+        'port state',
     'scripts/beta_sweep_analyze.py':
         'standalone sensitivity-analysis CLI; reads .beta_study/ snapshots, not '
         'live port state',
