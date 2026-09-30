@@ -91,7 +91,7 @@ class TestDataLineage:
 
     def test_manifest_exists(self):
         """data_lineage.json must exist after any port run."""
-        lineage_path = ROOT / "data" / "data_lineage.json"
+        lineage_path = INPUT_DIR / "data_lineage.json"
         if not lineage_path.exists():
             pytest.skip("data_lineage.json not generated yet -- run: python phys.py port")
         data = json.load(open(lineage_path))
@@ -107,7 +107,7 @@ class TestDataLineage:
         before the suite, the manifest is written by the run being checked and
         the comparison always agrees.
         """
-        lineage_path = ROOT / "data" / "data_lineage.json"
+        lineage_path = INPUT_DIR / "data_lineage.json"
         if not lineage_path.exists():
             pytest.skip("No manifest")
 
@@ -138,14 +138,14 @@ class TestDataLineage:
 
     def test_lineage_file_exists(self):
         """Data lineage file should exist after a port run."""
-        lineage_path = ROOT / "data" / "data_lineage.json"
+        lineage_path = INPUT_DIR / "data_lineage.json"
         assert lineage_path.exists(), (
             "data_lineage.json not found. Run: python phys.py port"
         )
 
     def test_dependency_graph_complete(self):
         """Every step in manifest must appear in the static dependency graph."""
-        lineage_path = ROOT / "data" / "data_lineage.json"
+        lineage_path = INPUT_DIR / "data_lineage.json"
         if not lineage_path.exists():
             pytest.skip("No manifest")
         try:

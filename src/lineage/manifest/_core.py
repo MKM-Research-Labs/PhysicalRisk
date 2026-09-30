@@ -41,8 +41,26 @@ logger = logging.getLogger(__name__)
 # Project root resolution
 # ---------------------------------------------------------------------------
 from config import config as _cfg
+from config.data_layout import LINEAGE_MANIFEST_FILE
 
-LINEAGE_PATH = _cfg.get_data_dir() / "data_lineage.json"
+# Override hook: ``None`` means the active catchment's own manifest. Tests set
+# it to pin the manifest to a scratch file; nothing else should.
+LINEAGE_PATH: Path | None = None
+
+
+def manifest_path(data_dir: Path | None = None) -> Path:
+    """Where the manifest lives: beside the data it describes.
+
+    Each catchment has its own, in its input directory. It used to be a single
+    ``data/data_lineage.json`` with no catchment key, which described whichever
+    catchment was generated last and made every other one read as drifted.
+    ``data_dir`` names a specific tree; without it the active catchment is used.
+    """
+    if LINEAGE_PATH is not None:
+        return Path(LINEAGE_PATH)
+    if data_dir is not None:
+        return Path(data_dir) / LINEAGE_MANIFEST_FILE
+    return _cfg.get_lineage_manifest_path()
 
 from lineage.manifest._topology import (
     DEPENDENCY_GRAPH,
@@ -85,27 +103,27 @@ def hash_directory(dir_path: Path, pattern: str = "*.json") -> tuple:
 # Manifest I/O
 # ---------------------------------------------------------------------------
 
-def load_manifest() -> dict:
+def load_manifest(data_dir: Path | None = None) -> dict:
     """Load the lineage manifest, or return an empty skeleton."""
-    if LINEAGE_PATH.exists():
+    path = manifest_path(data_dir)
+    if path.exists():
         try:
-            with open(LINEAGE_PATH, "r") as f:
+            with open(path, "r") as f:
                 return json.load(f)
         except (json.JSONDecodeError, OSError) as exc:
             logger.warning("Corrupt lineage manifest, resetting: %s", exc)
     return {"runs": {}, "steps": {}}
 
 
-def save_manifest(manifest: dict) -> None:
+def save_manifest(manifest: dict, data_dir: Path | None = None) -> None:
     """Atomic write — write to temp then rename."""
-    LINEAGE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(
-        dir=str(LINEAGE_PATH.parent), suffix=".tmp"
-    )
+    path = manifest_path(data_dir)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent), suffix=".tmp")
     try:
         with os.fdopen(fd, "w") as f:
             json.dump(manifest, f, indent=2)
-        os.replace(tmp, str(LINEAGE_PATH))
+        os.replace(tmp, str(path))
     except Exception:
         if os.path.exists(tmp):
             os.unlink(tmp)
@@ -169,13 +187,12 @@ def record_step(
         input_hashes = {k: _hash_artifact(Path(v)) for k, v in inputs.items()}
     output_hashes = {k: _hash_artifact(Path(v)) for k, v in outputs.items()}
 
-    import os as _os
     import socket as _socket
 
     entry = {
         "run_id": run_id,
         "timestamp": datetime.now().isoformat(),
-        "user": _os.environ.get("USER", "unknown"),
+        "user": os.environ.get("USER", "unknown"),
         "hostname": _socket.gethostname(),
         "generator": generator,
         "status": status,
@@ -189,104 +206,3 @@ def record_step(
     manifest["runs"].setdefault(run_id, []).append(step_name)
     save_manifest(manifest)
     return entry
-
-
-# ---------------------------------------------------------------------------
-# Manifest repair
-# ---------------------------------------------------------------------------
-
-def repair_manifest(data_dir: str | Path | None = None) -> dict:
-    """Re-hash all on-disk artifacts and rebuild a consistent manifest.
-
-    Walks every step in ``STEP_IO`` in topological order.  For each step
-    whose outputs exist on disk, hashes all inputs and outputs and writes
-    (or overwrites) the manifest entry so that the recorded hashes match
-    the current state of the files.  Steps whose outputs are missing are
-    skipped with a warning.
-
-    Existing metadata (run_id, timestamp, generator, parameters) is
-    preserved when the step already has a manifest entry; otherwise
-    sensible defaults are used.
-
-    Returns a summary dict: ``{"repaired": [...], "skipped": [...]}``.
-    """
-    from graphlib import TopologicalSorter
-
-    if data_dir is None:
-        try:
-            from config import PortfolioConfig
-            data_dir = Path(PortfolioConfig().get_input_dir())
-        except (ImportError, AttributeError):
-            # config unavailable (e.g. bootstrap/standalone): derive the default
-            # catchment input dir from this file's location.
-            catchment = os.getenv("MKM_CATCHMENT", "thames")
-            data_dir = Path(__file__).resolve().parents[2] / "data" / "input" / catchment
-    else:
-        data_dir = Path(data_dir)
-
-    manifest = load_manifest()
-    run_id = datetime.now().strftime("repair-%Y%m%d-%H%M%S")
-    ts_now = datetime.now().isoformat()
-
-    # Topological order
-    sorter = TopologicalSorter(DEPENDENCY_GRAPH)
-    topo_order = list(sorter.static_order())
-
-    repaired: list[str] = []
-    skipped: list[str] = []
-
-    for step_name in topo_order:
-        io = STEP_IO.get(step_name)
-        if io is None:
-            continue
-
-        # Check all outputs exist
-        all_outputs_present = True
-        for out in io["outputs"]:
-            path = data_dir / out
-            if out.endswith("/"):
-                if not path.is_dir() or not any(path.iterdir()):
-                    all_outputs_present = False
-                    break
-            else:
-                if not path.is_file():
-                    all_outputs_present = False
-                    break
-
-        if not all_outputs_present:
-            skipped.append(step_name)
-            continue
-
-        # Hash inputs
-        input_hashes = {}
-        for inp in io["inputs"]:
-            path = data_dir / inp
-            input_hashes[inp] = _hash_artifact(path)
-
-        # Hash outputs
-        output_hashes = {}
-        for out in io["outputs"]:
-            path = data_dir / out
-            output_hashes[out] = _hash_artifact(path)
-
-        # Preserve existing metadata or use defaults
-        existing = manifest.get("steps", {}).get(step_name, {})
-        entry = {
-            "run_id": existing.get("run_id", run_id),
-            "timestamp": existing.get("timestamp", ts_now),
-            "generator": existing.get("generator", "unknown"),
-            "status": "success",
-            "elapsed_seconds": existing.get("elapsed_seconds", 0.0),
-            "parameters": existing.get("parameters", {}),
-            "inputs": input_hashes,
-            "outputs": output_hashes,
-        }
-
-        manifest["steps"][step_name] = entry
-        repaired.append(step_name)
-
-    # Update runs index
-    manifest["runs"][run_id] = repaired
-    save_manifest(manifest)
-
-    return {"repaired": repaired, "skipped": skipped}

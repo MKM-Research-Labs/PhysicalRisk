@@ -31,7 +31,7 @@ Generates a PDF audit report covering BCBS 239 Principles 2, 3, 6 & 7:
   6. Data Retention Policy                      (Regulatory — FCA/PRA)
 
 Data sources:
-  - data/data_lineage.json         — pipeline manifest (SHA-256 hashes)
+  - data/input/<catchment>/data_lineage.json — pipeline manifest (SHA-256 hashes)
   - src/lineage/manifest.py        — DEPENDENCY_GRAPH, STEP_IO
   - src/lineage/validation.py      — validate_full_chain()
 

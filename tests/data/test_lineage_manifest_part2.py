@@ -140,15 +140,36 @@ class TestRecordStep:
 # Coverage: config fallback, pre_hash_inputs, repair unknown step
 # ===========================================================================
 
-class TestManifestConfigFallback:
-    """Cover the ImportError fallback at module level (lines 32-33)."""
+class TestManifestPath:
+    """The manifest is per catchment, kept beside the data it describes."""
 
-    def test_fallback_path_ends_with_physicalrisk(self):
-        """If config import fails, _project_root should be a sensible fallback."""
+    def test_defaults_to_the_active_catchments_input_dir(self):
+        from config import config
         from lineage import manifest
-        # Just verify LINEAGE_PATH is a Path to data_lineage.json
-        assert manifest.LINEAGE_PATH.name == "data_lineage.json"
-        assert "data" in str(manifest.LINEAGE_PATH)
+        assert manifest.manifest_path() == config.get_input_dir() / "data_lineage.json"
+
+    def test_follows_a_catchment_switch(self):
+        """Two catchments must never share a manifest: a shared one can only
+        describe whichever was generated last."""
+        from config import config
+        from lineage import manifest
+        with config.use_catchment("thames"):
+            thames = manifest.manifest_path()
+        with config.use_catchment("halong"):
+            halong = manifest.manifest_path()
+        assert thames != halong
+        assert thames.parent.name == "thames" and halong.parent.name == "halong"
+
+    def test_explicit_data_dir_keeps_the_manifest_with_that_tree(self, tmp_path):
+        from lineage import manifest
+        assert manifest.manifest_path(tmp_path) == tmp_path / "data_lineage.json"
+
+    def test_override_hook_wins(self, tmp_path, monkeypatch):
+        from lineage import manifest
+        pinned = tmp_path / "pinned.json"
+        monkeypatch.setattr("lineage.manifest._core.LINEAGE_PATH", pinned)
+        assert manifest.manifest_path() == pinned
+        assert manifest.manifest_path(tmp_path / "elsewhere") == pinned
 
 
 class TestPreHashInputs:
@@ -173,17 +194,19 @@ class TestRepairManifestsEdgeCases:
     """Cover repair_manifests config fallback and unknown step skip."""
 
     def test_skips_unknown_step_in_topo_order(self, tmp_path, monkeypatch):
-        from lineage.manifest import repair_manifest, LINEAGE_PATH
+        from lineage.manifest import repair_manifest
         from unittest.mock import patch as _p
-        import lineage.manifest as _m
+        from lineage.manifest import _core, _repair
 
-        # Add a phantom step to DEPENDENCY_GRAPH not in STEP_IO
-        orig_graph = _m.DEPENDENCY_GRAPH.copy()
-        monkeypatch.setattr(_m, "DEPENDENCY_GRAPH", {**orig_graph, "phantom": []})
+        # Add a phantom step to DEPENDENCY_GRAPH not in STEP_IO. Patched on the
+        # modules that read them: patching the package re-exports changed nothing,
+        # so this used to run against the real graph and the real manifest.
+        orig_graph = _repair.DEPENDENCY_GRAPH.copy()
+        monkeypatch.setattr(_repair, "DEPENDENCY_GRAPH", {**orig_graph, "phantom": []})
 
         fake_lineage = tmp_path / "data_lineage.json"
         fake_lineage.write_text('{"runs": {}, "steps": {}}')
-        monkeypatch.setattr(_m, "LINEAGE_PATH", fake_lineage)
+        monkeypatch.setattr(_core, "LINEAGE_PATH", fake_lineage)
 
         result = repair_manifest(data_dir=tmp_path)
         # phantom should be skipped, not crash
@@ -191,12 +214,12 @@ class TestRepairManifestsEdgeCases:
 
     def test_config_fallback_when_import_fails(self, tmp_path, monkeypatch):
         from lineage.manifest import repair_manifest
-        import lineage.manifest as _m
+        from lineage.manifest import _core
         import builtins
 
         fake_lineage = tmp_path / "data_lineage.json"
         fake_lineage.write_text('{"runs": {}, "steps": {}}')
-        monkeypatch.setattr(_m, "LINEAGE_PATH", fake_lineage)
+        monkeypatch.setattr(_core, "LINEAGE_PATH", fake_lineage)
 
         real_import = builtins.__import__
         def fake_import(name, *args, **kwargs):

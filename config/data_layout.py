@@ -91,6 +91,10 @@ SEQUENCE_GAUGE_DIR = "sequence_gauge"
 
 # Legacy single-file variants (pre-_index.json layout). Read-only fallbacks kept
 # so portfolios generated before the sharded layout still resolve.
+# BCBS 239 run manifest (hashes of every pipeline artifact). One per catchment,
+# kept in that catchment's input directory beside the data it describes.
+LINEAGE_MANIFEST_FILE = "data_lineage.json"
+
 LEGACY_STRESS_STORMS_FILE = "stress_storms.json"
 LEGACY_STORM_SEQUENCES_FILE = "storms.json"
 

@@ -277,6 +277,16 @@ class PortfolioPaths:
         """
         return self._data_root() / '.port_admin'
 
+    def get_lineage_manifest_path(self) -> Path:
+        """The active catchment's lineage manifest, in its own input directory.
+
+        Per catchment, not one file under the data root: a shared manifest could
+        only describe whichever catchment was generated last, so every other
+        catchment read as drifted.
+        """
+        from config.data_layout import LINEAGE_MANIFEST_FILE
+        return self.get_input_dir() / LINEAGE_MANIFEST_FILE
+
     def get_input_path(self, filename: str) -> Path:
         """Get path to file in input directory."""
         return self.input_dir / filename

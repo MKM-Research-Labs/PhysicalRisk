@@ -124,11 +124,11 @@ def _build_data_lineage(styles) -> list:
             styles['body']))
 
     # ------------------------------------------------------------------
-    # Generation Manifest (from data/data_lineage.json)
+    # Generation Manifest (the active catchment's data_lineage.json)
     # ------------------------------------------------------------------
     import json as _json
     from config import config as _config
-    _lineage_path = _config.get_data_dir() / 'data_lineage.json'
+    _lineage_path = _config.get_lineage_manifest_path()
     _manifest = {}
     if _lineage_path.exists():
         try:

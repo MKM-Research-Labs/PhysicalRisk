@@ -26,7 +26,7 @@ downstream consumers can verify data freshness (BCBS 239 Principle 3).
 """
 
 from ._core import (
-    LINEAGE_PATH,
+    manifest_path,
     hash_file,
     hash_directory,
     load_manifest,
@@ -35,8 +35,8 @@ from ._core import (
     _hash_artifact,
     pre_hash_inputs,
     record_step,
-    repair_manifest,
 )
+from ._repair import repair_manifest
 from ._topology import (
     DEPENDENCY_GRAPH,
     EXTERNAL_INPUTS,
@@ -45,7 +45,7 @@ from ._topology import (
 )
 
 __all__ = [
-    "LINEAGE_PATH",
+    "manifest_path",
     "hash_file",
     "hash_directory",
     "load_manifest",

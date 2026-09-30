@@ -54,7 +54,7 @@ HEADER_BG = pdf_colour('info-bg')
 from config import config
 AUDIT_DIR = config.get_reports_dir('audit')
 OUTPUT_PDF = AUDIT_DIR / 'data_lineage_report.pdf'
-LINEAGE_PATH = config.get_data_dir() / 'data_lineage.json'
+LINEAGE_PATH = config.get_lineage_manifest_path()
 
 # ---------------------------------------------------------------------------
 # Staleness threshold — aligned with governance route

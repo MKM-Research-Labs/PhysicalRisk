@@ -131,7 +131,7 @@ _ALLOWLIST = {
     # ---- config-unavailable fallbacks: these resolve the data dir from __file__
     # only inside an ``except ImportError`` branch taken when config cannot be
     # imported (a tested bootstrap/standalone path); the live branch uses config.
-    'src/lineage/manifest/_core.py':
+    'src/lineage/manifest/_repair.py':
         'config-import fallback — derives data dir from __file__ only when config is unavailable',
     'src/lineage/validation/_helpers.py':
         'config-import fallback — derives data dir from __file__ only when config is unavailable',
