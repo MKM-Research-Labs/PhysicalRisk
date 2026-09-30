@@ -84,7 +84,9 @@ class TestRiskScoreBranches:
         assert isinstance(elements, list)
 
 
+@pytest.mark.usefixtures("thames_catchment")
 class TestDistanceToThames:
+    # The label names the active catchment's river, so pin thames.
 
     def test_zero_distance_highest_risk(self):
         from reports.gauge.gauge_page_06_risk_assessment import GaugeRiskAssessmentPage

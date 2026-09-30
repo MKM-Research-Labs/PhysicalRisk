@@ -40,19 +40,20 @@ from tests.data._id_consistency_helpers import (
 )
 
 
-# Accepted lineage drift, as measured on the full thames portfolio by the run
-# of 2026-09-02 (git 35480e5a). A ratchet, not a permanent exemption: MORE
+# Accepted lineage drift. A ratchet, not a permanent exemption: MORE
 # mismatches than this fails as new drift, FEWER also fails, asking for the
 # number to be lowered so an improvement cannot silently regress.
 #
 # Before this the check only called warnings.warn(), so it could not fail on
-# any dataset — the 23 below were being printed and passed over on every run.
-# Asserting outright would put the build red until a full regeneration, which
-# is a ~24-hour job, so the current level is accepted and frozen instead.
+# any dataset — the mismatches were being printed and passed over on every run.
 #
-# It clears itself: the next full `phys.py port` should take this to 0, at
-# which point the second branch fails and asks for the baseline to follow.
-KNOWN_HASH_DRIFT = 14
+# Lowered from 14 to 4 on 2026-09-30, measured straight after
+# `phys.py port --halong -np 10 -nc 10 -ns 500`. It was 14 on the thames
+# portfolio of 2026-09-02 (git 35480e5a). The regeneration was expected to take
+# this to 0; the 4 that remain are outputs a later stage rewrites after their
+# hash is recorded, so they are a property of the pipeline rather than of stale
+# data, and the number only holds against a freshly generated portfolio.
+KNOWN_HASH_DRIFT = 4
 
 
 

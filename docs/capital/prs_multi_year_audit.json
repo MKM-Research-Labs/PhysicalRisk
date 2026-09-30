@@ -1,0 +1,123 @@
+{
+  "audit": {
+    "run_utc": "2026-09-30T12:28:32+00:00",
+    "config_sha256": "f5bc1cdf1d1cc5eda5e058672bad0c6f9c4c1ae12ae4893e12b5eb009bb17c1f",
+    "status": "ILLUSTRATIVE - parameters not calibrated to observed data",
+    "config": {
+      "example": {
+        "borrower": {
+          "revenue": 50.0,
+          "ebitda": 8.0,
+          "ebitda_vol": 0.32,
+          "debt": 32.0,
+          "interest_rate": 0.07,
+          "amortisation": 2.0,
+          "maintenance_capex": 1.5,
+          "liquidity": 5.0,
+          "site_asset_value": 8.0,
+          "contribution_margin": 0.4,
+          "insured_share_of_damage": 0.5
+        },
+        "hazard": {
+          "gev_loc": 4.0,
+          "gev_scale": 0.3,
+          "gev_shape_xi": 0.1,
+          "site_flood_level": 5.55,
+          "depth_slope": 1.0,
+          "depth_noise_sd": 0.15,
+          "damage_depth_scale": 0.6,
+          "max_downtime_months": 3.0
+        },
+        "prs": {
+          "notional": 6.0,
+          "attach_level": 5.5,
+          "exhaust_level": 6.05,
+          "premium_loading": 0.5
+        },
+        "capital": {
+          "lgd": 0.45,
+          "maturity_years": 2.5,
+          "capital_ratio": 0.105,
+          "cost_of_equity": 0.12,
+          "ig_credit_spread_benefit": 0.0125
+        },
+        "n_paths": 1000000,
+        "seed": 20260930
+      },
+      "tenor_years": 5,
+      "gev_loc_drift_per_year": 0.01,
+      "post_payout_premium_uplift": 1.0,
+      "withdrawal_prob_after_payout": 0.3,
+      "hard_market_prob_per_year": 0.1,
+      "hard_market_premium_multiple": 3.0,
+      "hard_market_withdrawal_prob": 0.25,
+      "cap_liquidity_at_opening": true
+    }
+  },
+  "results": {
+    "none": {
+      "mode": "none",
+      "cumulative_pd": 0.04619300000000004,
+      "annualised_pd": 0.009414193203262644,
+      "grade": "BB",
+      "sa_rw": 1.0,
+      "irb_rw": 0.9031613921011069,
+      "marginal_default_by_year": [
+        0.005416,
+        0.009073,
+        0.010449,
+        0.010665,
+        0.01059
+      ],
+      "embedded_level_premium": 0.09468566416243072
+    },
+    "one_year_only": {
+      "mode": "one_year_only",
+      "cumulative_pd": 0.043557999999999986,
+      "annualised_pd": 0.008867475892440857,
+      "grade": "BB",
+      "sa_rw": 1.0,
+      "irb_rw": 0.8833097915120016,
+      "marginal_default_by_year": [
+        0.002749,
+        0.009013,
+        0.010482,
+        0.010697,
+        0.010617
+      ],
+      "embedded_level_premium": 0.09468566416243072
+    },
+    "annual_renewal": {
+      "mode": "annual_renewal",
+      "cumulative_pd": 0.03654599999999997,
+      "annualised_pd": 0.007418453399692937,
+      "grade": "BB",
+      "sa_rw": 1.0,
+      "irb_rw": 0.8241652932687783,
+      "marginal_default_by_year": [
+        0.002749,
+        0.006228,
+        0.009597,
+        0.009115,
+        0.008857
+      ],
+      "embedded_level_premium": 0.09468566416243072
+    },
+    "embedded": {
+      "mode": "embedded",
+      "cumulative_pd": 0.03261400000000003,
+      "annualised_pd": 0.006609597972554004,
+      "grade": "BB",
+      "sa_rw": 1.0,
+      "irb_rw": 0.7861422230206786,
+      "marginal_default_by_year": [
+        0.002755,
+        0.006232,
+        0.007768,
+        0.007934,
+        0.007925
+      ],
+      "embedded_level_premium": 0.09468566416243072
+    }
+  }
+}

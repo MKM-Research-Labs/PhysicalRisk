@@ -163,8 +163,14 @@ class TestHalongThresholdConstants:
         assert get("FlashThresholdMinorM") == 3.0
 
 
+@pytest.mark.usefixtures("thames_catchment")
 class TestThamesEmpty:
-    """Thames commercial must leave every new field null / empty."""
+    """Thames commercial must leave every new field null / empty.
+
+    ``port.rand.thames`` is an alias of the shared engine, which follows the
+    *active* catchment, so thames has to be activated here just as ``_halong``
+    activates halong above; the import path alone does not select it.
+    """
 
     def test_thresholds_null(self):
         md = thames_metadata(6, _LOCATION)

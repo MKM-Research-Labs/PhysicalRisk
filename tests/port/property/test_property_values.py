@@ -28,6 +28,7 @@ import json
 import pytest
 
 import database
+from config import config
 from port.src.property.main import PropertyPortfolioGenerator
 from db_helpers import active_test_backend, tmp_catchment
 
@@ -63,7 +64,7 @@ class TestSetSpecificPropertyValues:
         gen = make_portfolio_gen(tmp_path)
         data = {}
         gen._set_specific_property_values(data, "PROP-abc", 0, {}, {"lat": 51.5, "lon": -0.1})
-        assert data["PropertyHeader"]["Header"]["CatchmentID"] == "thames"
+        assert data["PropertyHeader"]["Header"]["CatchmentID"] == config.catchment_id
 
     def test_lat_lon_set_in_location(self, tmp_path):
         gen = make_portfolio_gen(tmp_path)

@@ -90,7 +90,7 @@ class TestPropertyGeneratorFile:
 @pytest.mark.generator
 class TestPropertyGeneratorDataQuality:
 
-    def test_coordinates_in_thames_range(self, tmp_path):
+    def test_coordinates_in_thames_range(self, tmp_path, thames_catchment):
         gen = PropertyPortfolioGenerator(verbose=False)
         result = gen.generate(count=10)
         for loc in result["data"]["locations"]:

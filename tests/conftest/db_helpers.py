@@ -226,9 +226,15 @@ def _bound(repo: database.Repository, catchment: str) -> Iterator[database.Repos
 
 @contextmanager
 def tmp_catchment(
-    tmp_path: Union[str, Path], catchment: str = "thames"
+    tmp_path: Union[str, Path], catchment: Optional[str] = None
 ) -> Iterator[FileRepository]:
     """Bind a file backend rooted at ``tmp_path`` and make ``catchment`` active.
+
+    ``catchment`` defaults to the run's own catchment, not a literal "thames".
+    With a literal, a run pinned to another catchment bound a context that
+    disagreed with ``config.catchment_id``; once ``create_app`` rebound the
+    production backend, that mismatch resolved to the real ``data/input/thames``
+    and route tests read the live portfolio instead of their fixture.
 
     Every catchment resolves to ``tmp_path`` (a single scratch dir per test), so a
     writer's reads and writes land there and can be read back through ``database``.
@@ -238,6 +244,7 @@ def tmp_catchment(
     catchment to a clean slate and makes it active — writes land in Postgres and
     are rolled back with the rest of the test.
     """
+    catchment = catchment or config.catchment_id
     if active_test_backend() == "pg":
         _purge_catchment(catchment)
         with database.catchment_context(catchment):
@@ -250,8 +257,12 @@ def tmp_catchment(
 
 
 @contextmanager
-def memory_catchment(catchment: str = "thames") -> Iterator[InMemoryRepository]:
-    """Bind an in-memory backend and make ``catchment`` active (no disk I/O)."""
+def memory_catchment(catchment: Optional[str] = None) -> Iterator[InMemoryRepository]:
+    """Bind an in-memory backend and make ``catchment`` active (no disk I/O).
+
+    Defaults to the run's own catchment, for the reason given on ``tmp_catchment``.
+    """
+    catchment = catchment or config.catchment_id
     repo = InMemoryRepository()
     with _bound(repo, catchment) as bound:
         yield bound

@@ -52,9 +52,21 @@ def test_tmp_catchment_routes_writes_to_tmp_path_and_sets_catchment(tmp_path):
         assert database.get_gauge_portfolio("halong") == [{"id": "G1"}]
 
 
-def test_tmp_catchment_default_catchment_is_thames(tmp_path):
+def test_tmp_catchment_default_catchment_is_the_runs_own(tmp_path):
+    """Defaults to the catchment the run is pinned to, so the bound context
+    agrees with ``config.catchment_id`` under ``phys.py test --<catchment>``."""
     with tmp_catchment(tmp_path):
-        assert database.active_catchment() == "thames"
+        assert database.active_catchment() == config.catchment_id
+
+
+def test_memory_catchment_default_catchment_is_the_runs_own():
+    with memory_catchment():
+        assert database.active_catchment() == config.catchment_id
+
+
+def test_tmp_catchment_explicit_catchment_wins(tmp_path):
+    with tmp_catchment(tmp_path, "rhine"):
+        assert database.active_catchment() == "rhine"
 
 
 @_file_mode_only

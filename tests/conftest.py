@@ -108,3 +108,6 @@ from db_helpers import (  # noqa: F401, E402
     tmp_catchment,
     memory_catchment,
 )
+
+# Also after `helpers`, for the same reason: it imports `config`.
+from fixtures_catchment import thames_catchment  # noqa: F401, E402

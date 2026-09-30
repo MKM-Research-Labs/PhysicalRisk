@@ -47,6 +47,9 @@ def _make_gauge(lat=51.508, lon=-0.121, distance=150, risk_cat="High", risk_scor
 
 
 class TestGaugeLocationPage:
+    # The page words its river context and places latitudes against the active
+    # catchment. Tests that assert thames wording or London latitudes take the
+    # ``thames_catchment`` fixture; the rest hold under any catchment.
 
     def _page(self):
         from reports.gauge.gauge_page_03_location import GaugeLocationPage
@@ -80,7 +83,7 @@ class TestGaugeLocationPage:
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
         assert any("Geographic Coordinates" in t for t in texts)
 
-    def test_thames_context_section(self):
+    def test_thames_context_section(self, thames_catchment):
         page = self._page()
         result = page.generate_elements(_make_gauge())
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
@@ -98,31 +101,31 @@ class TestGaugeLocationPage:
         texts = [e.text for e in result if isinstance(e, Paragraph) and hasattr(e, "text")]
         assert any("Positioning Summary" in t for t in texts)
 
-    def test_lat_northern_catchment(self):
+    def test_lat_northern_catchment(self, thames_catchment):
         """Latitude in the top third of catchment bounds → 'Northern part'."""
         page = self._page()
         result = page.generate_elements(_make_gauge(lat=51.6))
         assert "Northern part of catchment" in str(result)
 
-    def test_lat_central_catchment(self):
+    def test_lat_central_catchment(self, thames_catchment):
         """Latitude in the middle third of catchment bounds → 'Central part'."""
         page = self._page()
         result = page.generate_elements(_make_gauge(lat=51.45))
         assert "Central part of catchment" in str(result)
 
-    def test_lat_southern_catchment(self):
+    def test_lat_southern_catchment(self, thames_catchment):
         """Latitude in the bottom third of catchment bounds → 'Southern part'."""
         page = self._page()
         result = page.generate_elements(_make_gauge(lat=51.3))
         assert "Southern part of catchment" in str(result)
 
-    def test_distance_zero_on_thames(self):
+    def test_distance_zero_on_thames(self, thames_catchment):
         """Distance == 0 → 'On Thames River' and 'Directly on Thames'."""
         page = self._page()
         result = page.generate_elements(_make_gauge(distance=0))
         assert "On Thames River" in str(result)
 
-    def test_distance_close_to_thames(self):
+    def test_distance_close_to_thames(self, thames_catchment):
         """Distance < 100 → 'Very close to Thames'."""
         page = self._page()
         result = page.generate_elements(_make_gauge(distance=50))

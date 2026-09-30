@@ -63,7 +63,8 @@ class TestGenerateTextValue:
         assert generate_text_value("PropertyID", 0, self._fd()) == "PROP-001"
 
     def test_catchment_id(self):
-        assert generate_text_value("CatchmentID", 0, self._fd()) == "thames"
+        from config import config
+        assert generate_text_value("CatchmentID", 0, self._fd()) == config.catchment_id
 
     def test_currency(self):
         from config import config
@@ -155,8 +156,9 @@ class TestGenerateFieldValue:
         assert isinstance(result, str)
 
     def test_text_type(self):
+        from config import config
         result = generate_field_value("CatchmentID", {"type": "text"}, 0, self._fd())
-        assert result == "thames"
+        assert result == config.catchment_id
 
     def test_unknown_type_returns_empty(self):
         result = generate_field_value("f", {"type": "unknown"}, 0, self._fd())

@@ -34,9 +34,13 @@ class TestNostressFlag:
     def _make_args(self, **kwargs):
         """Build a minimal args namespace for cmd_port.
 
-        Note ``catchment_id="thames"`` — without it ``resolve_catchment``
-        falls through to an interactive ``input()`` prompt which raises
-        OSError under pytest's stdout capture.
+        ``catchment_id`` must be set — without it ``resolve_catchment`` falls
+        through to an interactive ``input()`` prompt which raises OSError under
+        pytest's stdout capture. It is the run's own catchment, not a literal
+        "thames": ``cmd_port`` activates whatever it is given, and switching
+        catchment re-derives ``config.input_dir``, discarding the ``port_admin_pw``
+        redirect. Under ``phys.py test --halong`` that sent the fire and seismic
+        stages to the real ``data/input/thames``.
         """
         import argparse
         defaults = dict(
@@ -71,7 +75,7 @@ class TestNostressFlag:
             num_storms=10, num_sims=10,
             simulation_hours=12, history_years=1,
             tail_weight=2.0, distribution='gev', verbose=False,
-            catchment_id="thames",
+            catchment_id=config.catchment_id,
         )
         defaults.update(kwargs)
         return argparse.Namespace(**defaults)
@@ -111,6 +115,8 @@ class TestNostressFlag:
              mock.patch('port.src.commercial.CommercialPortfolioGenerator') as mcom, \
              mock.patch('port.src.commercial_loan.CommercialLoanPortfolioGenerator') as mcoml, \
              mock.patch('port.src.book.generate_thames_central_book',
+                        return_value=[]), \
+             mock.patch('port.src.book.generate_market_making_book',
                         return_value=[]), \
              mock.patch('port.src.book.generate_property_book',
                         return_value=[]), \
@@ -187,6 +193,8 @@ class TestNostressFlag:
              mock.patch('port.src.commercial.CommercialPortfolioGenerator') as mcom, \
              mock.patch('port.src.commercial_loan.CommercialLoanPortfolioGenerator') as mcoml, \
              mock.patch('port.src.book.generate_thames_central_book',
+                        return_value=[]), \
+             mock.patch('port.src.book.generate_market_making_book',
                         return_value=[]), \
              mock.patch('port.src.book.generate_property_book',
                         return_value=[]), \

@@ -22,6 +22,7 @@
 
 import json
 
+from config import config
 from port.src.property.propertyhc import (
     TENORS,
     PropertyHazardCurveGenerator,
@@ -43,7 +44,7 @@ class TestPropertyHazardCurveGenerator:
 
         assert "metadata" in data
         assert "property_hazard_curves" in data
-        assert data["metadata"]["catchment_id"] == "thames"
+        assert data["metadata"]["catchment_id"] == config.catchment_id
 
     def test_properties_processed(self, output_dir):
         gen = PropertyHazardCurveGenerator(output_dir, verbose=False)

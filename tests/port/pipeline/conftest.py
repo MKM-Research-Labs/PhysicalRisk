@@ -42,9 +42,16 @@ def port_admin_pw(monkeypatch, tmp_path):
 
     The name is kept so the five call sites do not churn; what it guards has
     changed, not which tests need it.
+
+    The lineage manifest is redirected for the same reason. ``cmd_port`` records
+    every step it runs, and with mocked generators that overwrote the real
+    ``data/data_lineage.json`` with hashes of stand-in output -- 19 step entries
+    per run, which the drift check then reported as the portfolio having moved.
     """
     original_input_dir = getattr(config, "input_dir", None)
     config.input_dir = tmp_path
+    monkeypatch.setattr(
+        "lineage.manifest._core.LINEAGE_PATH", tmp_path / "data_lineage.json")
     try:
         yield tmp_path
     finally:

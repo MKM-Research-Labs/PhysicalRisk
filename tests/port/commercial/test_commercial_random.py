@@ -148,8 +148,8 @@ class TestGenerateFieldValue:
         v = generate_field_value("CommercialType", {}, 0, metadata)
         assert v == metadata["commercial_type"]
 
-    def test_use_class_derived_from_type(self):
-        # Office → E(g)(i)
+    def test_use_class_derived_from_type(self, thames_catchment):
+        # UK use classes are thames profile data. Office → E(g)(i)
         md = generate_commercial_metadata(0, {"name": "x", "elevation": 5,
                                               "vertical_offset": 1, "value_factor": 1})
         assert generate_field_value("UseClassUKO", {}, 0, md) == "E(g)(i)"
@@ -158,7 +158,7 @@ class TestGenerateFieldValue:
                                                 "vertical_offset": 1, "value_factor": 1})
         assert generate_field_value("UseClassUKO", {}, 6, md_h) == "C1"
 
-    def test_business_rates_derived_from_type(self):
+    def test_business_rates_derived_from_type(self, thames_catchment):
         # Office → "Office", Hotel → "Hotel", Retail → "Shop and Premises"
         for idx, expected in [(0, "Office"), (6, "Hotel"), (7, "Shop and Premises")]:
             md = generate_commercial_metadata(idx, {"name": "x", "elevation": 5,
@@ -232,7 +232,8 @@ class TestPeriodFromYear:
         (2009, "2009-Present"),
         (2026, "2009-Present"),
     ])
-    def test_boundary_cases(self, year, expected):
+    def test_boundary_cases(self, year, expected, thames_catchment):
+        # These are the thames (UK) construction-period buckets.
         assert period_from_year(year) == expected
 
 

@@ -61,11 +61,10 @@ class TestAdminFilePath:
         assert _unpatched()() == target
 
     def test_falls_back_to_the_config_accessor(self, monkeypatch, tmp_path):
-        """Without an override it follows the data root, like the CLI gate.
+        """Without an override it follows the data root.
 
-        Both halves of the gate resolve through
-        ``config.get_admin_credential_path`` precisely so they cannot drift
-        apart; a literal here would reintroduce the split.
+        The path comes from ``config.get_admin_credential_path`` rather than a
+        literal here, so it moves with ``MKM_DATA_ROOT``.
         """
         monkeypatch.delenv("MKM_ADMIN_FILE_PATH", raising=False)
         monkeypatch.setenv("MKM_DATA_ROOT", str(tmp_path))
@@ -77,22 +76,3 @@ class TestAdminFilePath:
         monkeypatch.setenv("MKM_ADMIN_FILE_PATH", "")
         monkeypatch.setenv("MKM_DATA_ROOT", str(tmp_path))
         assert _unpatched()() == tmp_path / ".port_admin"
-
-    def test_it_agrees_with_the_cli_gate(self, monkeypatch, tmp_path):
-        """The web and CLI locators must name the same file.
-
-        They are separate modules for import-layering reasons; if they ever
-        disagree, a credential written by one is invisible to the other.
-        """
-        from app.commands.port import auth as cli_auth
-
-        monkeypatch.delenv("MKM_ADMIN_FILE_PATH", raising=False)
-        monkeypatch.setenv("MKM_DATA_ROOT", str(tmp_path))
-        assert _unpatched()() == cli_auth._admin_file_path()
-
-    def test_the_override_is_honoured_by_both_halves(self, monkeypatch, tmp_path):
-        from app.commands.port import auth as cli_auth
-
-        target = tmp_path / "shared" / ".port_admin"
-        monkeypatch.setenv("MKM_ADMIN_FILE_PATH", str(target))
-        assert _unpatched()() == cli_auth._admin_file_path() == target

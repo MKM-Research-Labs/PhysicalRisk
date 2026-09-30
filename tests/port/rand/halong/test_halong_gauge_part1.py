@@ -166,8 +166,12 @@ class TestGenerateMenuValue:
         v = generate_menu_value(field, {}, 0, gauge_metadata)
         assert isinstance(v, str) and v
 
-    def test_tidal_branches(self, gauge_metadata):
-        """TidalInfluence dispatches on longitude — exercise all three branches."""
+    def test_tidal_branches(self, gauge_metadata, thames_catchment):
+        """TidalInfluence dispatches on longitude — exercise all three branches.
+
+        The longitudes below are placed along the thames span, so thames must be
+        the active catchment; against any other span they all read Non-tidal.
+        """
         from port.rand.halong.gauge.gauge_field_generators import generate_menu_value
         for lon, expected_keyword in [(0.0, "Tidal"), (-0.3, "Partially"), (-0.5, "Non-tidal")]:
             meta = dict(gauge_metadata)

@@ -166,12 +166,6 @@ _ALLOWLIST = {
     'app/commands/port/orchestrator.py':
         'file-backend pre-regen backup (copies *.json to .backups/); DB backups '
         'are a separate concern (pg_dump / WP5.2)',
-    # Port-CLI admin-gate credential (salt+hash for the `python phys.py port`
-    # mutation gate). A small local credential file read at CLI time, distinct from
-    # the DB-backed app RBAC users — intentionally a file, not DB-managed state.
-    'app/commands/port/auth.py':
-        'port-CLI admin-gate credential file (salt+hash); local credential by '
-        'design, distinct from the DB RBAC users',
     # --- Config export/import (canonical values in config.port) --------------
     # storm_control.json hand-off between config.port (EVENT_WINDOW_HOURS et al.)
     # and the running app — a human-inspectable config mirror, same exemption as
@@ -200,6 +194,9 @@ _ALLOWLIST = {
     # a tool-local sandbox — intentional file I/O, not DB-managed state.
     'docs/database/repository_demo.py':
         'standalone repository-pattern demo; tempfile only, not in the live pipeline',
+    'docs/capital/prs_multi_year.py':
+        'standalone illustrative capital-relief study; writes its own '
+        'prs_multi_year_audit.json run record, not live port state',
     'scripts/beta_sweep_analyze.py':
         'standalone sensitivity-analysis CLI; reads .beta_study/ snapshots, not '
         'live port state',
