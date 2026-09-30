@@ -27,7 +27,9 @@ import time
 
 from config import config
 
-from .artefacts import artefact_manifest, report_artefacts, run_verdict
+from .artefacts import (
+    artefact_manifest, latest_assessment, report_artefacts, run_verdict,
+)
 from .audit import _check_deps, _parse_coverage_pct, _run_audit_reports
 from .e2e import _run_e2e_tests
 from .js import _run_js_tests
@@ -243,17 +245,9 @@ def cmd_test(args):
         print('\n' + '=' * 60)
         print('Audit Package Contents')
         print('=' * 60)
-        # The assessment PDF has a dated, sha-stamped filename; resolve the most
-        # recent one actually written rather than reconstruct the name.
-        _assessments = sorted(
-            f for f in os.listdir(audit_dir)
-            if f.startswith('assessment_') and f.endswith('.pdf')
-        ) if os.path.isdir(audit_dir) else []
-        _assessment_path = os.path.join(
-            audit_dir,
-            _assessments[-1] if _assessments else 'assessment_<date>_<sha>.pdf')
         artefacts = artefact_manifest(
-            audit_dir, junit_xml, cov_xml, cov_html, _assessment_path)
+            audit_dir, junit_xml, cov_xml, cov_html,
+            latest_assessment(audit_dir))
         stale = report_artefacts(artefacts, run_started, phases_run)
         print()
         if stale:

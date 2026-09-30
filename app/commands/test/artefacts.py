@@ -41,6 +41,10 @@ import os
 # between a current artefact and a carried-over one, which is hours or weeks.
 _TOLERANCE_S = 2.0
 
+_ASSESSMENT_PREFIX = 'assessment_'
+# Reported as MISSING when no assessment has been written yet.
+_ASSESSMENT_PLACEHOLDER = 'assessment_<date>_<sha>.pdf'
+
 
 def artefact_manifest(audit_dir, junit_xml, cov_xml, cov_html, assessment_path):
     """Return ``[(label, path, phase), ...]`` for the audit package.
@@ -75,6 +79,26 @@ def artefact_manifest(audit_dir, junit_xml, cov_xml, cov_html, assessment_path):
         ('Full Audit Report PDF',    _p('full_audit_report.pdf'),      'audit'),
         ('Assessment PDF',           assessment_path,                  'audit'),
     ]
+
+
+def latest_assessment(audit_dir):
+    """Path of the assessment PDF most recently written to *audit_dir*.
+
+    The filename is ``assessment_<date>_<sha>.pdf``, so it cannot be rebuilt
+    without knowing the sha the generator used; the newest on disk is taken
+    instead. Newest by mtime, not by name: two runs on one day differ only in
+    the sha, which sorts arbitrarily, and the last name alphabetically was an
+    earlier run's file -- reported STALE while this run's PDF sat beside it.
+    """
+    try:
+        names = [f for f in os.listdir(audit_dir)
+                 if f.startswith(_ASSESSMENT_PREFIX) and f.endswith('.pdf')]
+    except OSError:
+        names = []
+    if not names:
+        return os.path.join(audit_dir, _ASSESSMENT_PLACEHOLDER)
+    paths = [os.path.join(audit_dir, name) for name in names]
+    return max(paths, key=os.path.getmtime)
 
 
 def classify(path, phase, run_started, phases_run):

@@ -33,6 +33,7 @@ from app.commands.test.artefacts import (
     _describe_age,
     artefact_manifest,
     classify,
+    latest_assessment,
     report_artefacts,
 )
 
@@ -153,6 +154,38 @@ class TestDirectoryArtefact:
 
         monkeypatch.setattr(os.path, 'getmtime', _boom)
         assert classify(str(d), 'unit', NOW, ALL_PHASES) == ('MISSING', '')
+
+
+class TestLatestAssessment:
+    """The summary must report this run's assessment, not an earlier one."""
+
+    def test_picks_the_newest_written_not_the_last_by_name(self, tmp_path):
+        """The regression: two runs on one day. '899a…' sorts after '44bc…',
+        so the earlier run's file was chosen and reported STALE."""
+        earlier = _touch(tmp_path / 'assessment_2026-09-30_899a0c2b8eed.pdf', NOW - 7200)
+        current = _touch(tmp_path / 'assessment_2026-09-30_44bc5b4c5064.pdf', NOW + 30)
+        assert latest_assessment(str(tmp_path)) == current
+        assert classify(current, 'audit', NOW, ALL_PHASES) == ('OK', '')
+        assert classify(earlier, 'audit', NOW, ALL_PHASES)[0] == 'STALE'
+
+    def test_an_older_date_never_wins_over_a_newer_write(self, tmp_path):
+        _touch(tmp_path / 'assessment_2026-10-01_aaaaaaaaaaaa.pdf', NOW - 86400)
+        current = _touch(tmp_path / 'assessment_2026-09-30_bbbbbbbbbbbb.pdf', NOW + 30)
+        assert latest_assessment(str(tmp_path)) == current
+
+    def test_ignores_other_files(self, tmp_path):
+        _touch(tmp_path / 'full_audit_report.pdf', NOW + 60)
+        _touch(tmp_path / 'assessment_notes.txt', NOW + 60)
+        only = _touch(tmp_path / 'assessment_2026-09-30_cccccccccccc.pdf', NOW)
+        assert latest_assessment(str(tmp_path)) == only
+
+    def test_no_assessment_yet_reads_as_missing(self, tmp_path):
+        path = latest_assessment(str(tmp_path))
+        assert classify(path, 'audit', NOW, ALL_PHASES) == ('MISSING', '')
+
+    def test_missing_audit_dir_reads_as_missing(self, tmp_path):
+        path = latest_assessment(str(tmp_path / 'never_created'))
+        assert classify(path, 'audit', NOW, ALL_PHASES) == ('MISSING', '')
 
 
 class TestDescribeAge:
