@@ -38,7 +38,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from config.capital import STATUS, CapitalReliefConfig
+from config.capital import STATUS, CapitalConfig, CapitalReliefConfig
 
 from .hazard import flood_losses, prs_payout, simulate_drivers, year_end_liquidity
 from .regulatory import grade_for_pd, irb_corporate_rw
@@ -64,21 +64,21 @@ def run(cfg: Optional[CapitalReliefConfig] = None) -> Dict:
     no_flood_base = year_end_liquidity(d, b, zero, zero, zero, 0.0) < 0.0
 
     results = {
-        "without_prs": _outcome(default_base, site_flooded, cfg),
-        "with_prs": _outcome(default_prs, site_flooded, cfg),
+        "without_prs": outcome(default_base, site_flooded, cfg.n_paths, b.debt, c),
+        "with_prs": outcome(default_prs, site_flooded, cfg.n_paths, b.debt, c),
     }
     base, prs = results["without_prs"], results["with_prs"]
 
     # The PD decomposition regulators and rating agencies will ask for.
     attribution = {
-        "pd_no_hazard_component": _rate(no_flood_base),
-        "pd_hazard_attributable": base["pd_1y"] - _rate(no_flood_base),
-        "p_site_flood": _rate(site_flooded),
-        "defaults_averted_by_prs": _rate(default_base & ~default_prs),
-        "defaults_caused_by_premium": _rate(default_prs & ~default_base),
+        "pd_no_hazard_component": rate(no_flood_base),
+        "pd_hazard_attributable": base["pd_1y"] - rate(no_flood_base),
+        "p_site_flood": rate(site_flooded),
+        "defaults_averted_by_prs": rate(default_base & ~default_prs),
+        "defaults_caused_by_premium": rate(default_prs & ~default_base),
         # Basis risk: the site flooded and the default persists despite the PRS.
-        "residual_flood_defaults_with_prs": _rate(default_prs & site_flooded),
-        "p_site_flood_but_no_payout": _rate(site_flooded & (payout == 0.0)),
+        "residual_flood_defaults_with_prs": rate(default_prs & site_flooded),
+        "p_site_flood_but_no_payout": rate(site_flooded & (payout == 0.0)),
     }
 
     def capital_cost(rwa: float) -> float:
@@ -135,27 +135,30 @@ def notional_sweep(notionals, cfg: Optional[CapitalReliefConfig] = None) -> List
     return rows
 
 
-def _outcome(defaulted: np.ndarray, site_flooded: np.ndarray,
-             cfg: CapitalReliefConfig) -> Dict:
-    b, c = cfg.borrower, cfg.capital
-    pd = _rate(defaulted)
+def outcome(defaulted: np.ndarray, site_flooded: np.ndarray, n_paths: int,
+            exposure: float, c: CapitalConfig) -> Dict:
+    """PD, grade, risk weights and expected loss for one case's defaults.
+
+    Shared with ``asset_one_year``, so both report a case the same way.
+    """
+    pd = rate(defaulted)
     grade, sa_rw = grade_for_pd(pd)
     irb_rw = irb_corporate_rw(pd, c.lgd, c.maturity_years)
     return {
         "pd_1y": pd,
-        "pd_std_error": math.sqrt(pd * (1 - pd) / cfg.n_paths),
+        "pd_std_error": math.sqrt(pd * (1 - pd) / n_paths),
         "grade": grade,
         "pd_given_site_flood": _conditional(defaulted, site_flooded),
         "pd_given_no_flood": _conditional(defaulted, ~site_flooded),
         "sa_rw": sa_rw,
-        "sa_rwa": sa_rw * b.debt,
+        "sa_rwa": sa_rw * exposure,
         "irb_rw": irb_rw,
-        "irb_rwa": irb_rw * b.debt,
-        "expected_loss": pd * c.lgd * b.debt,
+        "irb_rwa": irb_rw * exposure,
+        "expected_loss": pd * c.lgd * exposure,
     }
 
 
-def _rate(mask: np.ndarray) -> float:
+def rate(mask: np.ndarray) -> float:
     return float(mask.mean())
 
 

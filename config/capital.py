@@ -173,3 +173,50 @@ IRB_MATURITY_REFERENCE = 2.5
 IRB_MATURITY_SLOPE = 1.5
 IRB_CONFIDENCE = 0.999
 IRB_RW_MULTIPLIER = 12.5               # 1 / 8%
+
+
+# ---------------------------------------------------------------------------
+# A real commercial asset (WP2): the borrower is the property investor that owns
+# it, and its flood hazard comes from the platform's event catalogue.
+# ---------------------------------------------------------------------------
+
+#: Which of the asset's nearest gauges the PRS references: the first real
+#: (non-synthetic) one, as the property PRS book does. Depth is driven by the
+#: controlling synthetic gauge, so the two can differ -- that is the basis risk.
+SYNTHETIC_GAUGE_PREFIX = "SYNTH"
+
+#: The flood series the depths are read from (the surveyed floor, not BRI).
+ASSET_TIMESERIES_MODE = "flood"
+
+#: Share of the balance each repayment type amortises over the remaining term,
+#: keyed by the CDM's RepaymentType options. An unknown type is treated as
+#: interest only, which understates debt service rather than inventing it.
+AMORTISING_SHARE = {"Repayment": 1.0, "Part and part": 0.5, "Interest only": 0.0}
+
+
+@dataclass(frozen=True)
+class InvestorConfig:
+    """What the commercial CDM does not carry about the investor who owns the asset.
+
+    Income, debt and the building come from the asset and its loan; these fill
+    the gaps. All illustrative until calibrated.
+    """
+    income_vol: float = 0.15               # one-year shock vol of net rent (voids, arrears)
+    liquidity_months_of_debt_service: float = 6.0   # cash + undrawn facilities
+    building_share_of_value: float = 0.60  # reinstatement share of market value (land excluded)
+    insured_share_of_damage: float = 0.50  # as the study: flood cover is often restricted
+    max_downtime_months: float = 3.0       # rent lost = rent x downtime, downtime = max x damage
+    # The PRS notional is not a parameter: it is sized to the asset's uninsured
+    # flood loss (see models.capital.asset_one_year.size_notional).
+
+
+@dataclass(frozen=True)
+class AssetRunConfig:
+    """One-year capital relief for a real asset, on the platform's event years."""
+    investor: InvestorConfig = field(default_factory=InvestorConfig)
+    capital: CapitalConfig = field(default_factory=CapitalConfig)
+    n_years: int = ONE_YEAR_PATHS
+    seed: int = SEED
+
+    def fingerprint(self) -> str:
+        return _sha256(self)

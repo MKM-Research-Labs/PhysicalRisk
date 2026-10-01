@@ -1,7 +1,7 @@
 # PRS Capital Relief — project proposal
 
 **Status:** 2026-09-30. WP0 (recover and baseline) and WP1 (the package) are done.
-WP2 is paused with its design decided and no code written (section 7). All four decisions
+WP2 is under way: the one-year view for a real asset is built (section 8). All four decisions
 in section 6 are taken. Nothing built in `src/` yet.
 **Aim:** turn the illustrative study in `docs/capital/` into a governed model and
 surface it in the loan pricer / standalone loan calculator as a "PRS cover and
@@ -119,7 +119,7 @@ result back into the traded PRS book.
 |---|---|---|
 | 0 | **Recover and baseline.** Done 2026-09-30: both studies run, 23 tests pass, both recorded runs reproduce exactly (config hashes `fceb7d75…` and `f5bc1cdf…`) | done |
 | 1 | **Make it a model.** Done 2026-09-30: package `src/models/capital/` (`regulatory`, `hazard`, `one_year`, `over_term`; largest 168 lines, `__init__` re-exports only), every parameter in `config/capital.py` with the investment-grade spread benefit taken from `config.loan`. 39 tests in `tests/models/capital/` at 100% coverage, including one that reproduces both recorded runs from the package | done |
-| 2 | **Replace the illustrative hazard.** Build one asset's hazard, losses, PRS and borrower from platform data. Paused 2026-09-30 after the investigation and the four design decisions — see section 7 | L |
+| 2 | **Replace the illustrative hazard.** Build one asset's hazard, losses, PRS and borrower from platform data. One-year view built 2026-10-01 (section 8); the over-term view for an asset is next | L |
 | 3 | **Pricing bridge.** `routes/_loan_pricing/_capital.py`; new override keys (cover mode, notional, attach, exhaust, liquidity, EBITDA vol); a `capital` block in the calculator payload with two views — `one_year` (PD, grade, IRB and SA RW, capital, capital cost in bps, premium in bps, net benefit, default attribution) and `over_term` (cumulative and annualised PD, IRB RW and marginal default by year for each cover mode). Read-only beside the coupon: `price_loan` and `_build_coupon` are not touched | M |
 | 4 | **Calculator UI.** A "PRS cover and capital" section in `static/js/property/loanpricer/`: the one-year capital view, the over-term cover-mode comparison with marginal default by year, and the note explaining why the two PDs differ. Jest and Playwright tests, JS coverage gate | M |
 | 5 | **Governance.** Register the model as Tier 1 (suggest `MKM-CR-001`) with its documentation, sensitivity tables and validation evidence. Model registration, model documentation and test-to-model attribution moved to MKM-ModelRisk in the governance extraction (September 2026), so this work package is done there, not in this repo; `docs/models/new_model.md` still describes the old in-repo process. Here: a page in the rloan / commercial loan report | L |
@@ -214,3 +214,111 @@ real data.
   fix in `database` or the same workaround.
 - **Doc drift:** the retention length is documented as 3 km and set to 10 km
   (`velocity.py:89`, `config/models/_flood.py:108-113`).
+
+---
+
+## 8. WP2 progress — the one-year view for a real asset (2026-10-01)
+
+Built and tested against a seeded local portfolio (`~/PhysicalRisk-testdata`,
+thames, 10 commercial assets), since the data drive is unavailable.
+
+### How it works
+
+The investigation on resuming changed one thing about the design: the platform
+already has the pieces, so the model uses them rather than recomputing.
+
+- **Hazard: the platform's event catalogue, not the GEV fits.** Storms are
+  grouped into hours-clause events (the storm sequences), each with a sampling
+  weight and a catalogue coverage, arriving at the catchment's annual rate
+  (MKM-EF-001). Years are drawn with the platform's own sampler,
+  `draw_event_years`. The stored GEV shape is about 0.73 on every gauge, too heavy
+  a tail to draw from directly.
+- **Depth and damage: read, not recomputed.** The platform already writes each
+  asset's flood depth and damage ratio per event in its commercial flood series,
+  from the controlling gauge, ground and floor levels, distance and terrain.
+- **Trigger: the reference gauge.** The asset's nearest real gauge passing Severe
+  Flood Warning in any storm of an event. Depth and trigger come from different
+  gauges, so basis risk arises from the platform's own data, both ways.
+- **Year:** damage is summed over the year's events and capped at the whole
+  building; the PRS pays its notional at most once a year.
+- **Price:** `compute_prs_spread` on the annual trigger probability
+  `1 - exp(-lambda x coverage x weighted share of triggering events)`, the
+  platform's own rule.
+- **Borrower:** the investor who owns the asset. Net rent (net initial yield x
+  value) with a one-year shock, debt service from the loan (interest plus the
+  amortising share for Repayment / Part and part), a liquidity buffer in months
+  of debt service. Building value, insured share, downtime and PRS notional are
+  in `config.capital.InvestorConfig`.
+- **Who pays (decided 2026-10-01): the lender, out of the spread.** The overall
+  coupon does not change; it is disaggregated. The credit spread drops by the PRS
+  spread and the lender uses that slice to buy the cover. The borrower pays
+  nothing extra and receives the payout, so its PD can only fall. The run reports
+  the split (`coupon`: risk-free, credit spread before and after, PRS spread) and
+  the lender's account (`bank_net_benefit`: expected-loss and capital savings
+  less the premium). The study in `one_year` keeps its own convention, where the
+  borrower pays.
+
+Code: `src/models/capital/asset_inputs.py` (reads through `database`; scans the
+lists because `get_commercial` / `get_commercial_loan` cannot find nested
+records) and `src/models/capital/asset_one_year.py`. 27 new tests; the package is
+at 100% line coverage. A run of 2,000,000 years takes about a quarter of a second.
+
+### Results on the local portfolio (lender pays, notional sized to loss)
+
+After the synthetic-gauge fix below and a regeneration with the same seed:
+
+| asset | P(site floods) | PD without | PD with | grade | IRB without | IRB with | notional | PRS spread | lender net |
+|---|---:|---:|---:|---|---:|---:|---:|---:|---:|
+| CPROP-3612a41b | 1.10% | 0.895% | 0.402% | BB to BB+ | 88.6% | 62.9% | £13.7m | 22 bp | +£0.20m |
+| CPROP-45e9d4e8 | 0.96% | 1.471% | 1.062% | BB- | 105.0% | 94.3% | £2.2m | 27 bp | +£0.00m |
+| CPROP-03c61b6e | 0.28% | 2.235% | 2.155% | B+ | 118.5% | 117.3% | £18.6m | 12 bp | -£0.11m |
+| CPROP-1c30d539 | 0.82% | 51.4% | 50.9% | B | 214% | 215% | £27.1m | 69 bp | -£0.19m |
+| six others | 0.00% | unchanged | | | | | no cover | 0 bp | 0 |
+
+The reference gauge triggers in 0.95% of years for every asset (they share it).
+
+- **Where the asset's floods line up with the trigger, the PRS works as intended.**
+  CPROP-3612a41b floods in 1.10% of years against a 0.95% trigger: its PD more
+  than halves, it moves from BB to BB+, and the lender comes out £0.20m a year
+  ahead after paying the premium from the spread.
+- **Where they do not, the lender pays for basis risk.** CPROP-03c61b6e floods in
+  only 0.28% of years, so most payouts land in years with no loss; the PD barely
+  moves and the lender is £0.11m a year behind.
+- **CPROP-1c30d539 defaults regardless** (debt service above rent), so the
+  premium buys little.
+
+### The synthetic-gauge fix (2026-10-01)
+
+`_load_gaugets` (`src/port/src/property/ts/loader.py`) read only `GAUGE-` gauges,
+so the synthetic gauge that is meant to control each asset's flood depth was
+never loaded. Every depth came from a real gauge kilometres away, from which the
+asset sat far above the water. The history:
+
+- 2026-03-24: synthetic gauges added with the `SYNTH-` prefix; the loader already
+  globbed `GAUGE-*.json`.
+- 2026-04-03: a commit made the synthetic gauge "the single controlling
+  authority". It never took effect because of the filter; the higher Zone 3
+  spreads it reported came from the zone floor added in the same commit.
+- 2026-09-05: a coverage-driven test pinned the exclusion and gave it a reason
+  after the fact.
+
+The loader now reads both prefixes, and the test asserts the opposite. On the
+local portfolio the effect is large: 6 of 10 residential properties flood where
+none did, and 4 of 10 commercial assets. **Every flood series, property and
+commercial hazard curve and PRS price will change when the real portfolio is
+regenerated.** Several routes keep their own `GAUGE-` filters
+(`routes/propertyts/core_storm_list.py`, `routes/propertyts/animation/_helpers.py`,
+`routes/gauges/storms.py`); they list or animate storms for display and have not
+been reviewed against this change.
+
+### Next
+
+1. **A portfolio with flood-exposed commercial assets — done** by the
+   synthetic-gauge fix (item 3); the local portfolio now has four.
+2. **Notional sizing — done 2026-10-01.** The notional is the asset's uninsured
+   loss (uninsured repair plus lost rent) in a typical flooding event: the
+   catalogue-weighted mean over the events that flood it. An asset that never
+   floods gets no cover and no spread is carved out of its loan.
+3. **Blocker found and fixed: the flood series never used the synthetic gauge**
+   (see above).
+4. **The over-term view for an asset**, on the same event years.
