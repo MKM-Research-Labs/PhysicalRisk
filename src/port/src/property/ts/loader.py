@@ -28,6 +28,16 @@ same loader serves both residential (property.json) and commercial
 from typing import Dict, List
 
 import database
+from config import GAUGE_ID_PREFIX
+from port.src.gauge.synthetic import SYNTH_PREFIX
+
+# Real and synthetic gauges both feed the flood calculation. The synthetic gauge
+# is the controlling one: the river at the asset's own location, placed first in
+# every asset's nearest-gauge list (flood/nearest.py) and used for depth before
+# any real gauge (flood/propagation.py). Until 2026-10-01 this loader read real
+# gauges only, so that preference never took effect and every depth came from a
+# real gauge kilometres away.
+LOADED_GAUGE_PREFIXES = (f"{GAUGE_ID_PREFIX}-", f"{SYNTH_PREFIX}-")
 
 
 class LoaderMixin:
@@ -62,7 +72,7 @@ class LoaderMixin:
         catchment = database.active_catchment()
         gaugets = {}
         for gid in database.iter_gauge_timeseries_ids(catchment):
-            if not gid.startswith('GAUGE-'):
+            if not gid.startswith(LOADED_GAUGE_PREFIXES):
                 continue
             data = database.get_gauge_timeseries(catchment, gid)
             if data:

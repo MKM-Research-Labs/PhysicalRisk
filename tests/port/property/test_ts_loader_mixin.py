@@ -76,9 +76,11 @@ class TestStormSequenceMap:
 
 class TestGaugetsLoading:
 
-    def test_synthetic_gauges_are_excluded(self, monkeypatch):
-        """SYNTH- gauges carry no observed timeseries, so including them would
-        put fabricated readings into the property flood calculation."""
+    def test_synthetic_gauges_are_loaded(self, monkeypatch):
+        """The synthetic gauge controls an asset's flood depth, so its storm
+        responses must be loaded. Excluding them -- as this test once asserted --
+        sent every depth to a real gauge kilometres away, and assets beside the
+        river never flooded."""
         monkeypatch.setattr(database, "active_catchment", lambda: "thames")
         monkeypatch.setattr(database, "iter_gauge_timeseries_ids",
                             lambda _c: iter(["GAUGE-1", "SYNTH-1", "GAUGE-2"]))
@@ -87,7 +89,15 @@ class TestGaugetsLoading:
 
         result = _Loader()._load_gaugets()
 
-        assert sorted(result) == ["GAUGE-1", "GAUGE-2"]
+        assert sorted(result) == ["GAUGE-1", "GAUGE-2", "SYNTH-1"]
+
+    def test_other_timeseries_are_not_gauges(self, monkeypatch):
+        monkeypatch.setattr(database, "active_catchment", lambda: "thames")
+        monkeypatch.setattr(database, "iter_gauge_timeseries_ids",
+                            lambda _c: iter(["GAUGE-1", "summary", "SYNTHETIC"]))
+        monkeypatch.setattr(database, "get_gauge_timeseries",
+                            lambda _c, gid: {"gauge_id": gid})
+        assert sorted(_Loader()._load_gaugets()) == ["GAUGE-1"]
 
     def test_an_empty_timeseries_is_not_stored(self, monkeypatch):
         monkeypatch.setattr(database, "active_catchment", lambda: "thames")
