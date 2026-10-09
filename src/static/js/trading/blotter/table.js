@@ -37,6 +37,9 @@
                     {key: 'new_trade_pnl', label: 'Nwt P&L', w: '80px', fmt: 'pnl', agg: 'sum'},
                     {key: 'market_pnl', label: 'Mkt P&L', w: '80px', fmt: 'pnl', agg: 'sum'},
                     {key: 'mtm', label: 'MTM', w: '80px', fmt: 'pnl', agg: 'sum'},
+                    // Latest stored XVA run (MKM-XV-001); KVA is a memo, not booked (D-16).
+                    {key: 'xva', label: 'XVA', w: '70px', fmt: 'xva', agg: 'sum'},
+                    {key: 'kva', label: 'KVA memo', w: '75px', fmt: 'xva', agg: 'sum'},
                     {key: '_contract', label: '', w: '30px'},
                     {key: '_close', label: '', w: '50px'}
                 ];
@@ -129,6 +132,15 @@
                         } else if (col.fmt === 'pnl') {
                             color = val >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
                             display = fmtGBP(val);
+                        } else if (col.fmt === 'xva') {
+                            // No run yet, or the trade is newer than the run: a dash, never 0.
+                            if (val == null) {
+                                display = '\u2014';
+                                color = 'var(--muted-2)';
+                            } else {
+                                color = val >= 0 ? 'var(--green-dark)' : 'var(--red-dark)';
+                                display = fmtGBP(Math.round(val));
+                            }
                         } else if (col.fmt === 'dv01') {
                             color = val > 0 ? 'var(--accent-mid)' : (val < 0 ? 'var(--red-dark)' : 'var(--text)');
                             display = fmtGBP(val);
@@ -174,6 +186,7 @@
                     html += '</tbody><tfoot><tr style="background:var(--info-bg);border-top:2px solid var(--accent-mid);font-weight:700;position:sticky;bottom:0;z-index:1;">';
                     var totNotional = 0, totSpread = 0, totHaz = 0, totHazWeight = 0;
                     var totFs01 = 0, totNwtPnl = 0, totMktPnl = 0, totMtm = 0;
+                    var totXva = 0, totKva = 0, anyXva = false;
                     for (var si = 0; si < filtered.length; si++) {
                         var st = filtered[si];
                         totNotional += st.is_payer ? -(st.notional || 0) : (st.notional || 0);
@@ -186,6 +199,7 @@
                         totNwtPnl += (st.new_trade_pnl || 0);
                         totMktPnl += (st.market_pnl || 0);
                         totMtm += (st.mtm || 0);
+                        if (st.xva != null) { anyXva = true; totXva += st.xva; totKva += (st.kva || 0); }
                     }
                     var avgSpread = filtered.length > 0 ? totSpread / filtered.length : 0;
                     var wavgHaz = totHazWeight > 0 ? totHaz / totHazWeight : 0;
@@ -202,6 +216,8 @@
                         else if (fcol.key === 'new_trade_pnl') { fColor = totNwtPnl >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; fVal = fmtGBP(totNwtPnl); }
                         else if (fcol.key === 'market_pnl') { fColor = totMktPnl >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; fVal = fmtGBP(totMktPnl); }
                         else if (fcol.key === 'mtm') { fColor = totMtm >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; fVal = fmtGBP(totMtm); }
+                        else if (fcol.key === 'xva' && anyXva) { fColor = totXva >= 0 ? 'var(--green-dark)' : 'var(--red-dark)'; fVal = fmtGBP(Math.round(totXva)); }
+                        else if (fcol.key === 'kva' && anyXva) { fColor = 'var(--text-3)'; fVal = fmtGBP(Math.round(totKva)); }
                         html += '<td style="padding:var(--space-3) var(--space-4);text-align:' + fAlign + ';color:' + fColor + ';white-space:nowrap;font-size:var(--size-xs);">' + fVal + '</td>';
                     }
                     html += '</tr></tfoot>';

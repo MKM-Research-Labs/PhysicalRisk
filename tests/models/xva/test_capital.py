@@ -101,14 +101,14 @@ class TestCapitalPerState:
 
     def test_settled_trades_carry_nothing(self):
         nset = NettingSet([_at_par()], LAM_C)
-        out = capital(nset, PROFILE, nodes=np.array([1.0]), alive=np.zeros((1, 3, 1), bool),
+        out = capital(nset, PROFILE, nodes=np.array([1.0]), alive=[np.zeros((3, 1), bool)],
                       net=np.zeros((3, 1)), collateral=np.zeros((3, 1)), asset_class="commodity_other",
                       reference_rating="B", rrao=True, capital_ratio=RATIO)
         assert all(np.all(v == 0.0) for v in out.values())
 
     def test_pending_payout_counts_as_replacement_cost_only(self):
         nset = NettingSet([_at_par()], LAM_C)
-        out = capital(nset, PROFILE, nodes=np.array([1.0]), alive=np.zeros((1, 1, 1), bool),
+        out = capital(nset, PROFILE, nodes=np.array([1.0]), alive=[np.zeros((1, 1), bool)],
                       net=np.array([[N]]), collateral=np.zeros((1, 1)),
                       asset_class="commodity_other", reference_rating="B", rrao=False,
                       capital_ratio=RATIO)

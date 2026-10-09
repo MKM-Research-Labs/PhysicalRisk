@@ -147,7 +147,8 @@ class _PnLComputeMixin:
 
     def generate_eod_snapshot(self, enriched_trades: List[Dict],
                               market_state: Dict,
-                              eod_date: Optional[str] = None) -> Dict:
+                              eod_date: Optional[str] = None,
+                              xva: Optional[Dict] = None) -> Dict:
         """
         Generate and save an EOD snapshot.
 
@@ -155,6 +156,9 @@ class _PnLComputeMixin:
             enriched_trades: Enriched trades from DeltaEngine
             market_state: Current market state
             eod_date: Date string (YYYY-MM-DD), defaults to today
+            xva: Optional desk XVA run (MKM-XV-001). Stored in the snapshot,
+                with the change since the previous EOD as its own P&L line,
+                kept out of daily P&L so the market explain stays clean.
 
         Returns:
             EOD snapshot dict
@@ -193,11 +197,30 @@ class _PnLComputeMixin:
             'positions': pnl_summary['positions'],
         }
 
+        if xva is not None:
+            snapshot['xva'] = xva
+            snapshot['portfolio_summary'].update(self._xva_summary(xva, eod_date))
+
         # Persist the snapshot through the database seam (keyed by EOD date).
         database.save_eod_snapshot(self.catchment, eod_date, snapshot)
 
         logger.info("EOD snapshot saved for catchment %s: %s", self.catchment, eod_date)
         return snapshot
+
+    def _xva_summary(self, xva: Dict, eod_date: str) -> Dict:
+        """XVA and KVA totals, and the XVA P&L against the last earlier EOD that had XVA."""
+        total = xva.get('summary', {}).get('xva_total', 0.0)
+        previous = None
+        for snapshot in sorted(database.iter_eod_snapshots(self.catchment),
+                               key=lambda s: s.get('date', ''), reverse=True):
+            if snapshot.get('date', '') < eod_date and 'xva' in snapshot:
+                previous = snapshot['xva'].get('summary', {}).get('xva_total', 0.0)
+                break
+        return {
+            'xva_total': total,
+            'kva_total': xva.get('summary', {}).get('kva_total', 0.0),
+            'xva_pnl': None if previous is None else total - previous,
+        }
 
     def _get_previous_eod(self, current_date: str) -> Optional[Dict]:
         """Find the most recent EOD snapshot on or before the given date."""

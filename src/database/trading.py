@@ -113,3 +113,11 @@ def get_trade_pnl_history(catchment):
 
 def save_trade_pnl_history(catchment, payload):
     active_backend().save("trade_pnl_history", catchment, payload)
+
+
+# ── XVA (MKM-XV-001): the latest desk run ─────────────────────────────────────
+def get_xva_run(catchment):
+    return load_or("xva_run", catchment)
+
+def save_xva_run(catchment, payload):       # -> @require("Func003", "write")
+    active_backend().save("xva_run", catchment, payload)

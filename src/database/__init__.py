@@ -159,6 +159,7 @@ from .trading import (
     get_prs_trade,
     get_trade_marks,
     get_trade_pnl_history,
+    get_xva_run,
     iter_eod_snapshots,
     iter_prs_trade_ids,
     list_eod_snapshots,
@@ -169,6 +170,7 @@ from .trading import (
     save_prs_trade,
     save_trade_marks,
     save_trade_pnl_history,
+    save_xva_run,
     set_trade_status,
 )
 
@@ -229,6 +231,7 @@ __all__ = [
     "delete_eod_snapshot", "clear_eod_snapshots",
     "get_hazard_curve_history", "save_hazard_curve_history",
     "get_trade_pnl_history", "save_trade_pnl_history",
+    "get_xva_run", "save_xva_run",
     # classifiers
     "list_classifier_ids", "get_classifier", "save_classifier", "delete_classifier",
     "get_classifier_training_summary", "save_classifier_training_summary",

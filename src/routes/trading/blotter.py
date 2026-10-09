@@ -93,6 +93,15 @@ def get_blotter():
             t['prev_fair_spread_bps'] = prev_pos.get(
                 'fair_spread_bps', t.get('fair_spread_bps', 0))
 
+        # Latest stored XVA run (MKM-XV-001). Read, never computed here: a run
+        # costs about a second per netting set and the blotter refreshes often.
+        xva_run = database.get_xva_run(config.catchment_id) or {}
+        xva_by_swap = {r['swap_id']: r for r in xva_run.get('trades', [])}
+        for t in enriched:
+            row = xva_by_swap.get(t.get('swap_id', ''), {})
+            t['xva'] = row.get('xva')
+            t['kva'] = row.get('kva')
+
         return jsonify({
             'status': 'success',
             'trades': enriched,
@@ -104,6 +113,9 @@ def get_blotter():
                 'daily_pnl_from_trades': pnl['daily_pnl_from_trades'],
                 'daily_pnl_from_market': pnl['daily_pnl_from_market'],
                 'total_realized_pnl': pnl.get('total_realized_pnl', 0),
+                'xva_as_of': xva_run.get('as_of'),
+                'xva_total': xva_run.get('summary', {}).get('xva_total'),
+                'kva_total': xva_run.get('summary', {}).get('kva_total'),
             },
         })
 

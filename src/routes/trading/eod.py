@@ -53,9 +53,20 @@ def submit_eod():
         state = market_mgr.load()
         enriched = delta_eng.revalue_all(trades, state)
 
+        # XVA at EOD (MKM-XV-001): stored as the latest run and in the snapshot.
+        # A failure is logged and the EOD proceeds without it.
+        xva = None
+        import config.xva as xva_config
+        if data.get('xva', xva_config.XVA_AT_EOD):
+            try:
+                from .xva import run_and_save
+                xva = run_and_save(data.get('xva_paths'))
+            except Exception as xva_err:
+                logger.error("EOD XVA error: %s", xva_err, exc_info=True)
+
         # Generate snapshot
         snapshot = pnl_eng.generate_eod_snapshot(
-            enriched, state, eod_date)
+            enriched, state, eod_date, xva=xva)
 
         # Generate PDF
         pdf_base64 = ''

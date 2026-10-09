@@ -80,15 +80,19 @@ class CounterpartyProfile:
 
 
 def _addon(nset: NettingSet, alive, remaining, mf, asset_class: str, reference_rating: str):
-    """Aggregate SA-CCR add-on per state, given each trade's maturity factor."""
+    """Aggregate SA-CCR add-on per state.
+
+    ``alive`` is one (paths, nodes) mask per trade; ``remaining`` and ``mf`` are
+    one (nodes,) row per trade, so nothing is broadcast to trades x paths x
+    nodes.
+    """
     by_gauge: Dict[str, np.ndarray] = {}
     for i, trade in enumerate(nset.trades):
         if asset_class == "commodity_other":
-            notional, delta = trade.notional, trade.direction
+            size = trade.direction * trade.notional * mf[i]
         else:
-            notional = trade.notional * supervisory_duration(0.0, remaining[i])
-            delta = -trade.direction
-        eff = np.where(alive[i], delta * notional * mf[i], 0.0)
+            size = -trade.direction * trade.notional * supervisory_duration(0.0, remaining[i]) * mf[i]
+        eff = np.where(alive[i], size, 0.0)
         by_gauge[trade.gauge_id] = by_gauge.get(trade.gauge_id, 0.0) + eff
     if asset_class == "commodity_other":
         return commodity_addon({"other": by_gauge}, {"other": SACCR_COMMODITY_SF["other"]},
@@ -99,29 +103,33 @@ def _addon(nset: NettingSet, alive, remaining, mf, asset_class: str, reference_r
 
 
 def capital(nset: NettingSet, profile: CounterpartyProfile, *, nodes: np.ndarray,
-            alive: np.ndarray, net: np.ndarray, collateral: np.ndarray, asset_class: str,
+            alive, net: np.ndarray, collateral: np.ndarray, asset_class: str,
             reference_rating: str, rrao: bool, capital_ratio: float) -> Dict[str, np.ndarray]:
-    """Capital held per state, split by charge; ``alive`` is (trades, paths, nodes)."""
+    """Capital held per state, split by charge; ``alive`` is one mask per trade."""
     csa = nset.csa
-    remaining = np.stack([np.maximum(t.tenor_years - nodes, 0.0) for t in nset.trades])
-    remaining = np.broadcast_to(remaining[:, None, :], alive.shape)
-    unmargined_mf = maturity_factor_unmargined(remaining)
-    addon_u = _addon(nset, alive, remaining, unmargined_mf, asset_class, reference_rating)
+    remaining = [np.maximum(t.tenor_years - nodes, 0.0) for t in nset.trades]
+    addon_u = _addon(nset, alive, remaining, [maturity_factor_unmargined(r) for r in remaining],
+                     asset_class, reference_rating)
     nica = csa.im_received - csa.im_posted
     if csa.variation_margin:
-        margined_mf = np.full(remaining.shape, maturity_factor_margined(csa.mpor_days))
-        addon_m = _addon(nset, alive, remaining, margined_mf, asset_class, reference_rating)
+        mf_m = maturity_factor_margined(csa.mpor_days)
+        addon_m = _addon(nset, alive, remaining, [np.full(nodes.shape, mf_m)] * len(remaining),
+                         asset_class, reference_rating)
         exposure = ead(net, collateral + nica, addon_m, margined=True, threshold=csa.threshold,
                        mta=csa.minimum_transfer, nica=nica, unmargined_addon=addon_u)
     else:
         exposure = ead(net, nica, addon_u)
-    exposure = np.where(alive.any(axis=0) | (net != 0), exposure, 0.0)
+    any_alive = np.logical_or.reduce(alive)
+    exposure = np.where(any_alive | (net != 0), exposure, 0.0)
 
     scale = capital_ratio / BASEL_MINIMUM_RATIO          # RWA x ratio = K_basel x scale
     k_ccr = capital_ratio * sa_risk_weight(profile.rating, profile.exposure_class) * exposure
-    notionals = [np.where(alive[i], t.notional, 0.0) for i, t in enumerate(nset.trades)]
-    m_ns = ba_cva_maturity(list(remaining), notionals)
+    live_notional = sum(np.where(a, t.notional, 0.0) for a, t in zip(alive, nset.trades))
+    weighted = sum(np.where(a, t.notional * r, 0.0) for a, t, r in zip(alive, nset.trades, remaining))
+    m_ns = ba_cva_maturity([np.divide(weighted, live_notional, out=np.zeros_like(weighted),
+                                      where=live_notional > 0)], [live_notional])
     s = scva(ba_cva_risk_weight(profile.sector, profile.rating), exposure, m_ns)
     k_cva = scale * ba_cva_reduced({"counterparty": s})
-    k_rrao = scale * RRAO_EXOTIC_RATE * sum(notionals) if rrao else np.zeros_like(exposure)
-    return {"ead": exposure, "ccr": k_ccr, "cva": k_cva, "rrao": np.asarray(k_rrao, float)}
+    k_rrao = scale * RRAO_EXOTIC_RATE * live_notional if rrao else np.zeros_like(exposure)
+    return {"ead": exposure, "ccr": k_ccr, "cva": k_cva,
+            "rrao": np.broadcast_to(np.asarray(k_rrao, float), exposure.shape)}

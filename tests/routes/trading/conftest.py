@@ -102,6 +102,11 @@ def trading_env(tmp_path, monkeypatch):
                 'storm_responses': [],
             }, f)
 
+    # The XVA model runs at EOD in production; route tests that are not about
+    # it switch it off, and tests/routes/trading/test_xva_routes.py turns it on.
+    import config.xva as xva_config
+    monkeypatch.setattr(xva_config, 'XVA_AT_EOD', False)
+
     from config import config
     monkeypatch.setattr(config, 'get_input_dir', lambda: input_dir)
     monkeypatch.setattr(config, 'get_input_path',
@@ -172,6 +177,11 @@ def empty_trading_env(tmp_path, monkeypatch):
         json.dump(SAMPLE_GAUGE_JSON, f)
     with open(input_dir / 'property.json', 'w') as f:
         json.dump({'properties': []}, f)
+
+    # The XVA model runs at EOD in production; route tests that are not about
+    # it switch it off, and tests/routes/trading/test_xva_routes.py turns it on.
+    import config.xva as xva_config
+    monkeypatch.setattr(xva_config, 'XVA_AT_EOD', False)
 
     from config import config
     monkeypatch.setattr(config, 'get_input_dir', lambda: input_dir)

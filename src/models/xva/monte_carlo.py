@@ -48,15 +48,14 @@ from .paths import (alive_value, factor_paths, grid, lookup, simulation_times, t
                     triggers_for)
 
 
-def _exposures(values: np.ndarray, lagged: Optional[np.ndarray], nset: NettingSet):
-    """Netted exposures at the nodes; values is (trades, paths, nodes)."""
+def _exposures(net: np.ndarray, pos: np.ndarray, neg: np.ndarray,
+               lagged: Optional[np.ndarray], nset: NettingSet):
+    """Exposures at the nodes from the netted value (and, without close-out
+    netting, the sums of each trade's positive and negative parts)."""
     csa = nset.csa
     if not nset.close_out_netting:
-        pos = np.maximum(values, 0.0).sum(axis=0)
-        neg = np.minimum(values, 0.0).sum(axis=0)
-        return {"epe": pos, "ene": neg, "fca": pos, "ee": values.sum(axis=0),
-                "net": values.sum(axis=0), "collateral": np.zeros_like(pos)}
-    net = values.sum(axis=0)
+        return {"epe": pos, "ene": neg, "fca": pos, "ee": net,
+                "net": net, "collateral": np.zeros_like(net)}
     held = csa.variation_margin_held(lagged) if lagged is not None else np.zeros_like(net)
     uncollateralised = net - held
     return {
@@ -105,15 +104,24 @@ def run(nset: NettingSet, zero: ZeroCurve, cfg: Optional[XvaConfig] = None,
     y, clock = factor_paths(factor, times, cfg.n_paths, rng)
     paths = ev.simulate(model, triggers, times, clock, rng)
 
-    values = np.stack([trade_values(t, triggers[t.gauge_id], zero, nodes,
-                                    lookup(times, y, nodes), paths.first_trigger[t.gauge_id], lag)
-                       for t in nset.trades])
+    y_nodes = lookup(times, y, nodes)
+
+    def values_of(t):
+        return trade_values(t, triggers[t.gauge_id], zero, nodes, y_nodes,
+                            paths.first_trigger[t.gauge_id], lag)
+
+    # Pass 1 keeps only netted sums, so memory is O(paths x nodes) whatever
+    # the number of trades; the allocation pass revalues each trade again.
+    net = pos = neg = 0.0
+    for t in nset.trades:
+        v = values_of(t)
+        net, pos, neg = net + v, pos + np.maximum(v, 0.0), neg + np.minimum(v, 0.0)
     lagged = None
     if vm:
-        lagged = sum(trade_values(t, triggers[t.gauge_id], zero, lagged_at,
-                                  lookup(times, y, lagged_at), paths.first_trigger[t.gauge_id], lag)
-                     for t in nset.trades)
-    exp = _exposures(values, lagged, nset)
+        y_lagged = lookup(times, y, lagged_at)
+        lagged = sum(trade_values(t, triggers[t.gauge_id], zero, lagged_at, y_lagged,
+                                  paths.first_trigger[t.gauge_id], lag) for t in nset.trades)
+    exp = _exposures(net, pos, neg, lagged, nset)
     hit = sum((paths.first_trigger[g][:, None] <= nodes[None, :]).astype(float)
               for g in nset.gauges)
     weights = wwr_weights(hit, cfg.wwr_beta)
@@ -145,8 +153,11 @@ def run(nset: NettingSet, zero: ZeroCurve, cfg: Optional[XvaConfig] = None,
         "booked_strategy": cfg.funding_strategy,
         "booked": views[cfg.funding_strategy],
         "dva_disclosed": views["semi_replication"]["dva"],
-        "allocation": _euler_cva(values, exp, weights, lgd_c * lam_c * k[cfg.funding_strategy],
-                                 views[cfg.funding_strategy]["cva"]["value"]),
+        "allocation": _allocate([net] if len(nset.trades) == 1 else
+                                (values_of(t) for t in nset.trades), exp, weights, lgd_c * lam_c * k[cfg.funding_strategy],
+                                views[cfg.funding_strategy]["cva"]["value"],
+                                cfg.own_funding_spread * k["one_bond"],
+                                views["one_bond"]["fva"]["value"]),
         "profiles": {"t": nodes.tolist(),
                      **{key: exp[key].mean(axis=0).tolist() for key in ("epe", "ene", "ee")},
                      "collateral": exp["collateral"].mean(axis=0).tolist()},
@@ -155,8 +166,8 @@ def run(nset: NettingSet, zero: ZeroCurve, cfg: Optional[XvaConfig] = None,
         "audit": _audit(nset, cfg),
     }
     if counterparty is not None:
-        alive = np.stack([(paths.first_trigger[t.gauge_id][:, None] > nodes[None, :])
-                          & (nodes[None, :] < t.tenor_years) for t in nset.trades])
+        alive = [(paths.first_trigger[t.gauge_id][:, None] > nodes[None, :])
+                 & (nodes[None, :] < t.tenor_years) for t in nset.trades]
         result["kva"] = _kva(nset, cfg, counterparty, nodes, alive, exp, market,
                              k[cfg.funding_strategy], zero, triggers)
     return result
@@ -182,7 +193,7 @@ def _kva(nset, cfg, counterparty, nodes, alive, exp, market, weighted_kernel, ze
 
     v0 = np.array([[sum(float(alive_value(t, triggers[t.gauge_id], zero, 0.0, np.ones(1))[0])
                         for t in nset.trades)]])
-    today = capital(nset, counterparty, nodes=np.zeros(1), alive=np.ones((len(nset.trades), 1, 1), bool),
+    today = capital(nset, counterparty, nodes=np.zeros(1), alive=[np.ones((1, 1), bool)] * len(nset.trades),
                     net=v0, collateral=nset.csa.variation_margin_held(v0), **_capital_args(cfg))
     out["today"] = {c: float(v[0, 0]) for c, v in today.items()}
     out["profiles"] = {c: held[c].mean(axis=0).tolist() for c in ("ead", "ccr", "cva", "rrao")}
@@ -190,16 +201,22 @@ def _kva(nset, cfg, counterparty, nodes, alive, exp, market, weighted_kernel, ze
     return out
 
 
-def _euler_cva(values, exp, weights, rate_kernel, total) -> Dict[str, object]:
-    """Trade contributions to CVA: E[V_i 1{exposure > 0}] (Green 3.84-3.93).
+def _allocate(values, exp, weights, cva_kernel, cva_total, fva_kernel, fva_total):
+    """Trade contributions to CVA and to the one-bond FVA.
 
-    Exact for an uncollateralised netted set, where EPE is homogeneous of
-    degree one in the trade weights. Thresholds, IM and per-trade (unnetted)
-    close-out break homogeneity; the residual is reported, not hidden.
+    CVA: E[V_i 1{exposure > 0}] (Green 3.84-3.93), exact for an uncollateralised
+    netted set, where EPE is homogeneous of degree one in the trade weights.
+    FVA is linear in E[V], so each trade's own -int s_F D E[V_i] is exact
+    without collateral. Thresholds, IM, collateral or per-trade (unnetted)
+    close-out break both; the residual is reported, not hidden.
     """
     indicator = (exp["epe"] > 0).astype(float) * weights
-    contributions = [-float(((v * indicator) * rate_kernel).sum(axis=1).mean()) for v in values]
-    return {"contributions": contributions, "residual": total - sum(contributions)}
+    cva, fva = [], []
+    for v in values:                      # may be a generator: one pass only
+        cva.append(-float(((v * indicator) * cva_kernel).sum(axis=1).mean()))
+        fva.append(-float((v * fva_kernel).sum(axis=1).mean()))
+    return {"contributions": cva, "residual": cva_total - sum(cva),
+            "fva_contributions": fva, "fva_residual": fva_total - sum(fva)}
 
 
 def _audit(nset: NettingSet, cfg: XvaConfig) -> Dict:

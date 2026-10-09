@@ -81,8 +81,10 @@ def alive_value(trade: PrsTrade, trigger: ShiftedTrigger, zero: ZeroCurve, t: fl
     if ends.size == 0 or t >= trade.tenor_years:
         return np.zeros_like(y)
     starts = np.maximum(ends - QUARTER, t)
-    s_start = trigger.survival(t, starts, y)
-    s_end = trigger.survival(t, ends, y)
+    # Each period starts where the previous one ended, so one survival call on
+    # [first start, ends...] gives both legs (half the exponentials).
+    both = trigger.survival(t, np.concatenate([starts[:1], ends]), y)
+    s_start, s_end = both[:, :-1], both[:, 1:]
     df_t = float(zero.df(t))
     protection = (s_start - s_end) @ (zero.df(0.5 * (starts + ends)) / df_t)
     annuity = s_end @ (QUARTER * zero.df(ends) / df_t)

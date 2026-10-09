@@ -128,3 +128,30 @@ class XvaConfig:
 
     def fingerprint(self) -> str:
         return hashlib.sha256(json.dumps(asdict(self), sort_keys=True).encode()).hexdigest()
+
+
+# --- Trading Desk integration (WP4) -----------------------------------------
+
+#: Rating proxy for a counterparty with no record or no rating: conservative.
+UNKNOWN_COUNTERPARTY_RATING = "BB"
+
+#: CDM PartyType -> (CRE20 exposure class, MAR50 BA-CVA sector).
+PARTY_TYPE_CAPITAL: Dict[str, Tuple[str, str]] = {
+    "Bank": ("bank", "financials"),
+    "Insurer": ("corporate", "financials"),
+    "Reinsurer": ("corporate", "financials"),
+    "Hedge Fund": ("corporate", "financials"),
+    "Pension Fund": ("corporate", "financials"),
+    "REIT": ("corporate", "financials"),
+    "Utility": ("corporate", "health_utilities_professional"),
+    "Government Agency": ("corporate", "sovereign"),
+    "Local Authority": ("corporate", "local_government"),
+}
+DEFAULT_PARTY_CAPITAL: Tuple[str, str] = ("corporate", "other")
+
+#: Daily KPI (Green Ch. 17): the engine's V(0) against the front-office MTM,
+#: per trade, in bp of notional. A breach is reported, never auto-corrected.
+VALUATION_KPI_TOLERANCE_BPS = 5.0
+
+#: Run the XVA model as part of EOD submission (a request can override it).
+XVA_AT_EOD = True

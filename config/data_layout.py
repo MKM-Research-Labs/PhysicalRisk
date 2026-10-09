@@ -110,6 +110,7 @@ EOD_DIR = "blotter/eod"
 EOD_KEY_PREFIX = "EOD-"
 HAZARD_CURVE_HISTORY_FILE = "blotter/hazard_curve_history.json"
 TRADE_PNL_HISTORY_FILE = "blotter/trade_pnl_history.json"
+XVA_RUN_FILE = "blotter/xva_run.json"
 PRS_DIR = "prs"
 
 # ── Classifiers (binary) ─────────────────────────────────────────────────────

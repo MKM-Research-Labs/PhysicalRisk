@@ -85,16 +85,28 @@ class EventPaths:
 
 def _clock_inverse(clock: np.ndarray, times: np.ndarray, paths: np.ndarray,
                    targets: np.ndarray) -> np.ndarray:
-    """Real time at which each path's factor clock reaches its target."""
-    out = np.full(targets.shape, np.inf)
-    for p in np.unique(paths):
-        sel = paths == p
-        row = clock[p]
-        ok = targets[sel] <= row[-1]
-        res = np.full(int(sel.sum()), np.inf)
-        res[ok] = np.interp(targets[sel][ok], row, times)
-        out[sel] = res
-    return out
+    """Real time at which each path's factor clock reaches its target.
+
+    Vectorised over paths: each row of the (non-decreasing) clock is offset by
+    a per-path constant larger than any clock value, so one ``searchsorted`` on
+    the flattened array finds every target's interval at once. Beyond the
+    path's horizon the answer is inf.
+    """
+    if targets.size == 0:
+        return np.zeros(0)
+    n_times = times.size
+    offset = float(clock.max()) + 1.0
+    flat = (clock + offset * np.arange(clock.shape[0])[:, None]).ravel()
+    shifted = targets + offset * paths
+    pos = np.searchsorted(flat, shifted, side="left")
+    local = np.clip(pos - paths * n_times, 1, n_times - 1)
+    hi = paths * n_times + local
+    c0, c1 = flat[hi - 1], flat[hi]
+    t0, t1 = times[local - 1], times[local]
+    with np.errstate(divide="ignore", invalid="ignore"):
+        frac = np.where(c1 > c0, (shifted - c0) / (c1 - c0), 0.0)
+    out = t0 + np.clip(frac, 0.0, 1.0) * (t1 - t0)
+    return np.where(targets <= clock[paths, -1], out, np.inf)
 
 
 def _first_by_path(n_paths: int, paths: np.ndarray, times: np.ndarray) -> np.ndarray:

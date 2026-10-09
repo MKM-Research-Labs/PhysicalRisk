@@ -135,4 +135,28 @@ describe('renderBlotterTable via tdToggleSort', () => {
         expect(text).toContain('Barclays');
         expect(text).toContain('HSBC');
     });
+
+    test('XVA and KVA show the stored run, and a dash where there is none', () => {
+        // A trade booked after the last XVA run has no figure. Showing 0 would
+        // read as "no credit or capital cost"; a dash says "not yet run".
+        load([
+            {...TRADES[0], xva: -1234.4, kva: -56789.6},
+            {...TRADES[1]},
+        ]);
+        window.tdToggleSort();
+        const text = wrapText();
+        expect(text).toContain('XVA');
+        expect(text).toContain('KVA memo');
+        expect(text).toContain('-1,234');
+        expect(text).toContain('-56,790');
+        expect(text).toContain('\u2014');
+    });
+
+    test('XVA totals only appear when some trade has a run', () => {
+        load();
+        window.tdToggleSort();
+        const foot = document.querySelector('tfoot').textContent;
+        expect(foot).not.toContain('NaN');
+    });
 });
+

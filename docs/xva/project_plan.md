@@ -1,6 +1,6 @@
 # PRS XVA — project proposal
 
-**Status:** 2026-10-09. Proposal agreed. WP0 done bar input owners (section 9). WP1 analytic engine (section 10), WP2 Monte Carlo (section 11) and WP3 capital and KVA (section 12) built and tested. The proposed defaults in section 8 were
+**Status:** 2026-10-09. Proposal agreed. WP0 done bar input owners (section 9). WP1 analytic engine (section 10), WP2 Monte Carlo (section 11) and WP3 capital and KVA (section 12) and WP4 desk integration (section 13) built and tested. The proposed defaults in section 8 were
 accepted on 2026-10-09; the regulatory characterisation and the model ID still need owners outside the model team.
 **Aim:** add credit, funding and capital valuation adjustments (CVA, DVA, FVA, KVA, and
 later MVA) to the Physical Risk Swap pricer. This is a new model (proposed ID
@@ -310,6 +310,7 @@ inventory.
 | D-14 | MC time integration: midpoint rule on cells that never straddle a premium date, maturity or settlement end; 26 cells per quarter (~3.5 days). Bias on the saw-tooth is O(h²), 0.05% at 26 cells (about 0.2 SE at 10,000 paths) | §11 |
 | D-15 | Flood-hazard dynamics: CIR++ on a catchment factor Y (Y0 = θ = 1), gauge intensity λ_g Y + φ_g(t), with φ_g fitted to the pricer's flat hazard. Replaces the "log-hazard OU" of §4.4: CIR++ prices V(t) in closed form, reproduces the pricer at t = 0 on every path, and is exactly WP1 at σ = 0. κ = 0.5, σ = 0.3 are **placeholders**; calibration to the history of re-estimated hazard has no owner yet | §11 |
 | D-16 | KVA is computed (SA-CCR + BA-CVA reduced, RRAO switch) and reported beside the booked XVA, **not inside it**, until the regulatory paper answers Q1–Q3. The SA-CCR treatment (`commodity_other` or `credit_single_name`) and the RRAO are config switches. Default: commodity "other", RRAO off | §12 |
+| D-17 | Desk integration runs outside `enrich_trade`. `enrich_trade` serves every blotter request, curve edit and stress run, and an XVA run costs about a second per netting set. XVA is run on demand (`POST /trading/xva/run`), at EOD (`XVA_AT_EOD`), and as an incremental quote. The blotter reads the stored run. One netting set per counterparty. Each gauge uses one flat hazard (the market state's gauge rate). Trade KVA is allocated pro rata to notional within the netting set | §13 |
 
 ### CDM extension
 
@@ -628,3 +629,61 @@ Integration:
 - the daily front-office versus engine V KPI.
 
 Gauge PRS first. Property PRS needs a term pricer first (§7.2).
+
+---
+
+## 13. WP4 — Trading Desk integration (2026-10-09)
+
+### What was built
+
+| where | what |
+|---|---|
+| `src/models/xva/desk.py` | Turns the desk's enriched blotter rows, market state and counterparty CDM into netting sets, one per counterparty. Unknown counterparties go to `UNASSIGNED`, rated `BB`. Runs the Monte Carlo with capital on each set. Returns per-trade XVA (Euler CVA plus that trade's own FVA), KVA (pro rata to notional), the valuation KPI, per-netting-set results and an audit block. `quote()` is incremental XVA and KVA on common random numbers |
+| `src/routes/trading/xva.py` | `POST /trading/xva/run` (WRITE; stores the run), `GET /trading/xva` (the latest run), `POST /trading/xva/quote` (READ; stores nothing) |
+| `database.get_xva_run` / `save_xva_run` | A new `xva_run` document artifact. It is generic, so it works on both the file and Postgres backends |
+| `routes/trading/blotter.py` | Merges the stored run into each blotter row (`xva`, `kva`) and the summary (`xva_as_of`, `xva_total`, `kva_total`). Nothing is computed per request |
+| `static/js/trading/blotter/table.js` | Adds **XVA** and **KVA memo** columns and footer totals. A trade with no run shows a dash, never 0 |
+| `routes/trading/eod.py`, `pnl_engine/_pnl.py` | EOD runs XVA (`config.xva.XVA_AT_EOD`; a request can override it). The run is stored in the snapshot. `xva_total`, `kva_total` and **`xva_pnl`** (the change since the last earlier EOD with XVA) go into the portfolio summary, outside `total_daily_pnl`, so the market explain is unchanged. If XVA fails, the error is logged and the EOD still completes |
+| Valuation KPI (Green Ch. 17) | Per trade: the engine's V(0) against the front-office MTM, in bp of notional. Breaches over `VALUATION_KPI_TOLERANCE_BPS` (5) are counted in the run summary, never corrected |
+
+### Performance
+
+Profiling a 16-trade netting set at 10,000 paths showed 18.4 s, and memory that
+grew with trades × paths × nodes (about 0.7 GB). Three changes:
+- event clock inversion is vectorised (4.2 s → negligible);
+- each trade needs one survival evaluation per node instead of two;
+- netting and capital keep only netted sums, so memory is O(paths × nodes). Allocation revalues each trade in a second pass.
+
+The same set now runs in 9.6 s. All model tests still pass on unchanged seeds.
+
+### Tests
+
+- `tests/models/xva/test_desk.py` (16).
+- `tests/routes/trading/test_xva_routes.py` (11). These cover:
+  - run, store and read back;
+  - the blotter before and after a run;
+  - quote validation;
+  - XVA at EOD and its own P&L line, kept out of daily P&L;
+  - EOD surviving an XVA failure.
+- Two JS tests on the new columns.
+- The existing trading route tests switch EOD XVA off in their fixture (`XVA_AT_EOD`). Otherwise every EOD test would run a full Monte Carlo: the EOD test file went from seconds to 7 minutes before that switch.
+
+### What it shows
+
+- **A hedging trade carries a capital benefit in its quote.**
+  - Selling protection on a gauge where the counterparty already buys nets in SA-CCR's commodity type.
+  - So incremental KVA is positive, and the seller could charge *less*.
+  - A desk that quotes standalone KVA would overprice hedges. This is the case for incremental quoting.
+- **The KPI is expected to breach on the live book** (not yet run on it; see L-17). The front office prices each trade at its tenor-bucket hazard over a whole-year remaining tenor, with a spread floor (F-1, §7.4). The engine uses one flat gauge rate over exact quarters. Each breach is a reconciliation item, not an engine error.
+
+### Limitations recorded for validation
+
+- **L-13. Each gauge uses one flat hazard**, because the CIR++ fit is flat (L-5) and trades on one gauge must share one trigger. The front office's hazard term structure is not used, and the KPI shows the gap.
+- **L-14. KVA allocated pro rata to notional is a convention.** Green: only the total is invariant (Ch. 15).
+- **L-15. Netting set = counterparty, taking the first CDM netting set.** A counterparty with several master agreements needs `Header.NettingSetID` to be honoured; the field exists from WP0.
+- **L-16. Not yet in the UI:** the quote panel and a "Run XVA" button on the blotter. The APIs exist; the columns fill after the first run or EOD.
+- **L-17. Not browser-verified in this session.** The worktree has no `data/` directory to serve the app from. The rendering is covered by the JS tests.
+
+### Next — WP5
+
+The model document and validation pack, then registration in ModelRisk (deferred to this point, §9). WP6 holds the extensions recorded above.
