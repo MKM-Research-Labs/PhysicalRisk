@@ -1,6 +1,6 @@
 # PRS XVA — project proposal
 
-**Status:** 2026-10-09. Proposal agreed; WP0 under way (section 9). No XVA engine is built yet. The proposed defaults in section 8 were
+**Status:** 2026-10-09. Proposal agreed. WP0 done bar input owners (section 9). WP1 analytic engine built and benchmarked (section 10). The proposed defaults in section 8 were
 accepted on 2026-10-09; the regulatory characterisation and the model ID still need owners outside the model team.
 **Aim:** add credit, funding and capital valuation adjustments (CVA, DVA, FVA, KVA, and
 later MVA) to the Physical Risk Swap pricer. This is a new model (proposed ID
@@ -288,7 +288,7 @@ inventory.
 | Decisions log | Below: D-01 to D-13. D-09 and D-11 to D-13 still need an input owner |
 | Regulatory characterisation | Question paper written: [`regulatory_characterisation.md`](regulatory_characterisation.md). Needs an owner outside the model team |
 | CDM extension | Done (see below). Tests: `tests/port/cdm/test_credit_support.py` |
-| ModelRisk registration | `scripts/register_xv001.py` + `_xv001_data.py` on ModelRisk branch `claude/register-xv001`. Tests pass on a disposable database. **Not yet run against the live inventory**; the model owner runs `python -m scripts.register_xv001` |
+| ModelRisk registration | `scripts/register_xv001.py` + `_xv001_data.py` on ModelRisk branch `claude/register-xv001` (commit `e993241`). Tests pass on a disposable database. **Deferred until development is complete** (owner, 2026-10-09). A first live run failed: the script exists only on that branch, and the local Postgres data directory was missing. Revisit both at WP5 |
 
 ### Decisions log
 
@@ -329,5 +329,104 @@ All new fields are optional, so existing trade and counterparty files still vali
 
 ### Next
 
-- WP0 closes once the live registration has been run and the open items have owners: D-09, D-11, D-12 and the regulatory paper.
+- WP0 is complete except the open owners (D-09, D-11, D-12, the regulatory paper). Registration moves to WP5.
 - WP1 (curves, the closed-form engine, the integrals) can start in parallel. It needs only placeholder inputs, and its outputs stay ILLUSTRATIVE.
+
+---
+
+## 10. WP1 — the analytic engine (2026-10-09)
+
+**Exit criteria met.** The engine and an independent re-implementation agree to
+between 1e-11 and 1e-15 relative, against a target of 1e-8. Every limiting case in
+§6 passes. There are 82 tests and coverage is 100%.
+
+### What was built
+
+| file | role |
+|---|---|
+| `config/xva.py` | `XvaConfig` (frozen, fingerprinted). Holds the placeholder rating-to-CDS table (D-11) and the funding spread of 75bp, R_B 40% (D-12). γ_K is taken from `config/capital.py` |
+| `src/models/xva/curves.py` | `ZeroCurve` (the pricer's own discounting), piecewise-constant `HazardCurve`, and a CDS bootstrap on the pricer's convention |
+| `src/models/xva/inputs.py` | `PrsTrade`, `Market`, and `build_market` (rating proxy or an explicit curve) |
+| `src/models/xva/valuation.py` | V(t) given no trigger, the fair spread, and the pending payout |
+| `src/models/xva/exposure_analytic.py` | Exact EPE, ENE and EE: pre-trigger value plus the pending notional during the settlement lag |
+| `src/models/xva/integrals.py` | The XVA integrals and kernels, the breakpoint grid (including the zeros of V), and the KVA integral for a given capital profile |
+| `src/models/xva/analytic.py` | `run`: both funding views, booked view, DVA disclosure, exact break-even spread, profiles, audit block |
+| `tests/models/xva/` | Pricer reconciliation, reference benchmark, an expectation-versus-replication Monte Carlo check, limiting cases, the engine and its guards |
+
+### How it was tested
+
+1. **Against the pricer.**
+   - Fair spread and risky annuity equal `compute_prs_spread` and `compute_risky_annuity` to 1e-12, across 1–5y tenors and trigger probabilities of 0.5%–8%.
+   - V(0) equals the Trading Desk MTM to the penny.
+2. **Against an independent implementation** (`tests/models/xva/_reference.py`).
+   - It shares no code with the engine: plain cash-flow loops and adaptive `quad` integration, where the engine uses fixed Gauss-Legendre.
+   - Agreement is 1e-11 or better: both views, buyer and seller, flat and humped curves, and a 60-day lag.
+3. **Expectation against replication.**
+   - CVA and DVA are priced by sampling the three default times directly (Green 3.44).
+   - Both match the replication integrals (3.70–3.71) within 4 standard errors.
+4. **Limiting cases.**
+   - λ_C = 0 or R_C = 1 gives no CVA; s_F = 0 gives no FVA, DVA or FCA.
+   - Offsetting trades have zero net FVA.
+   - With R_B = 0 the two funding views are identical to 1e-13.
+   - Swapping the bank and the counterparty turns CVA into DVA.
+   - With no settlement lag and an out-of-the-money buyer, there is no CVA.
+   - With no flood hazard, the buyer has no CVA.
+   - Jump CVA is linear in the lag.
+   - KVA on constant capital matches its closed form.
+
+### Correction to D-03
+
+D-03 said every term is discounted at r + λ_B + λ_C. That is right for semi-replication, but the strategy booked under D-01 is the one-bond strategy. Green's one-bond result (9.64–9.67) discounts at **r_F + λ_C = r + s_F + λ_C**, and λ_B drops out. The engine therefore uses the kernel that matches the strategy:
+- **one-bond:** DF · e^(−s_F s) · S_C;
+- **semi-replication:** DF · S_B · S_C.
+
+The two coincide exactly when R_B = 0, and that is one of the tests. D-03 should read: "survival discounting on every term, with the kernel the funding strategy implies."
+
+### Illustrative results
+
+Inputs:
+- GBP 10m, 5y, trigger probability 2% a year (fair spread 203.56bp), traded at the fair spread;
+- book default yield curve;
+- rating-proxy counterparty;
+- settlement lag of 5 business days.
+
+GBP; a negative figure is a cost to the bank.
+
+| counterparty | bank | CVA | FVA | booked (one-bond) | DVA (disclosed) | semi-rep total | all-in − fair (bp) |
+|---|---|---:|---:|---:|---:|---:|---:|
+| A | buys | −91 | +663 | +573 | +778 | +566 | +0.14 |
+| A | sells | −574 | −663 | −1,237 | +123 | −1,223 | +0.30 |
+| BBB | buys | −192 | +647 | +454 | +759 | +449 | +0.11 |
+| BBB | sells | −1,219 | −647 | −1,866 | +120 | −1,844 | +0.46 |
+| BB | buys | −448 | +603 | +156 | +708 | +154 | +0.04 |
+| BB | sells | −2,834 | −603 | −3,438 | +112 | −3,399 | +0.88 |
+
+The BBB buyer's CVA by settlement lag: 0 days gives 0; 5 days −192; 20 days −767; 60 days −2,281.
+
+### What the results say
+
+1. **Under independence, XVA on a PRS is below 1bp.** This is §3.4 made concrete.
+   - When the bank buys protection at par, CVA is almost entirely the jump term: (1 − R_C) N λ_C Δ_s × P(trigger).
+   - Before the trigger, the buyer's value is never positive at par, because premium is paid in arrears. So with no lag there is no CVA at all.
+   - **The economics that matter are wrong-way risk (WP2) and capital (WP3), not this.**
+2. **The seller's CVA is on premium, not notional.** The counterparty owes accrued premium, which is the saw-tooth, and that is what the seller is exposed to.
+3. **The buyer earns a small funding benefit.** It owes accrued premium, so in effect it borrows from the counterparty. Hence an all-in spread slightly above fair.
+4. **The two funding views agree within 1–2%** at these inputs. The difference is the discount kernel, s_F against λ_B.
+5. **Solve the all-in spread exactly.**
+   - The first-order approximation s* − U/(N A) understates the seller's charge by about 9% (BBB at λ_C = 5%).
+   - The reason: a wider spread enlarges what the buyer owes, so CVA grows with the spread.
+
+### Findings against MKM-PR-001 (record only)
+
+- **F-1.** `compute_prs_spread` floors the fair spread at 2bp, and `compute_mark_to_market` uses that floored spread. For a trigger probability below about 0.02% a year, the MTM is therefore not the PV of the legs. The XVA engine uses the unfloored PV.
+- **F-2.** The pricer discounts the payout at mid-period and ignores the settlement lag. The engine follows the pricer for V, so that V(0) reconciles, and applies the lag only to exposure. The error in V is O(r Δ_s), about 0.08% of the protection leg.
+- **F-3.** `compute_mark_to_market` rounds to the penny. This is immaterial, but tests must allow for it.
+
+### Next — WP2
+
+- The Monte Carlo engine on the MKM-EF-001 event draws, at 10,000 paths (D-08).
+- Stochastic hazard.
+- Netting sets and CSA terms from the new CDM fields.
+- Wrong-way risk as a stress (D-05).
+
+Its deterministic, independent, single-trade case must reproduce this engine within 3 standard errors.
