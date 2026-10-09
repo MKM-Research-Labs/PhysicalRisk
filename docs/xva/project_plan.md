@@ -1,6 +1,6 @@
 # PRS XVA — project proposal
 
-**Status:** 2026-10-09. Proposal agreed. WP0 done bar input owners (section 9). WP1 analytic engine (section 10), WP2 Monte Carlo (section 11) and WP3 capital and KVA (section 12) and WP4 desk integration (section 13) built and tested. The proposed defaults in section 8 were
+**Status:** 2026-10-09. Proposal agreed. WP0 done bar input owners (section 9). WP1 analytic engine (section 10), WP2 Monte Carlo (section 11) and WP3 capital and KVA (section 12) WP4 desk integration (section 13) built and tested; WP5 validation pack ready (section 14). The proposed defaults in section 8 were
 accepted on 2026-10-09; the regulatory characterisation and the model ID still need owners outside the model team.
 **Aim:** add credit, funding and capital valuation adjustments (CVA, DVA, FVA, KVA, and
 later MVA) to the Physical Risk Swap pricer. This is a new model (proposed ID
@@ -574,6 +574,14 @@ model. Coverage of both packages is 100%.
 Capital held is RWA × the bank's capital ratio (10.5%, D-06). The Basel-minimum
 BA-CVA and RRAO amounts are scaled by 10.5 / 8 to match.
 
+> **Correction (2026-10-09, WP5).** The bp column of the table below first read
+> 4.31 / 1.09 / 5.80 / 1.35 / 4.40 / 1.18. Those figures were worked out by hand and were
+> ten times too small: |KVA| / (N A) for −183,869 over GBP 10m × 4.27 is 43bp, not
+> 4.3bp. The validation-evidence generator computes the column from the run itself,
+> and it caught the error. The corrected figures are below. The conclusions are
+> unchanged in direction and stronger in size: KVA is about a fifth of the 204bp
+> fair spread.
+
 ### Illustrative results
 
 Inputs:
@@ -584,12 +592,12 @@ Inputs:
 
 | case | EAD today | capital today | KVA ± SE | ≈ bp of spread | booked XVA |
 |---|---:|---:|---:|---:|---:|
-| buys, commodity "other" | 2,520,000 | 538,129 | −183,869 ± 267 | 4.31 | −279 |
-| buys, credit analogy (ref. B) | 990,972 | 211,616 | −46,463 ± 61 | 1.09 | −279 |
-| buys, commodity + RRAO | 2,520,000 | 669,379 | −247,527 ± 373 | 5.80 | −279 |
-| buys, commodity, VM (MPoR 10d) | 756,000 | 161,439 | −57,677 ± 88 | 1.35 | −610 |
-| sells, commodity "other" | 2,520,000 | 538,129 | −187,668 ± 280 | 4.40 | −2,623 |
-| sells, credit analogy (ref. B) | 990,972 | 211,616 | −50,162 ± 73 | 1.18 | −2,623 |
+| buys, commodity "other" | 2,520,000 | 538,129 | −183,869 ± 267 | 43.1 | −279 |
+| buys, credit analogy (ref. B) | 990,972 | 211,616 | −46,463 ± 61 | 10.9 | −279 |
+| buys, commodity + RRAO | 2,520,000 | 669,379 | −247,527 ± 373 | 58.0 | −279 |
+| buys, commodity, VM (MPoR 10d) | 756,000 | 161,439 | −57,677 ± 88 | 13.5 | −610 |
+| sells, commodity "other" | 2,520,000 | 538,129 | −187,668 ± 280 | 44.0 | −2,623 |
+| sells, credit analogy (ref. B) | 990,972 | 211,616 | −50,162 ± 73 | 11.8 | −2,623 |
 
 The bp column is |KVA| / (N A), against a fair spread of 203.6bp.
 
@@ -599,9 +607,9 @@ The bp column is |KVA| / (N A), against a fair spread of 203.6bp.
    - Under the default treatment KVA is about −184k. Booked CVA + FVA is −0.3k to −2.6k.
    - This is Green's Chapter 13 conclusion, and the oil example's, made sharper by the PRS's small XVA under independence.
    - For this trade, the price of a PRS is a capital question.
-2. **The regulatory paper is worth about 3bp of spread on this trade.**
+2. **The regulatory paper is worth about 32bp of spread on this trade.**
    - The commodity "other" treatment (18%) against the credit analogy (1.6% × duration) is a factor of 4 in KVA.
-   - The RRAO adds a further 1.5bp.
+   - The RRAO adds a further 15bp.
    - These answers move the price more than every credit and funding input combined.
 3. **BA-CVA capital exceeds CCR capital.**
    - An insurer is a "financial" in MAR50, with a 5% risk weight.
@@ -687,3 +695,76 @@ The same set now runs in 9.6 s. All model tests still pass on unchanged seeds.
 ### Next — WP5
 
 The model document and validation pack, then registration in ModelRisk (deferred to this point, §9). WP6 holds the extensions recorded above.
+
+---
+
+## 14. WP5 — model document and validation pack (2026-10-09)
+
+### The pack
+
+| item | where |
+|---|---|
+| Model document (11 pages, house template) | `docs/models/prs_xva/MKM-XV-001_model_document.pdf` (`make` in that folder) |
+| Validation evidence | `docs/xva/validation_evidence.json`: six benchmark checks, the results tables and 19 sensitivities × 2 directions, with an audit block (git commit, config sha256, seed, 10,000 paths) |
+| Evidence generator | `python docs/xva/validation_evidence.py` (about 90 s; `--quick` for a 1,000-path structure check). It also writes the `evidence_tables_*.tex` the document inputs, so the PDF's figures cannot drift from the code |
+| Independent re-implementation | `tests/models/xva/_reference.py` |
+| Test suites | `tests/models/xva`, `tests/models/capital/test_counterparty.py`, `tests/routes/trading/test_xva_routes.py`, `tests/js/blotter-table.test.js`, `tests/port/cdm/test_credit_support.py` |
+| Decisions, findings, limitations | This plan: §9 (D-01–D-17), §10–§13 (F-1–F-3, L-1–L-17) |
+| Regulatory question paper | `docs/xva/regulatory_characterisation.md` |
+
+All six checks pass at commit `04dbe701b`:
+- pricer reconciliation, 4e-16;
+- independent re-implementation, 4e-11;
+- Monte Carlo against the closed form, max |z| = 1.56;
+- time-rule error, 4.6e-4;
+- CIR++ fit, 2e-16;
+- BCBS 279 Examples 2 and 3, EAD 381 and 5,406.
+
+### The §6 validation plan, item by item
+
+| §6 item | evidence | state |
+|---|---|---|
+| Conceptual soundness: PDE for a jump payoff, funding strategy, close-out, DVA | Model document §3; D-01–D-03 | Documented. **Re-derivation of the jump case is for the validator** |
+| Misprints in Green used by the model | Only (3.70–3.71), (9.57), (9.64–9.67), (10.28–10.34) and (13.25) are used. The summary's misprint list does not touch them | Done |
+| Independent re-implementation | `_reference.py`, 4e-11 | Done (developer-built). **An independent validator implementation is still recommended** (Green) |
+| MC against analytic; convergence in paths and time step | Tables 4, 3; `test_time_rule_error_is_small_and_second_order` | Done |
+| Limiting cases (all seven in §6) | `test_limiting_cases.py`, `test_monte_carlo.py`, `test_capital.py` | Done |
+| V(0) equals the pricer | `pricer_reconciliation` | Done |
+| RNG discipline: seeded, reproducible, CRN for incremental XVA | `test_reproducible_and_audited`; `desk.quote` | Done. No skip-ahead streams, because the runs are single-process |
+| Data and inputs | — | **Open:** counterparty credit, funding and CSA inputs are synthetic (D-11, D-12) |
+| Sensitivity and stress | Table 9 | Done for λ_C, R_C, s_F, σ, κ, β, Δ_s, γ_K, φ, the SA-CCR treatment and the RRAO. Gauge correlation is shown only in §11 (shared against independent events), not yet in the evidence file. Risky close-out is **not yet run** |
+| Outcomes analysis | Daily KPI, EOD ΔXVA | Built. **Not yet run on the live book** (L-17) |
+| Dependencies (PR-001, EF-001, TD-001, CR-001) | — | **Open:** their validation status bounds this model's |
+| Ongoing monitoring | KPI, SE per component, ΔXVA | Built |
+
+### Correction made during WP5
+
+The capital table's bp column in §12 was worked out by hand and was ten times too small (4.3bp instead of 43bp). The evidence generator computes it from the run and caught the error. §12 is corrected with a dated note, and a test now pins the column to the run.
+
+### ModelRisk (MKM-XV-001)
+
+- On branch `claude/register-xv001`:
+  - `scripts/_xv001_data.py` is updated to the built state: version 0.9.0, lifecycle *Validation*, validation *Pending*, tests and benchmarks *Yes*, 6 assumptions, 6 limitations and 4 weaknesses taken from the build.
+  - `scripts/attach_xv001_docs.py` files the model document under Core Documentation, Test Results and Sensitivity.
+- Tests pass on a disposable database, and the coding-rule audit is clean.
+- **Not run against the live inventory** (rule R9). Once this PhysicalRisk branch is merged, so that `PRODUCER_ROOT` holds the PDF, the owner runs:
+  1. `python -m scripts.register_xv001`
+  2. `python -m scripts.attach_xv001_docs`
+
+  The earlier failure needs fixing first: the live Postgres data directory was missing.
+
+### Gating items before any figure reaches a price
+
+1. An independent validation report on this pack.
+2. Owners and answers for: the regulatory paper (Q1–Q4); counterparty credit (D-11); the funding spread (D-12); hazard-volatility calibration (D-15); the settlement lag (D-09).
+3. The valuation KPI run on the live book, and its breaches reconciled (L-13, F-1).
+
+### WP6 (extensions, recorded)
+
+- Advanced MPoR conventions (L-1)
+- A term-structure CIR++ fit (L-5, L-13)
+- Counterparty-specific WWR drivers (L-3)
+- Portfolio BA-CVA and KVA allocation (L-10, L-14)
+- MVA, TVA, warehousing
+- A Property PRS term pricer
+- A quote panel and a "Run XVA" button (L-16)

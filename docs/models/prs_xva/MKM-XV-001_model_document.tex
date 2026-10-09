@@ -1,0 +1,344 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{PRS XVA Model (MKM-XV-001)}
+\newcommand{\docsubtitle}{Credit, Funding and Capital Valuation Adjustments on the Physical Risk Swap}
+\newcommand{\docversion}{0.9}
+\newcommand{\docdate}{9-October-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+\input{evidence_tables_macros}
+
+\begin{document}
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+MKM-XV-001 adds credit, funding and capital valuation adjustments (CVA, FVA,
+KVA, with DVA disclosed) to the Physical Risk Swap. It follows Green,
+\emph{XVA: Credit, Funding and Capital Valuation Adjustments} (Wiley, 2015):
+every adjustment is a spread times a survival-discounted expected exposure,
+and the funding strategy decides which terms exist. The model is an overlay on
+the PRS pricer (MKM-PR-001): it reproduces the pricer's value at $t=0$ and does
+not change it.
+
+\paragraph{Status.} ILLUSTRATIVE, version 0.9, submitted for independent
+validation. Counterparty credit, the bank's funding spread and CSA terms are
+placeholders; the regulatory treatment that drives KVA is undecided. KVA is
+reported beside the booked XVA and never inside it (decision D-16).
+
+\paragraph{Findings.} On a GBP 10m, 5-year PRS with a 2\% annual trigger probability:
+\begin{enumerate}[leftmargin=*]
+\item Under independence, CVA and FVA are below 1bp of running spread. The
+  protection buyer's CVA is almost entirely the unpaid notional during the
+  settlement lag.
+\item Hazard volatility and wrong-way risk move CVA by a factor of 4--13, so
+  their calibration matters more than any credit input.
+\item Capital dominates: KVA is about two orders of magnitude larger than CVA
+  and FVA (Table~\ref{tab:ev-capital}), about 43bp of running spread against a
+  fair spread of \evFair{}bp. The regulatory treatment of a PRS is worth about
+  32bp of spread on this trade, and the RRAO a further 15bp.
+\item Variation margin does not reach the jump to notional; initial margin
+  does. A CSA is worth far more in capital than in CVA.
+\end{enumerate}
+
+\paragraph{Evidence.} All six benchmark checks pass (Table~\ref{tab:ev-checks}),
+including agreement with an independent re-implementation to better than
+$10^{-8}$ and the Basel Committee's own SA-CCR worked examples. Figures are
+from \texttt{docs/xva/validation\_evidence.py} at commit \evCommit{}
+(\evPaths{} paths, config \evConfig{}, generated \evGenerated{}): \evAllPass{}.
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What the model answers}
+What a PRS is worth to the bank once the counterparty's default, the bank's
+own funding and the regulatory capital the trade consumes are priced in; and
+therefore the all-in spread at which the bank should deal.
+
+\subsection{The instrument}
+A PRS is a single-name CDS with a flood trigger in place of the credit event.
+The protection buyer pays a quarterly running spread in arrears while no
+trigger has occurred; the seller pays the full notional (recovery 0) when the
+reference gauge first passes its Severe level. The XVA model takes its
+contract terms from the pricer (D-10), including first-trigger termination,
+and adds a settlement lag $\Delta_s$ (provisionally 5 business days, D-09) in
+which the payout is owed but unpaid.
+
+\subsection{Scope}
+\begin{itemize}[leftmargin=*]
+\item In scope: gauge PRS (\texttt{TradeType = 'PRS'}), bank as buyer or
+  seller, netting sets of such trades, VM and IM under a CSA, a wrong-way-risk
+  stress, SA-CCR and BA-CVA capital, RRAO as a switch.
+\item Out of scope: Property PRS (no term pricer, \S\ref{sec:limits}), MVA,
+  TVA, warehousing (Green Ch.~14) and portfolio KVA (Ch.~15).
+\end{itemize}
+
+\subsection{Model chain}
+Upstream: MKM-PR-001 (PRS value), MKM-EF-001 (event catalogue and arrival
+rate). Downstream: MKM-TD-001 (Trading Desk blotter and EOD). Shares its
+counterparty-capital module with MKM-CR-001 (D-07).
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+\subsection{Green's semi-replication}
+Write the all-in value as $\hat V = V + U$. Hedging the trade and both
+defaults with a self-financing portfolio and applying Feynman--Kac gives
+\begin{equation}
+U(t) = -\int_t^T D(t,s)\,\mathbb{E}_t[f(s)]\,ds ,
+\end{equation}
+with one source term per adjustment:
+\begin{align}
+\mathrm{CVA} &= -(1-R_C)\int \lambda_C(s)\, D(0,s)\, \mathbb{E}[(V-X-\tilde I)^+]\,ds \quad(3.70, 10.31)\\
+\mathrm{DVA} &= -(1-R_B)\int \lambda_B(s)\, D(0,s)\, \mathbb{E}[(V-X+I)^-]\,ds \quad(3.71)\\
+\mathrm{FCA} &= -(1-R_B)\int \lambda_B(s)\, D(0,s)\, \mathbb{E}[(V-X+I)^+]\,ds \quad(9.57, 10.28)\\
+\mathrm{FVA} &= -\int s_F\, D(0,s)\, \mathbb{E}[V-X]\,ds \quad(9.64\text{--}9.67)\\
+\mathrm{KVA} &= -\int (\gamma_K - \phi\, r(s))\, D(0,s)\, \mathbb{E}[K(s)]\,ds \quad(13.25)
+\end{align}
+
+\subsection{Funding strategy and discounting (D-01, D-03)}
+The booked strategy is Green's one-bond strategy: unilateral CVA plus a
+symmetric FVA, with $D(0,s) = DF(s)\,e^{-s_F s} S_C(s)$ (discounting at
+$r_F + \lambda_C$). The semi-replication view, CVA + DVA + FCA with
+$D(0,s) = DF(s)\,S_B(s)\,S_C(s)$, is computed beside it and its DVA is
+disclosed. The two coincide exactly when $R_B = 0$, which is a test. D-03 as
+first written applied $r+\lambda_B+\lambda_C$ to every term; that is correct
+only for semi-replication and was corrected in WP1.
+
+\subsection{Why a PRS is different}
+Exposure is a jump, not a diffusion: before a trigger the value is a small
+spread MTM; after it, $\pm N$ until settlement. Under deterministic hazard the
+pre-trigger value is deterministic, so
+\begin{equation}
+\mathbb{E}[V(s)^+] = S_E(s)\,V(s)^+ + \int_{\max(0,s-\Delta_s)}^{\min(s,T)} \lambda_E S_E(u)\, P(u,s)^+\,du,
+\end{equation}
+with $P(u,s)$ the pending payout. This is exact, and is the closed form the
+Monte Carlo must reproduce.
+
+\subsection{Stochastic flood hazard: CIR++ (D-15)}
+A catchment factor $Y$ follows CIR with $Y(0)=\theta=1$:
+$dY = \kappa(1-Y)\,dt + \sigma\sqrt{Y}\,dW$. Gauge $g$'s trigger intensity is
+$\lambda_g Y(t) + \varphi_g(t)$, with the shift fitted so the model's survival
+at $t=0$ is exactly the pricer's (Brigo--Mercurio). Given $Y(t)=y$ and no
+trigger,
+\begin{equation}
+S(t,u) = e^{-(\Phi_g(u)-\Phi_g(t))}\,A(u-t)\,e^{-B(u-t)\lambda_g y},
+\end{equation}
+so $V(t)$ is closed form on every path. $A$ is evaluated in a form that is
+stable as $\sigma\to0$ (the textbook form loses precision there, which the
+tests caught). $Y$ is stepped exactly by its noncentral $\chi^2$ transition.
+
+\subsection{Correlated triggers}
+The MKM-EF-001 catalogue supplies dependence: catchment events arrive as a Cox
+process in the factor clock $C(t)=\int_0^t Y$, are drawn by catalogue weight,
+and their Severe flags say which gauges they trigger. Each gauge's marginal is
+held to the market rate by thinning (catalogue rate above market) or a
+$Y$-driven top-up (below).
+
+\subsection{Collateral, netting and wrong-way risk}
+Variation margin follows Green's lookback (6.39) with threshold and minimum
+transfer amount over the margin period of risk; initial margin is static in
+each direction. Without close-out netting, exposures add trade by trade. The
+wrong-way-risk stress weights each path by $e^{\beta Z}/\mathbb{E}[e^{\beta Z}]$,
+$Z$ the number of the netting set's gauges triggered so far, normalised so
+each period's default probability is unchanged (Green 7.17).
+
+\subsection{Capital (D-06, D-07, D-16)}
+SA-CCR EAD and BA-CVA (reduced) are computed in every Monte Carlo state
+(Green \S13.4). How a PRS enters SA-CCR is a switch: commodity ``other''
+(SF 18\%) or a single-name credit analogy. Capital held is RWA times the
+bank's 10.5\% ratio, shared with MKM-CR-001.
+
+% =========================================================================
+\mkminputs
+% =========================================================================
+
+\begin{longtable}{p{4.2cm}p{2.6cm}p{7.2cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Source / status} \\
+\midrule
+Flood trigger hazard & market state & Pricer's gauge rate (MKM-PR-001 / EF-001) \\
+Risk-free curve & market state & Desk yield curve (D-13) \\
+Counterparty hazard & rating proxy & \texttt{RATING\_CDS\_SPREADS}: \textbf{placeholder} (D-11) \\
+$R_C$, $R_B$ & 40\%, 40\% & Market convention \\
+$s_F$ & 75bp & \textbf{Placeholder}, Treasury input (D-12) \\
+$\kappa$, $\sigma$ & 0.5, 0.3 & \textbf{Placeholder}, no calibration owner (D-15) \\
+$\Delta_s$ & 5 business days & \textbf{Provisional}, Product/Legal (D-09) \\
+$\beta$ (WWR) & 0 & Stress only (D-05) \\
+$\gamma_K$, $\phi$ & 12\%, 0 & Shared with MKM-CR-001 (D-06) \\
+Capital ratio & 10.5\% & Shared with MKM-CR-001 \\
+SA-CCR treatment & commodity other & Regulatory paper Q2 (D-16) \\
+RRAO & off & Regulatory paper Q3 \\
+Paths, seed & 10{,}000, 20261009 & D-08 \\
+Time cells & 26 per quarter & D-14 \\
+\bottomrule
+\end{longtable}
+
+% =========================================================================
+\mkmimplementation
+% =========================================================================
+
+{\small
+\begin{longtable}{p{6.4cm}p{8.4cm}}
+\toprule
+\textbf{Module} & \textbf{Role} \\
+\midrule
+\texttt{config/xva.py} & Every parameter; frozen, fingerprinted \\
+\texttt{models/xva/curves.py} & Pricer-identical discounting; hazard curves; CDS bootstrap \\
+\texttt{models/xva/valuation.py} & $V(t)$, fair spread, pending payout \\
+\texttt{models/xva/exposure\_analytic.py} & Exact EPE/ENE/EE \\
+\texttt{models/xva/integrals.py} & Kernels and integrals; the only place discounting lives \\
+\texttt{models/xva/analytic.py} & WP1 engine; exact break-even spread \\
+\texttt{models/xva/\{cir,events,paths\}.py} & CIR++, correlated triggers, grid and path values \\
+\texttt{models/xva/netting.py} & CSA and netting sets from the CDM \\
+\texttt{models/xva/monte\_carlo.py} & WP2 engine; per-path estimates with SE; Euler allocation \\
+\texttt{models/capital/counterparty.py} & SA-CCR, BA-CVA, risk weights (shared, D-07) \\
+\texttt{models/xva/capital.py} & Capital per Monte Carlo state \\
+\texttt{models/xva/desk.py},\newline\texttt{routes/trading/xva.py} & Trading Desk integration (WP4) \\
+\bottomrule
+\end{longtable}}
+
+A 16-trade netting set runs in about 10 seconds at 10{,}000 paths; memory is
+$O(\text{paths}\times\text{nodes})$ whatever the number of trades. The desk
+runs XVA on demand, at EOD and for quotes; the blotter reads the stored run
+(D-17).
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\subsection{Benchmarks}
+\input{evidence_tables_checks}
+
+The independent re-implementation (\texttt{tests/models/xva/\_reference.py})
+shares no code with the engine and integrates adaptively. Green's two
+derivations of CVA, by expectation and by replication, agree within four
+standard errors when default times are sampled directly.
+
+\subsection{Monte Carlo against the closed form}
+\input{evidence_tables_mc_recon}
+
+\subsection{Results}
+\input{evidence_tables_results}
+
+\subsection{Automated tests}
+{\small
+\begin{longtable}{p{7.6cm}p{7.2cm}}
+\toprule
+\textbf{Suite} & \textbf{Purpose} \\
+\midrule
+\texttt{tests/models/xva} & Curves, valuation, benchmark, limiting cases, CIR, events, netting, Monte Carlo, capital, desk \\
+\texttt{tests/models/capital/test\_counterparty.py} & BCBS 279 Annex 4a examples \\
+\texttt{tests/routes/trading/test\_xva\_routes.py} & Run, blotter, quote, EOD \\
+\texttt{tests/js/blotter-table.test.js} & XVA and KVA columns \\
+\texttt{tests/port/cdm/test\_credit\_support.py} & Netting and CSA CDM fields \\
+\bottomrule
+\end{longtable}}
+
+\noindent Coverage of \texttt{models.xva} and \texttt{models.capital} is 100\%.
+
+\subsection{Outcomes analysis}
+Triggers are rare, so exposures cannot be backtested meaningfully. Outcomes
+analysis rests on the MKM-EF-001 hazard backtests, the daily valuation KPI
+(engine $V(0)$ against the front-office MTM, 5bp of notional) and the
+$\Delta$XVA P\&L line at EOD.
+
+% =========================================================================
+\mkmsensitivity
+% =========================================================================
+
+\input{evidence_tables_sens}
+
+The base case is the trade above at the fair spread against a BBB-proxy
+counterparty, $\sigma=0.3$, commodity SA-CCR. KVA is the larger figure in
+every row; among XVA inputs, hazard volatility and the settlement lag move the
+buyer most, counterparty hazard the seller.
+
+% =========================================================================
+\mkmlimitations\label{sec:limits}
+% =========================================================================
+
+\begin{longtable}{p{1cm}p{13.5cm}}
+\toprule
+L-1 & Classical MPoR freezes collateral but not trade cash flows: a buyer that posted VM is briefly over-collateralised when it pays premium (Andersen--Pykhtin--Sokol). \\
+L-2 & The event clock integrates $Y$ by the trapezoid rule; exact at $\sigma=0$. \\
+L-3 & WWR driver is the netting set's triggered gauges, not the counterparty's real flood book. \\
+L-4 & Euler allocation is exact only for uncollateralised netted sets; residuals reported. \\
+L-5 & CIR++ is fitted to a flat trigger hazard (the pricer's convention). \\
+L-6 & One seed, no variance reduction; the closed form is available as a control variate. \\
+L-7 & Every regulatory treatment is provisional; KVA is not booked. \\
+L-8 & The credit analogy needs a ``reference rating'' for a flood trigger. \\
+L-9 & BA-CVA applies CRE32's one-year maturity floor; to be confirmed. \\
+L-10 & Standalone BA-CVA: no diversification across counterparties. \\
+L-11 & No market-risk capital beyond the RRAO switch. \\
+L-12 & $\gamma_K$ is a single constant. \\
+L-13 & Desk uses one flat hazard per gauge; the front office's term structure is not used. \\
+L-14 & KVA allocated to trades pro rata to notional. \\
+L-15 & Netting set = counterparty (first CDM netting set). \\
+L-16 & No quote panel or ``Run XVA'' button in the UI yet. \\
+L-17 & Integration not yet exercised on the live book. \\
+\bottomrule
+\end{longtable}
+
+\paragraph{Findings against other models.} F-1: the pricer's MTM uses a fair
+spread floored at 2bp. F-2: the pricer ignores the settlement lag. F-3: the
+pricer rounds MTM to the penny. The trade record carries a 6M premium
+frequency while the pricer prices quarterly (D-10).
+
+% =========================================================================
+\mkmgovernance
+% =========================================================================
+
+\mkmvqitem{1}{Ronseal Test}{Does the model do what it says on the tin?}
+Yes for the scope above. It reproduces the pricer at $t=0$ and Green's
+integrals to $10^{-8}$; its Monte Carlo reproduces the closed form.
+
+\mkmvqitem{2}{Accuracy and Stability}{Does the model provide timely, accurate and stable results?}
+Accurate against every benchmark. Every Monte Carlo figure carries its
+standard error; results are reproducible from the seed. Runs take seconds per
+netting set.
+
+\mkmvqitem{3}{Resource Usage}{Does the model consume excessive computational resources?}
+No: about 1s per trade at 10{,}000 paths, memory independent of trade count.
+It is kept out of per-request revaluation for this reason.
+
+\mkmvqitem{4}{Override Controls}{Are there controls over manual overrides?}
+No manual overrides exist. Every parameter is in \texttt{config/xva.py},
+fingerprinted into each run's audit block.
+
+\mkmvqitem{5}{Output Consumption}{How is the output consumed for risk decision-making?}
+Blotter XVA and KVA memo columns, EOD $\Delta$XVA, and incremental quotes.
+Nothing reaches a price or P\&L until validation, and KVA not until the
+regulatory paper is answered.
+
+\mkmvqitem{6}{Model Chaining}{Is the model's output used as input to another model?}
+Yes: it feeds MKM-TD-001, and is fed by MKM-PR-001 and MKM-EF-001; it shares
+capital code with MKM-CR-001.
+
+\mkmvqitem{7}{Weaknesses}{Does the model have weaknesses and limitations of use?}
+Yes: \S\ref{sec:limits}. The material ones are placeholder inputs (credit,
+funding, $\sigma$), the open regulatory treatment, and L-1.
+
+\mkmvqitem{8}{Monitoring}{What type of monitoring is required?}
+Daily valuation KPI; standard error per component; $\Delta$XVA P\&L explain;
+carry artefacts (grid roll, seed); annual recalibration of $\sigma$, $\kappa$.
+
+\mkmvqitem{9}{Overall Risk}{Is the overall model risk acceptable?}
+Not yet for use: Tier 1, Amber. Acceptable for validation, with inputs and
+the regulatory treatment as gating items.
+
+% =========================================================================
+\mkmhistorypage{9-Oct-2026 & 0.9 & Built (WP0--WP4); submitted for validation & David K Kelly \\}
+% =========================================================================
+
+\end{document}
