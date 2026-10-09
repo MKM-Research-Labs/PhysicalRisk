@@ -42,6 +42,7 @@ class PrsTrade:
     tenor_years: float               # whole quarters from the valuation date
     bank_buys_protection: bool
     trigger: HazardCurve             # flood-trigger intensity lambda_E
+    gauge_id: str = ""               # reference gauge; links trades in the Monte Carlo
 
     def __post_init__(self):
         if self.notional <= 0 or self.tenor_years <= 0:

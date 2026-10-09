@@ -22,18 +22,27 @@
 
 Credit, funding and capital valuation adjustments on a Physical Risk Swap,
 after Green (2015). An overlay on the PRS pricer (MKM-PR-001), which it
-reproduces at t = 0 and does not change. WP1 provides the analytic engine:
-one trade, deterministic flood hazard, independence, no collateral. See
+reproduces at t = 0 and does not change. ``analytic`` (WP1) prices one trade
+under deterministic flood hazard and independence; ``monte_carlo`` (WP2)
+prices a netting set with stochastic hazard, correlated triggers, collateral
+and a wrong-way-risk stress. See
 ``docs/xva/project_plan.md``. Every parameter lives in ``config.xva``.
 ILLUSTRATIVE: credit and funding inputs are placeholders.
 """
 
-from . import analytic
+from . import analytic, monte_carlo
 from .curves import HazardCurve, ZeroCurve, bootstrap_cds, cds_par_spread, flat_cds_curve
+from .events import TriggerModel
 from .inputs import Market, PrsTrade, build_market
+from .netting import Csa, NettingSet, csa_from_cdm
 
 __all__ = [
     "analytic",
+    "monte_carlo",
+    "Csa",
+    "NettingSet",
+    "TriggerModel",
+    "csa_from_cdm",
     "HazardCurve",
     "ZeroCurve",
     "bootstrap_cds",

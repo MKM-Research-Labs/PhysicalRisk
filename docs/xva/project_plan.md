@@ -1,6 +1,6 @@
 # PRS XVA — project proposal
 
-**Status:** 2026-10-09. Proposal agreed. WP0 done bar input owners (section 9). WP1 analytic engine built and benchmarked (section 10). The proposed defaults in section 8 were
+**Status:** 2026-10-09. Proposal agreed. WP0 done bar input owners (section 9). WP1 analytic engine (section 10) and WP2 Monte Carlo engine (section 11) built and tested. The proposed defaults in section 8 were
 accepted on 2026-10-09; the regulatory characterisation and the model ID still need owners outside the model team.
 **Aim:** add credit, funding and capital valuation adjustments (CVA, DVA, FVA, KVA, and
 later MVA) to the Physical Risk Swap pricer. This is a new model (proposed ID
@@ -307,6 +307,8 @@ inventory.
 | D-11 | Counterparty credit: CDS where quoted, otherwise a rating-to-hazard proxy in `config/xva.py`. `config/loan.py` `CREDIT_RATING_SPREADS` are loan margins, not CDS spreads, so they are **not** reused. **Open**: the source for the proxy table | §8.3 |
 | D-12 | Own funding spread s_F and recovery R_B: a Treasury input in `config/xva.py`. **Open**: owner and source | WP0 |
 | D-13 | Risk-free curve: the market-state yield curve, the same one the Trading Desk revalues on, so V agrees with the blotter. `config.loan.DISCOUNT_CURVE` is not used | §7.3 |
+| D-14 | MC time integration: midpoint rule on cells that never straddle a premium date, maturity or settlement end; 26 cells per quarter (~3.5 days). Bias on the saw-tooth is O(h²), 0.05% at 26 cells (about 0.2 SE at 10,000 paths) | §11 |
+| D-15 | Flood-hazard dynamics: CIR++ on a catchment factor Y (Y0 = θ = 1), gauge intensity λ_g Y + φ_g(t), with φ_g fitted to the pricer's flat hazard. Replaces the "log-hazard OU" of §4.4: CIR++ prices V(t) in closed form, reproduces the pricer at t = 0 on every path, and is exactly WP1 at σ = 0. κ = 0.5, σ = 0.3 are **placeholders**; calibration to the history of re-estimated hazard has no owner yet | §11 |
 
 ### CDM extension
 
@@ -430,3 +432,106 @@ The BBB buyer's CVA by settlement lag: 0 days gives 0; 5 days −192; 20 days �
 - Wrong-way risk as a stress (D-05).
 
 Its deterministic, independent, single-trade case must reproduce this engine within 3 standard errors.
+
+---
+
+## 11. WP2 — the Monte Carlo engine (2026-10-09)
+
+**Exit criterion met.** With σ = 0, one trade, no collateral and β = 0, every
+term in both funding views is within 3 standard errors of the analytic engine
+for both buyer and seller. The largest gap is 2.1 SE. Over 12 seeds the gaps
+centre on zero (mean −0.07 and −0.13 SE), so the time rule adds no visible bias.
+
+There are 144 tests in the package and coverage is 99.5%.
+
+### What was built
+
+| file | role |
+|---|---|
+| `src/models/xva/cir.py` | CIR factor: an exact noncentral-χ² step, and closed-form bonds written to stay stable as σ → 0. Also the CIR++ trigger fitted to the market curve (D-15) |
+| `src/models/xva/events.py` | Correlated first-trigger times per gauge, built on the MKM-EF-001 catalogue (rate × coverage, weights, Severe flags). Events are a Cox process in the factor clock. Each gauge's marginal is held to the market rate by thinning or a top-up |
+| `src/models/xva/netting.py` | `Csa`, `NettingSet`, and the parsers for the WP0 CDM `CreditSupport` fields. Collateral uses Green's lookback (6.39) with threshold and MTA. IM is static in each direction |
+| `src/models/xva/paths.py` | The cell grid (D-14), factor paths, and trade values on paths: closed form while alive, the pending notional during the settlement lag |
+| `src/models/xva/monte_carlo.py` | Netted, collateralised exposures (Green 9.30, 10.28, 10.31). A per-path estimator for every term, with its standard error. WWR path weights and Euler CVA allocation |
+| `config/xva.py` | Adds `n_paths` 10,000, `seed`, `cells_per_quarter` 26, κ, σ and `wwr_beta` |
+
+### How it was tested
+
+1. **Reconciliation to WP1 and time error.**
+   - Measured separately on the analytic profiles: the midpoint rule's error is under 0.05% and quarters when the cells halve, as O(h²) predicts.
+2. **CIR.**
+   - The bond price matches a 100,000-path simulation.
+   - The exact step has the CIR mean and variance.
+   - σ → 0 converges to the deterministic bond. This test exposed a cancellation in the textbook A(τ) at σ ≈ 1e-6 (error 3e-4), which is now fixed.
+   - The CIR++ shift reproduces the market curve to 1e-13 at σ = 0, 0.3 and 0.8.
+   - V(0) equals the pricer on every path.
+3. **Triggers.**
+   - Each gauge's simulated trigger probability equals the market's, within 4 SE, whether there is no catalogue, the catalogue is thinned or the catalogue is topped up, at σ = 0 and 0.5.
+   - Shared catalogue events make gauges trigger together; independent gauges do not.
+4. **Netting and collateral.**
+   - Offsetting trades on one gauge have no exposure.
+   - Netting never costs more than not netting.
+   - Without netting, CVA is exactly the sum of the standalone CVAs (to 1e-12).
+   - An infinite threshold equals no CSA.
+   - IM equal to the notional removes the jump CVA.
+5. **WWR and allocation.**
+   - β = 0 gives unit weights, and the weights average 1 at every node.
+   - β > 0 raises the buyer's CVA.
+   - Euler contributions sum exactly to the uncollateralised netted CVA.
+   - Runs are reproducible from the seed.
+
+### Illustrative results
+
+Inputs:
+- GBP 10m, 5y, trigger probability 2% a year, at the fair spread (203.6bp);
+- BBB-proxy counterparty;
+- 10,000 paths.
+
+GBP; a negative figure is a cost. The last column is |U| / (N A).
+
+| case | CVA ± SE | FVA | booked total | ≈ bp |
+|---|---:|---:|---:|---:|
+| buys, σ = 0 | −201 ± 6 | 639 | 437 | 0.10 |
+| buys, σ = 0.3 (default) | −933 ± 11 | 653 | −279 | 0.07 |
+| buys, σ = 0.3, WWR β = 1 | −1,177 ± 17 | 653 | −523 | 0.12 |
+| buys, σ = 0.3, WWR β = 3 | −2,677 ± 75 | 653 | −2,024 | 0.47 |
+| buys, σ = 0.3, VM (thr 0, MPoR 10d) | −622 ± 5 | 13 | −610 | 0.14 |
+| buys, σ = 0.3, VM + IM = notional | −1 ± 0 | 13 | 12 | 0.00 |
+| sells, σ = 0 | −1,216 ± 2 | −639 | −1,855 | 0.43 |
+| sells, σ = 0.3 (default) | −1,970 ± 13 | −653 | −2,623 | 0.61 |
+| sells, σ = 0.3, WWR β = 1 | −1,841 ± 13 | −653 | −2,495 | 0.58 |
+| sells, σ = 0.3, WWR β = 3 | −1,183 ± 8 | −653 | −1,837 | 0.43 |
+| sells, σ = 0.3, VM (thr 0, MPoR 10d) | −643 ± 5 | −13 | −656 | 0.15 |
+| sells, σ = 0.3, VM + IM = notional | 0 ± 0 | −13 | −13 | 0.00 |
+| buy G1 + sell G2, independent gauges | −296 ± 9 | 2 | −294 | 0.07 |
+| buy G1 + sell G2, shared catalogue events | −3 ± 1 | 1 | −2 | 0.00 |
+
+A run takes about 0.5–1 s per trade at 10,000 paths.
+
+### What the results say
+
+1. **Hazard volatility is the first thing that moves CVA.**
+   - At σ = 0.3 the buyer's CVA is 4.6× the deterministic figure. The buyer's MTM goes positive on paths where hazard rises, and that is option value WP1 cannot see.
+   - σ is a placeholder (D-15), which makes its calibration the most important open input after the regulatory question.
+2. **The same WWR stress is wrong-way for the buyer and right-way for the seller.**
+   - The driver is the counterparty's flood losses, proxied by triggers in the netting set.
+   - A buyer is owed the notional exactly when those losses occur. A seller is owed nothing then.
+   - So β must be set per counterparty type and direction. It cannot be one desk-wide number (D-05).
+3. **Variation margin does not reach the jump; initial margin does.** This is §3.3 confirmed. VM cuts the seller's premium exposure by two thirds, but for the buyer the residual is mostly the jump.
+4. **Correlated offsetting trades net almost to zero.** A buy and a sell on gauges hit by the same events behave as one position. The catalogue's dependence is worth modelling: treated as independent, the same pair shows 100× the CVA.
+
+### Limitations recorded for validation
+
+- **L-1. The classical MPoR lookback freezes collateral but not trade cash flows.**
+  - A buyer that has posted VM against accrued premium pays that premium inside the MPoR, so it is briefly over-collateralised.
+  - At σ = 0 this makes the buyer's CVA *higher* with VM than without it (−499 against −194).
+  - This is the effect Andersen, Pykhtin and Sokol (2017) analyse. Their "advanced" MPoR conventions are the remedy and are a candidate for WP6.
+- **L-2. The event clock uses the trapezoid integral of Y on the simulation grid**, O(h²). The exposure valuation uses the exact CIR conditional. The two agree exactly at σ = 0.
+- **L-3. The WWR driver is the number of the netting set's gauges triggered so far.** A counterparty's real flood exposure (its insured book, its loan book) needs counterparty data the platform does not have.
+- **L-4. Euler allocation is exact only for an uncollateralised netted set.** With thresholds, IM or no netting the residual is reported, not hidden.
+- **L-5. The CIR++ fit is implemented for a flat trigger hazard** (the pricer's convention). A term structure raises an error rather than being silently approximated.
+- **L-6. Each run has a single seed and no variance reduction.** The closed form is available as a control variate if 10,000 paths prove too noisy (D-08).
+
+### Next — WP3
+
+Capital per path: SA-CCR EAD and BA-CVA computed in each Monte Carlo state, fed to the KVA integral (`integrals.kva` already exists). The RRAO is a switch, pending the regulatory paper.

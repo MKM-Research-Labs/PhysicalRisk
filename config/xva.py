@@ -80,6 +80,15 @@ class XvaConfig:
     capital_funding_fraction: float = 0.0        # phi, D-06
     quadrature_nodes: int = 24                   # Gauss-Legendre nodes per sub-interval
     profile_step_years: float = 1.0 / 12.0       # reporting grid for exposure profiles
+    # Monte Carlo (WP2). Hazard dynamics are CIR++ on a catchment factor (D-15);
+    # kappa and sigma are placeholders until calibrated to the history of
+    # re-estimated hazard (no owner yet).
+    n_paths: int = 10_000                        # D-08
+    seed: int = 20261009
+    cells_per_quarter: int = 26                  # midpoint rule, ~3.5-day cells (D-14)
+    hazard_mean_reversion: float = 0.5           # kappa, per year
+    hazard_vol: float = 0.30                     # sigma of the factor Y (Y0 = theta = 1)
+    wwr_beta: float = 0.0                        # D-05: 0 in the price, > 0 as a stress
 
     def __post_init__(self):
         if self.funding_strategy not in FUNDING_STRATEGIES:
@@ -89,6 +98,10 @@ class XvaConfig:
                 raise ValueError(f"{name} must lie in [0, 1]")
         if self.own_recovery >= 1.0 and self.own_funding_spread > 0:
             raise ValueError("own_recovery of 1 implies no own default; s_F must be 0")
+        if self.n_paths < 2 or self.cells_per_quarter < 1:
+            raise ValueError("n_paths must be at least 2 and cells_per_quarter at least 1")
+        if self.hazard_mean_reversion <= 0 or self.hazard_vol < 0:
+            raise ValueError("hazard_mean_reversion must be positive and hazard_vol non-negative")
         if self.settlement_days < 0 or self.own_funding_spread < 0:
             raise ValueError("settlement_days and own_funding_spread must be non-negative")
 
