@@ -22,6 +22,8 @@
 
 from typing import Dict, List
 
+from ._credit_support import credit_support_errors
+
 
 class _CounterpartyMappingMixin:
     """Validation and CDM-to-flat mapping for counterparty records."""
@@ -87,6 +89,10 @@ class _CounterpartyMappingMixin:
             if cp_errors:
                 errors["Counterparties"] = cp_errors
 
+            cs_errors = credit_support_errors(root)
+            if cs_errors:
+                errors["CreditSupport"] = cs_errors
+
             return errors
 
         except Exception as e:
@@ -143,6 +149,8 @@ class _CounterpartyMappingMixin:
                 "natural_person_count": len(party.get("NaturalPersons", []) or []),
                 "counterparty_count": len(cps),
                 "ancillary_party_count": len(ancillary),
+                "netting_set_count": len(
+                    (root.get("CreditSupport") or {}).get("NettingSets", []) or []),
             }
 
             # Remove None values

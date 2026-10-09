@@ -27,7 +27,9 @@ from typing import Dict, List, Optional
 import database
 from config import config
 from models.schedule.maturity import compute_maturity_date
+from config.port import PRS_SETTLEMENT_DAYS
 from port.cdm.prs import PhysicalRiskSwapCDM
+from port.src.counterparty._credit_support import netting_set_id
 
 from ._constants import _REIT_PARTY_ID, DEFAULT_YIELD_CURVE, RECOVERY
 
@@ -82,6 +84,7 @@ def _build_cdm_record(
                 'ValuationDate': trade_date.strftime('%Y-%m-%d'),
                 'ProtectionStart': start_date.strftime('%Y-%m-%d'),
                 'TradeStatus': 'Committed',
+                'NettingSetID': netting_set_id(counterparty_id),
             },
             'LegData': {
                 'LegType': 'Fixed',
@@ -115,6 +118,7 @@ def _build_cdm_record(
             'Payouts': {
                 'Currency': config.CURRENCY,
                 'MaxPayout': notional,
+                'SettlementDays': PRS_SETTLEMENT_DAYS,
             },
             'Pricing': {
                 'SpreadBps': round(trade_spread_bps),

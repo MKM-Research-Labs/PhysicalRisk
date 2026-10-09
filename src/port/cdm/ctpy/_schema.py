@@ -135,5 +135,59 @@ COUNTERPARTY_SCHEMA = {
             },
             "description": "Non-principal parties associated with the trade",
         },
+
+        # Legal netting and collateral terms (ISDA Master + CSA). Read by
+        # the XVA model: exposure is netted per netting set and reduced by
+        # collateral under these terms.
+        "CreditSupport": {
+            "NettingSets": {
+                "type": "array",
+                "items": {
+                    "NettingSetID": {
+                        "type": "text",
+                        "description": "Identifier referenced by PhysicalSwap.Header.NettingSetID",
+                    },
+                    "MasterAgreement": {
+                        "type": "menu",
+                        "options": ["ISDA2002", "ISDA1992", "None"],
+                        "description": "Master agreement governing trades in the netting set",
+                    },
+                    "CloseOutNetting": {
+                        "type": "boolean",
+                        "description": "Close-out netting is legally enforceable; if false, each trade is closed out alone",
+                    },
+                    "CsaType": {
+                        "type": "menu",
+                        "options": ["None", "VM", "VM+IM"],
+                        "description": "Collateral exchanged: none, variation margin only, or variation and initial margin",
+                    },
+                    "CollateralCurrency": {
+                        "type": "text",
+                        "description": "Currency of eligible cash collateral",
+                    },
+                    "Threshold": {
+                        "type": "decimal",
+                        "description": "Exposure below which no variation margin is called",
+                    },
+                    "MinimumTransferAmount": {
+                        "type": "decimal",
+                        "description": "Smallest margin transfer that will be called",
+                    },
+                    "MarginPeriodOfRiskDays": {
+                        "type": "integer",
+                        "description": "Business days from last good margin to close-out after a default",
+                    },
+                    "InitialMarginReceived": {
+                        "type": "decimal",
+                        "description": "Segregated initial margin (independent amount) held from the counterparty",
+                    },
+                    "InitialMarginPosted": {
+                        "type": "decimal",
+                        "description": "Segregated initial margin (independent amount) posted to the counterparty",
+                    },
+                },
+                "description": "Netting sets under which trades with this party are closed out",
+            },
+        },
     }
 }

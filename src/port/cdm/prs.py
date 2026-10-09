@@ -136,6 +136,7 @@ class PhysicalRiskSwapCDM(BaseCDM):
                 'valuation_date': header.get('ValuationDate'),
                 'gauge_set_id': header.get('GaugeSetID'),
                 'protection_start': header.get('ProtectionStart'),
+                'netting_set_id': header.get('NettingSetID'),
 
                 # Leg Data
                 'leg_type': leg.get('LegType'),
@@ -168,7 +169,8 @@ class PhysicalRiskSwapCDM(BaseCDM):
                 'flood_alert_payout': payouts.get('FloodAlertPayout'),
                 'flood_warning_payout': payouts.get('FloodWarningPayout'),
                 'severe_flood_payout': payouts.get('SevereFloodPayout'),
-                'max_payout': payouts.get('MaxPayout')
+                'max_payout': payouts.get('MaxPayout'),
+                'settlement_days': payouts.get('SettlementDays'),
             }
 
             # Remove None values (but keep empty lists)

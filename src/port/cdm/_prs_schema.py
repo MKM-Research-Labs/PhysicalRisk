@@ -69,6 +69,13 @@ def build_schema() -> Dict:
                 "ProtectionStart": {
                     "type": "date",
                     "description": "Start date of protection"
+                },
+                "NettingSetID": {
+                    "type": "text",
+                    "description": (
+                        "Netting set the trade belongs to; references "
+                        "CounterpartySet.CreditSupport.NettingSets[].NettingSetID"
+                    )
                 }
             },
             "LegData": {
@@ -182,6 +189,14 @@ def build_schema() -> Dict:
                 "MaxPayout": {
                     "type": "decimal",
                     "description": "Maximum total payout"
+                },
+                "SettlementDays": {
+                    "type": "integer",
+                    "description": (
+                        "Business days from trigger determination to payment "
+                        "of the payout; the window in which the payer is "
+                        "exposed to the receiver for the full notional"
+                    )
                 }
             }
         }

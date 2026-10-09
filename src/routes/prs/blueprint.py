@@ -38,7 +38,9 @@ import database
 from config import config
 from config.auth import CREATE, FUNC_TRADE_PRS
 from models.schedule.maturity import compute_maturity_date
+from config.port import PRS_SETTLEMENT_DAYS
 from port.cdm.prs import PhysicalRiskSwapCDM
+from port.src.counterparty._credit_support import netting_set_id
 
 from .._rbac import require
 from .pdf import _generate_trade_pdf
@@ -124,6 +126,8 @@ def commit_prs_trade():
                     "ValuationDate": trade_date.strftime("%Y-%m-%d"),
                     "ProtectionStart": start_date.strftime("%Y-%m-%d"),
                     "TradeStatus": "Committed",
+                    "NettingSetID": (netting_set_id(data["counterparty_id"])
+                                     if data.get("counterparty_id") else ""),
                 },
                 "LegData": {
                     "LegType": "Fixed",
@@ -159,6 +163,7 @@ def commit_prs_trade():
                 "Payouts": {
                     "Currency": config.CURRENCY,
                     "MaxPayout": notional,
+                    "SettlementDays": PRS_SETTLEMENT_DAYS,
                 },
                 "Pricing": {
                     "SpreadBps": spread_bps,

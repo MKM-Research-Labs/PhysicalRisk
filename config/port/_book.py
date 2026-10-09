@@ -46,6 +46,26 @@ TRIGGER_RATE_KEY: Dict[str, str] = {
 # Recovery rate assumption for CDS-equivalent pricing (0 % = full LGD)
 RECOVERY: float = 0.0
 
+# Business days from trigger determination to payment of the PRS payout.
+# The term sheet says "paid at the time of the trigger"; in practice the
+# calculation agent must confirm the gauge reading first. This is the window
+# in which the protection buyer is owed the full notional (XVA jump exposure).
+# Provisional: docs/xva/project_plan.md section 9, decision D-09.
+PRS_SETTLEMENT_DAYS: int = 5
+
+# Netting set identifiers are one per counterparty: NS-{PartyID}.
+NETTING_SET_PREFIX: str = 'NS-'
+
+# Synthetic credit support terms for the generated counterparty book. Real
+# terms come from the executed CSA; these only make the schema populated.
+# MPoR 10 business days is the Basel floor for bilateral uncleared trades.
+SYNTHETIC_CSA_TERMS: Dict[str, Dict[str, float]] = {
+    'financial': {'Threshold': 0.0, 'MinimumTransferAmount': 250_000.0,
+                  'MarginPeriodOfRiskDays': 10},
+    'corporate': {'Threshold': 5_000_000.0, 'MinimumTransferAmount': 500_000.0,
+                  'MarginPeriodOfRiskDays': 10},
+}
+
 # Default yield curve: humped shape peaking at 4Y (matches market_state.py)
 # Keys are tenor in years as strings; values are continuous rates.
 DEFAULT_YIELD_CURVE: Dict[str, float] = {

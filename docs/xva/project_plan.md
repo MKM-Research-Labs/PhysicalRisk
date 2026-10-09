@@ -1,6 +1,6 @@
 # PRS XVA — project proposal
 
-**Status:** 2026-10-09. Proposal agreed. Nothing is built. The proposed defaults in section 8 were
+**Status:** 2026-10-09. Proposal agreed; WP0 under way (section 9). No XVA engine is built yet. The proposed defaults in section 8 were
 accepted on 2026-10-09; the regulatory characterisation and the model ID still need owners outside the model team.
 **Aim:** add credit, funding and capital valuation adjustments (CVA, DVA, FVA, KVA, and
 later MVA) to the Physical Risk Swap pricer. This is a new model (proposed ID
@@ -274,3 +274,60 @@ The proposed option in each item below is the decision. Items 2 and 7 still need
 5. **WWR**: stress only (proposed), or priced from day one.
 6. **Capital code**: SA-CCR and BA-CVA in a shared `regulatory` module used by both MKM-XV-001 and MKM-CR-001, or kept separate.
 7. **Model ID and owner** in ModelRisk.
+
+---
+
+## 9. WP0 progress (2026-10-09)
+
+WP0 has four deliverables. Three are done in code or documents. The fourth
+(registration) is prepared and tested but has not been run against the live
+inventory.
+
+| deliverable | state |
+|---|---|
+| Decisions log | Below: D-01 to D-13. D-09 and D-11 to D-13 still need an input owner |
+| Regulatory characterisation | Question paper written: [`regulatory_characterisation.md`](regulatory_characterisation.md). Needs an owner outside the model team |
+| CDM extension | Done (see below). Tests: `tests/port/cdm/test_credit_support.py` |
+| ModelRisk registration | `scripts/register_xv001.py` + `_xv001_data.py` on ModelRisk branch `claude/register-xv001`. Tests pass on a disposable database. **Not yet run against the live inventory**; the model owner runs `python -m scripts.register_xv001` |
+
+### Decisions log
+
+| ID | decision | source |
+|---|---|---|
+| D-01 | One-bond funding strategy: unilateral CVA + symmetric FVA at s_F. DVA is computed and shown, not booked | §8.1 |
+| D-02 | Risk-free close-out, M = V | §4.4 |
+| D-03 | Survival discounting at r + λ_B + λ_C on every term | §4.4 |
+| D-04 | First scope: gauge PRS (`TradeType='PRS'`), bank as buyer and seller. Uncollateralised in WP1; CSA and netting in WP2 | §8.4 |
+| D-05 | Wrong-way risk: β = 0 in the price, β > 0 as a governed stress | §8.5 |
+| D-06 | Capital: SA-CCR + BA-CVA reduced, φ = 0. γ_K = `config/capital.py` `cost_of_equity` (0.12), shared with MKM-CR-001. Green's oil example uses 10%; the difference is a sensitivity, not a second parameter | §4.4 |
+| D-07 | SA-CCR and BA-CVA live in one regulatory module used by MKM-XV-001 and MKM-CR-001 | §8.6 |
+| D-08 | Monte Carlo: 10,000 seeded paths to start; each component reports its standard error. The closed form is the first control variate if the jump term is too noisy | agreed 2026-10-09 |
+| D-09 | Settlement lag: `PRS_SETTLEMENT_DAYS` = 5 business days, carried on each trade as `Payouts.SettlementDays`. **Provisional**: the term sheet says "paid at the time of the trigger", and the real lag (calculation-agent confirmation plus payment) needs confirming by Product/Legal | WP0 |
+| D-10 | Contract terms for XVA follow the trade pricer (MKM-PR-001): first-trigger termination, quarterly premium. The trade record's `ScheduleData.Tenor = '6M'` disagrees with the pricer, which prices quarterly; that is raised as a finding against MKM-PR-001, not resolved inside the XVA model | §7.1 |
+| D-11 | Counterparty credit: CDS where quoted, otherwise a rating-to-hazard proxy in `config/xva.py`. `config/loan.py` `CREDIT_RATING_SPREADS` are loan margins, not CDS spreads, so they are **not** reused. **Open**: the source for the proxy table | §8.3 |
+| D-12 | Own funding spread s_F and recovery R_B: a Treasury input in `config/xva.py`. **Open**: owner and source | WP0 |
+| D-13 | Risk-free curve: the market-state yield curve, the same one the Trading Desk revalues on, so V agrees with the blotter. `config.loan.DISCOUNT_CURVE` is not used | §7.3 |
+
+### CDM extension
+
+All new fields are optional, so existing trade and counterparty files still validate.
+
+- **PRS trade** (`src/port/cdm/_prs_schema.py`):
+  - `Header.NettingSetID` references the counterparty's netting set.
+  - `Payouts.SettlementDays` holds the payout lag (D-09).
+  - Both are written by the book generator (`book_common/_records.py`) and by the trade-commit route (`routes/prs/blueprint.py`), and both appear in the flat mapping.
+- **Counterparty** (`src/port/cdm/ctpy/_schema.py`): a new `CreditSupport.NettingSets[]` block holding:
+  - `NettingSetID`, `MasterAgreement` and `CloseOutNetting`;
+  - `CsaType` (None / VM / VM+IM) and `CollateralCurrency`;
+  - `Threshold`, `MinimumTransferAmount` and `MarginPeriodOfRiskDays`;
+  - `InitialMarginReceived` and `InitialMarginPosted`.
+
+  When present, the block is validated (`ctpy/_credit_support.py`).
+- **Generator:** the counterparty generator attaches one synthetic netting set per party (`NS-{PartyID}`).
+  - The block is derived from the existing `_platform` flags (`CSAAgreement`, `NettingAgreement`, `ISDAMasterAgreement`), so the generator's random draws do not change.
+  - The terms come from `config/port/_book.py` `SYNTHETIC_CSA_TERMS`. They are placeholders, not executed CSA terms.
+
+### Next
+
+- WP0 closes once the live registration has been run and the open items have owners: D-09, D-11, D-12 and the regulatory paper.
+- WP1 (curves, the closed-form engine, the integrals) can start in parallel. It needs only placeholder inputs, and its outputs stay ILLUSTRATIVE.
