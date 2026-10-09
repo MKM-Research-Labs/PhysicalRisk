@@ -38,12 +38,14 @@ import numpy as np
 from config.xva import STATUS, XvaConfig
 
 from . import events as ev
+from .capital import CounterpartyProfile, capital
 from .cir import CirFactor
 from .curves import HazardCurve, ZeroCurve
 from .inputs import Market
 from .integrals import kernel
 from .netting import NettingSet
-from .paths import factor_paths, grid, lookup, simulation_times, trade_values, triggers_for
+from .paths import (alive_value, factor_paths, grid, lookup, simulation_times, trade_values,
+                    triggers_for)
 
 
 def _exposures(values: np.ndarray, lagged: Optional[np.ndarray], nset: NettingSet):
@@ -85,7 +87,9 @@ def _estimate(per_path: np.ndarray) -> Dict[str, float]:
 
 
 def run(nset: NettingSet, zero: ZeroCurve, cfg: Optional[XvaConfig] = None,
-        model: Optional[ev.TriggerModel] = None, own: Optional[HazardCurve] = None) -> Dict:
+        model: Optional[ev.TriggerModel] = None, own: Optional[HazardCurve] = None,
+        counterparty: Optional[CounterpartyProfile] = None) -> Dict:
+    """XVA of a netting set; with ``counterparty`` given, also capital and KVA."""
     cfg = cfg or XvaConfig()
     model = model or ev.TriggerModel.independent()
     own = own or HazardCurve.flat(cfg.own_hazard)
@@ -136,7 +140,7 @@ def run(nset: NettingSet, zero: ZeroCurve, cfg: Optional[XvaConfig] = None,
         views[view] = {name: _estimate(p) for name, p in terms.items()}
         views[view]["total"] = _estimate(sum(terms.values()))
 
-    return {
+    result = {
         "views": views,
         "booked_strategy": cfg.funding_strategy,
         "booked": views[cfg.funding_strategy],
@@ -150,6 +154,40 @@ def run(nset: NettingSet, zero: ZeroCurve, cfg: Optional[XvaConfig] = None,
                                 for g in nset.gauges},
         "audit": _audit(nset, cfg),
     }
+    if counterparty is not None:
+        alive = np.stack([(paths.first_trigger[t.gauge_id][:, None] > nodes[None, :])
+                          & (nodes[None, :] < t.tenor_years) for t in nset.trades])
+        result["kva"] = _kva(nset, cfg, counterparty, nodes, alive, exp, market,
+                             k[cfg.funding_strategy], zero, triggers)
+    return result
+
+
+def _capital_args(cfg: XvaConfig) -> Dict:
+    return {"asset_class": cfg.saccr_asset_class, "reference_rating": cfg.credit_reference_rating,
+            "rrao": cfg.rrao, "capital_ratio": cfg.capital_ratio}
+
+
+def _kva(nset, cfg, counterparty, nodes, alive, exp, market, weighted_kernel, zero, triggers):
+    """KVA = -int (gamma_K - phi r) D E[K] ds per charge (13.25), with capital today.
+
+    Reported beside the booked XVA, not inside it, until the regulatory paper
+    is answered (D-16).
+    """
+    held = capital(nset, counterparty, nodes=nodes, alive=alive, net=exp["net"],
+                   collateral=exp["collateral"], **_capital_args(cfg))
+    rate = cfg.cost_of_capital - cfg.capital_funding_fraction * zero.forward_rate(nodes)
+    per_path = {c: -(held[c] * (rate * weighted_kernel)).sum(axis=1) for c in ("ccr", "cva", "rrao")}
+    out = {c: _estimate(p) for c, p in per_path.items()}
+    out["total"] = _estimate(sum(per_path.values()))
+
+    v0 = np.array([[sum(float(alive_value(t, triggers[t.gauge_id], zero, 0.0, np.ones(1))[0])
+                        for t in nset.trades)]])
+    today = capital(nset, counterparty, nodes=np.zeros(1), alive=np.ones((len(nset.trades), 1, 1), bool),
+                    net=v0, collateral=nset.csa.variation_margin_held(v0), **_capital_args(cfg))
+    out["today"] = {c: float(v[0, 0]) for c, v in today.items()}
+    out["profiles"] = {c: held[c].mean(axis=0).tolist() for c in ("ead", "ccr", "cva", "rrao")}
+    out["included_in_booked"] = False
+    return out
 
 
 def _euler_cva(values, exp, weights, rate_kernel, total) -> Dict[str, object]:

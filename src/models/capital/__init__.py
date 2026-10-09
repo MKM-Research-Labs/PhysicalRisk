@@ -31,13 +31,18 @@ views, which answer different questions and report different PDs:
   comparing a PRS embedded in the loan with cover rolled each year.
 
 Every parameter lives in ``config.capital``. ILLUSTRATIVE: not calibrated.
+
+``counterparty`` holds SA-CCR, BA-CVA and SA risk weights, shared with the
+PRS XVA model (MKM-XV-001, decision D-07); its constants are in
+``config.counterparty_capital``.
 """
 
-from . import one_year, over_term
+from . import counterparty, one_year, over_term
 from .hazard import flood_losses, prs_payout, simulate_drivers, year_end_liquidity
 from .regulatory import grade_for_pd, irb_corporate_rw
 
 __all__ = [
+    "counterparty",
     "one_year",
     "over_term",
     "flood_losses",

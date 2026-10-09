@@ -1,6 +1,6 @@
 # PRS XVA — project proposal
 
-**Status:** 2026-10-09. Proposal agreed. WP0 done bar input owners (section 9). WP1 analytic engine (section 10) and WP2 Monte Carlo engine (section 11) built and tested. The proposed defaults in section 8 were
+**Status:** 2026-10-09. Proposal agreed. WP0 done bar input owners (section 9). WP1 analytic engine (section 10), WP2 Monte Carlo (section 11) and WP3 capital and KVA (section 12) built and tested. The proposed defaults in section 8 were
 accepted on 2026-10-09; the regulatory characterisation and the model ID still need owners outside the model team.
 **Aim:** add credit, funding and capital valuation adjustments (CVA, DVA, FVA, KVA, and
 later MVA) to the Physical Risk Swap pricer. This is a new model (proposed ID
@@ -309,6 +309,7 @@ inventory.
 | D-13 | Risk-free curve: the market-state yield curve, the same one the Trading Desk revalues on, so V agrees with the blotter. `config.loan.DISCOUNT_CURVE` is not used | §7.3 |
 | D-14 | MC time integration: midpoint rule on cells that never straddle a premium date, maturity or settlement end; 26 cells per quarter (~3.5 days). Bias on the saw-tooth is O(h²), 0.05% at 26 cells (about 0.2 SE at 10,000 paths) | §11 |
 | D-15 | Flood-hazard dynamics: CIR++ on a catchment factor Y (Y0 = θ = 1), gauge intensity λ_g Y + φ_g(t), with φ_g fitted to the pricer's flat hazard. Replaces the "log-hazard OU" of §4.4: CIR++ prices V(t) in closed form, reproduces the pricer at t = 0 on every path, and is exactly WP1 at σ = 0. κ = 0.5, σ = 0.3 are **placeholders**; calibration to the history of re-estimated hazard has no owner yet | §11 |
+| D-16 | KVA is computed (SA-CCR + BA-CVA reduced, RRAO switch) and reported beside the booked XVA, **not inside it**, until the regulatory paper answers Q1–Q3. The SA-CCR treatment (`commodity_other` or `credit_single_name`) and the RRAO are config switches. Default: commodity "other", RRAO off | §12 |
 
 ### CDM extension
 
@@ -535,3 +536,95 @@ A run takes about 0.5–1 s per trade at 10,000 paths.
 ### Next — WP3
 
 Capital per path: SA-CCR EAD and BA-CVA computed in each Monte Carlo state, fed to the KVA integral (`integrals.kva` already exists). The RRAO is a switch, pending the regulatory paper.
+
+---
+
+## 12. WP3 — capital per path and KVA (2026-10-09)
+
+**Exit criterion met.** The shared SA-CCR module reproduces the Basel
+Committee's own worked examples, BCBS 279 (March 2014) Annex 4a, to their
+printed precision:
+
+| example | what is checked | result |
+|---|---|---|
+| 2 (credit) | Supervisory durations (2.79 / 5.18 / 4.42), adjusted notionals, signed entity add-ons (106 / −280 / 168), aggregate add-on with index ρ = 0.8, multiplier, EAD | 282 / 0.965 / **381** |
+| 3 (commodity) | Effective notional 11,340, type and hedging-set add-ons, EAD | 3,841 / **5,406** |
+| 5 (margined) | Margined RC (0), MPoR-14 maturity factor, margined crude effective notional | 0 / 1.5√(14/250) / 3,550 |
+
+The source PDF was fetched from bis.org and read locally. Example 5 also needs
+interest-rate SA-CCR, which a PRS does not, so only its margining figures are
+used. BA-CVA, the SA risk weights and the RRAO have no Basel worked example;
+they are checked against hand-worked figures.
+
+There are 249 tests across `tests/models/xva` and `tests/models/capital`, all passing. That includes the 66
+existing MKM-CR-001 tests, so the shared module has not disturbed the capital
+model. Coverage of both packages is 100%.
+
+### What was built
+
+| file | role |
+|---|---|
+| `config/counterparty_capital.py` | Basel constants shared by MKM-CR-001 and MKM-XV-001 (D-07): SA-CCR (CRE52), BA-CVA (MAR50), SA risk weights (CRE20), RRAO (MAR23) |
+| `src/models/capital/counterparty.py` | Vectorised SA-CCR (supervisory duration, maturity factors, signed aggregation with per-entity ρ, commodity hedging sets, RC, multiplier, EAD with the margined cap of CRE52.2), BA-CVA reduced, and risk weights |
+| `src/models/xva/capital.py` | `CounterpartyProfile`. Capital in every Monte Carlo state under either SA-CCR treatment. A triggered trade is a pending payment, so it enters RC with no add-on |
+| `monte_carlo.run(..., counterparty=...)` | Adds a `kva` block: KVA per charge (CCR, CVA, RRAO) with SE, capital today, capital profiles, and `included_in_booked: False` |
+| `config/xva.py` | Adds `saccr_asset_class`, `credit_reference_rating` (placeholder "B"), `rrao`, and `capital_ratio` (shared with MKM-CR-001) |
+
+Capital held is RWA × the bank's capital ratio (10.5%, D-06). The Basel-minimum
+BA-CVA and RRAO amounts are scaled by 10.5 / 8 to match.
+
+### Illustrative results
+
+Inputs:
+- the same trade: GBP 10m, 5y, 2% trigger, at the fair spread;
+- BBB counterparty, corporate SA risk weight 75%;
+- BA-CVA sector "financials" (an insurer);
+- 10,000 paths, σ = 0.3.
+
+| case | EAD today | capital today | KVA ± SE | ≈ bp of spread | booked XVA |
+|---|---:|---:|---:|---:|---:|
+| buys, commodity "other" | 2,520,000 | 538,129 | −183,869 ± 267 | 4.31 | −279 |
+| buys, credit analogy (ref. B) | 990,972 | 211,616 | −46,463 ± 61 | 1.09 | −279 |
+| buys, commodity + RRAO | 2,520,000 | 669,379 | −247,527 ± 373 | 5.80 | −279 |
+| buys, commodity, VM (MPoR 10d) | 756,000 | 161,439 | −57,677 ± 88 | 1.35 | −610 |
+| sells, commodity "other" | 2,520,000 | 538,129 | −187,668 ± 280 | 4.40 | −2,623 |
+| sells, credit analogy (ref. B) | 990,972 | 211,616 | −50,162 ± 73 | 1.18 | −2,623 |
+
+The bp column is |KVA| / (N A), against a fair spread of 203.6bp.
+
+### What the results say
+
+1. **Capital is the binding cost, by two orders of magnitude.**
+   - Under the default treatment KVA is about −184k. Booked CVA + FVA is −0.3k to −2.6k.
+   - This is Green's Chapter 13 conclusion, and the oil example's, made sharper by the PRS's small XVA under independence.
+   - For this trade, the price of a PRS is a capital question.
+2. **The regulatory paper is worth about 3bp of spread on this trade.**
+   - The commodity "other" treatment (18%) against the credit analogy (1.6% × duration) is a factor of 4 in KVA.
+   - The RRAO adds a further 1.5bp.
+   - These answers move the price more than every credit and funding input combined.
+3. **BA-CVA capital exceeds CCR capital.**
+   - An insurer is a "financial" in MAR50, with a 5% risk weight.
+   - With a 5y netting-set maturity, BA-CVA is 63% of capital today (340k of 538k).
+   - The main lever is SA-CVA approval with eligible hedges, as in the oil example.
+4. **Variation margin cuts KVA by 69%.** The margined maturity factor (1.5√(10/250) = 0.3) shrinks the add-on, even though VM does not reach the jump to notional in CVA (§11, L-1). A CSA is worth far more in capital than in CVA.
+
+### Limitations recorded for validation
+
+- **L-7. Every regulatory treatment here is provisional** (Q1–Q3). Nothing in KVA is booked (D-16).
+- **L-8. The credit analogy needs a "reference rating" for a flood trigger.** "B" is a placeholder. The paper must say whether this treatment is admissible at all.
+- **L-9. BA-CVA's netting-set maturity applies CRE32's one-year floor** (`BA_CVA_MATURITY_FLOOR_YEARS`). Whether MAR50 carries the floor over is for the paper.
+- **L-10. Single-counterparty BA-CVA.**
+  - Portfolio diversification across counterparties (ρ = 0.5) and portfolio capital allocation (Green Ch. 15) are not modelled.
+  - KVA is therefore standalone and conservative. Portfolio KVA is WP6.
+- **L-11. Market-risk capital on the bank's warehoused flood risk is not modelled beyond the RRAO switch.** That includes FRTB SA sensitivities on any hedge.
+- **L-12. γ_K is a single constant (12%, D-06).** Green treats it as a board input, not a market observable.
+
+### Next — WP4
+
+Integration:
+- an `xva` block on the PRS pricer and the Trading Desk `enrich_trade` record;
+- XVA and KVA columns on the blotter;
+- ΔXVA as its own EOD P&L line;
+- the daily front-office versus engine V KPI.
+
+Gauge PRS first. Property PRS needs a term pricer first (§7.2).

@@ -41,6 +41,7 @@ from dataclasses import asdict, dataclass
 from typing import Dict, Tuple
 
 from config.capital import CapitalConfig
+from config.counterparty_capital import SACCR_ASSET_CLASSES
 from config.port import PRS_SETTLEMENT_DAYS
 
 STATUS = "ILLUSTRATIVE - credit and funding inputs are placeholders (D-11, D-12)"
@@ -89,6 +90,13 @@ class XvaConfig:
     hazard_mean_reversion: float = 0.5           # kappa, per year
     hazard_vol: float = 0.30                     # sigma of the factor Y (Y0 = theta = 1)
     wwr_beta: float = 0.0                        # D-05: 0 in the price, > 0 as a stress
+    # Capital (WP3). How a PRS enters SA-CCR and whether the RRAO applies are
+    # questions Q2 and Q3 of the regulatory paper; these are switches until it
+    # is answered, and KVA is reported but not booked (D-16).
+    saccr_asset_class: str = "commodity_other"   # or "credit_single_name"
+    credit_reference_rating: str = "B"           # placeholder for the credit analogy
+    rrao: bool = False                           # FRTB residual risk add-on (MAR23)
+    capital_ratio: float = _CAPITAL.capital_ratio
 
     def __post_init__(self):
         if self.funding_strategy not in FUNDING_STRATEGIES:
@@ -98,6 +106,8 @@ class XvaConfig:
                 raise ValueError(f"{name} must lie in [0, 1]")
         if self.own_recovery >= 1.0 and self.own_funding_spread > 0:
             raise ValueError("own_recovery of 1 implies no own default; s_F must be 0")
+        if self.saccr_asset_class not in SACCR_ASSET_CLASSES:
+            raise ValueError(f"saccr_asset_class must be one of {SACCR_ASSET_CLASSES}")
         if self.n_paths < 2 or self.cells_per_quarter < 1:
             raise ValueError("n_paths must be at least 2 and cells_per_quarter at least 1")
         if self.hazard_mean_reversion <= 0 or self.hazard_vol < 0:
