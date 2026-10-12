@@ -137,3 +137,38 @@ class TestEod:
     def test_off_by_default_in_route_tests(self, trading_client, trading_env):
         data = json.loads(trading_client.post(f'{API}/eod', json={'date': '2026-02-27'}).data)
         assert 'xva_total' not in data['summary']
+
+
+class TestHazardCurves:
+    """Plan §16: the route bootstraps one curve per gauge from the market state."""
+
+    def _state(self, hts):
+        return {"yield_curve": {}, "risk_free_rate": 0.03, "hazard_term_structure": hts,
+                "base_rates": {"G-FLAT": {"annual_hazard_rate_severe": 0.02}}}
+
+    def _lookup(self, monkeypatch, hts):
+        import routes.trading.xva as xva_routes
+        from models.trading.market_state import MarketStateManager
+        monkeypatch.setattr(MarketStateManager, "load", lambda self: self_state)
+        self_state = self._state(hts)
+        monkeypatch.setattr(xva_routes, "_load_open_trades", lambda: [])
+        return xva_routes.xva_inputs()[3]
+
+    def test_buckets_become_a_curve_and_flat_gauges_stay_flat(self, trading_env, monkeypatch):
+        from models.xva import HazardCurve
+        hazard_for = self._lookup(monkeypatch, {
+            "G-TS": {"severe": {"1": 0.010, "3": 0.015, "5": 0.014}}})
+        curve = hazard_for("G-TS", "severe")
+        assert isinstance(curve, HazardCurve) and len(curve.rates) == 3
+        assert hazard_for("G-TS", "severe") is curve          # bootstrapped once
+        assert hazard_for("G-FLAT", "severe") == 0.02
+        assert hazard_for.fallbacks == []
+
+    def test_a_fallback_is_recorded(self, trading_env, monkeypatch):
+        hazard_for = self._lookup(monkeypatch, {"G-BAD": {"severe": {"1": 0.20, "2": 0.01}}})
+        hazard_for("G-BAD", "severe")
+        assert hazard_for.fallbacks == ["G-BAD"]
+
+    def test_the_run_records_fallbacks(self, trading_client, trading_env):
+        run = json.loads(trading_client.post(f'{API}/xva/run', json={'n_paths': PATHS}).data)
+        assert run["audit"]["hazard_curve_fallbacks"] == []

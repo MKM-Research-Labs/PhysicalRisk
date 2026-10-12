@@ -28,15 +28,16 @@ about a second per netting set, and ``enrich_trade`` runs on every blotter
 request, curve edit and stress run. The desk calls this on demand, at EOD,
 and for a quote, and the blotter reads the stored result.
 
-Hazard: one flat rate per gauge (the market state's gauge rate), because the
-CIR++ fit is flat (L-5) and trades on one gauge must share one trigger. The
-front office prices each trade on its tenor-bucket rate and whole-year
-remaining tenor; the KPI reports any gap rather than hiding it.
+Hazard: one curve per gauge, because trades on one gauge share one trigger.
+``term_structure_curve`` bootstraps it from the desk's tenor-bucket hazards so
+that each standard tenor reprices at the front office's fair spread (plan §16).
+The front office still values each trade flat at its own bucket over a
+whole-year remaining tenor; the KPI reports what gap remains.
 """
 
 from dataclasses import replace
 from datetime import date, datetime, timezone
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from config.xva import (
     DEFAULT_PARTY_CAPITAL,
@@ -50,13 +51,14 @@ from config.xva import (
 
 from . import monte_carlo
 from .capital import CounterpartyProfile
-from .curves import HazardCurve, ZeroCurve, flat_cds_curve
+from .curves import HazardCurve, ZeroCurve, bootstrap_cds, cds_par_spread, flat_cds_curve
 from .inputs import PrsTrade
 from .netting import NettingSet, close_out_netting_from_cdm, csa_from_cdm
 from .valuation import legs, value
 
 UNASSIGNED = "UNASSIGNED"
-HazardLookup = Callable[[str, str], float]
+# (gauge, trigger) -> an annual trigger probability (flat) or a hazard curve.
+HazardLookup = Callable[[str, str], Union[float, HazardCurve]]
 
 
 def zero_curve(market_state: Dict) -> ZeroCurve:
@@ -70,16 +72,41 @@ def remaining_quarters(maturity: str, today: date) -> float:
     return max(1, round(days / 365.25 * 4)) / 4.0
 
 
+def term_structure_curve(tenor_probs: Dict[int, float], zero: ZeroCurve) -> Tuple[HazardCurve, bool]:
+    """One gauge's hazard curve from its tenor-bucket annual probabilities.
+
+    The front office prices a T-year PRS flat at that bucket's probability.
+    Bootstrapping a piecewise-constant hazard to those fair spreads (pricer
+    convention, recovery 0, unfloored) gives a single curve on which every
+    standard tenor reprices exactly. Returns ``(curve, fell_back)``: a curve
+    that cannot be bootstrapped (a forward hazard would be negative) falls back
+    to flat at the longest bucket, and says so.
+    """
+    tenors = sorted(t for t, p in tenor_probs.items() if p > 0)
+    if not tenors:
+        return HazardCurve.flat(0.0), False
+    probs = [tenor_probs[t] for t in tenors]
+    if len(set(probs)) == 1:
+        return HazardCurve.from_annual_probability(probs[0]), False
+    spreads = [cds_par_spread(HazardCurve.from_annual_probability(p), zero, t, 0.0)
+               for t, p in zip(tenors, probs)]
+    try:
+        return bootstrap_cds(tenors, spreads, 0.0, zero), False
+    except ValueError:
+        return HazardCurve.from_annual_probability(probs[-1]), True
+
+
 def trade_from_enriched(e: Dict, hazard_for: HazardLookup, today: date) -> Optional[PrsTrade]:
     """A ``PrsTrade`` from an enriched blotter row; None if closed or matured."""
     if not e.get("notional") or not e.get("maturity"):
         return None
     if date.fromisoformat(str(e["maturity"])[:10]) <= today:
         return None
-    p = hazard_for(e["gauge_id"], e.get("trigger", "severe"))
+    h = hazard_for(e["gauge_id"], e.get("trigger", "severe"))
+    trigger = h if isinstance(h, HazardCurve) else HazardCurve.from_annual_probability(h)
     return PrsTrade(float(e["notional"]), float(e["trade_spread_bps"]) / 1e4,
                     remaining_quarters(e["maturity"], today), bool(e["is_payer"]),
-                    HazardCurve.from_annual_probability(p), e["gauge_id"])
+                    trigger, e["gauge_id"])
 
 
 def counterparty_terms(record: Optional[Dict], zero: ZeroCurve, cfg: XvaConfig):

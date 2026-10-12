@@ -90,6 +90,26 @@ class TestReconcilesToTheAnalyticEngine:
         assert errors[0] / errors[1] == pytest.approx(4.0, rel=0.1)
 
 
+class TestTermStructure:
+    """Plan §16: a bootstrapped hazard term structure on the trigger."""
+
+    CURVE = HazardCurve([1.0, 3.0], [0.012, 0.025])
+
+    def test_deterministic_term_structure_reconciles_to_the_analytic_engine(self):
+        cfg = XvaConfig(hazard_vol=0.0)
+        trade = replace(_trade(True), trigger=self.CURVE)
+        out = mc.run(NettingSet([trade], LAM_C), ZERO, cfg)
+        exact = analytic.xva(trade, Market(ZERO, LAM_C, HazardCurve.flat(cfg.own_hazard)), cfg)
+        for term, est in out["views"]["one_bond"].items():
+            assert abs(est["value"] - exact["one_bond"][term]) < 3 * est["se"], term
+
+    def test_value_today_is_the_curves_on_every_path(self):
+        trade = replace(_trade(True), trigger=self.CURVE)
+        trigger = ShiftedTrigger(CirFactor(0.5, 0.4), self.CURVE)
+        got = alive_value(trade, trigger, ZERO, 0.0, np.ones(3))
+        assert np.allclose(got, value(trade, ZERO, 0.0), rtol=1e-12)
+
+
 class TestStochasticHazard:
 
     @pytest.mark.parametrize("sigma", [0.0, 0.3, 0.8])

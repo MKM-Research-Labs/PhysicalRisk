@@ -90,6 +90,40 @@ class TestAdapters:
         assert desk.zero_curve({"risk_free_rate": 0.05}).zero_rate(3.0) == 0.05
 
 
+class TestTermStructureCurve:
+    """Plan §16: one curve per gauge on which every bucket reprices exactly."""
+
+    ZERO = desk.zero_curve(STATE)
+
+    def test_each_bucket_reprices_at_the_front_office_fair_spread(self):
+        from models.hazard.prs_analytical import compute_prs_spread
+        from models.xva import PrsTrade
+        probs = {1: 0.010, 2: 0.012, 3: 0.015, 5: 0.014}
+        curve, fell_back = desk.term_structure_curve(probs, self.ZERO)
+        assert not fell_back and len(curve.rates) == 4
+        for tenor, p in probs.items():
+            t = PrsTrade(1e6, 0.01, tenor, True, curve)
+            fo = compute_prs_spread(p, tenor, 0.0, yield_curve=DEFAULT_YIELD_CURVE, min_spread_bps=0)
+            assert fair_spread(t, self.ZERO) * 1e4 == pytest.approx(fo, rel=1e-10)
+
+    def test_equal_buckets_give_the_flat_curve(self):
+        curve, fell_back = desk.term_structure_curve({1: 0.02, 3: 0.02}, self.ZERO)
+        assert not fell_back and curve.rates.tolist() == [-__import__("math").log(0.98)]
+
+    def test_no_positive_bucket_means_no_hazard(self):
+        curve, _ = desk.term_structure_curve({1: 0.0}, self.ZERO)
+        assert curve.rates.tolist() == [0.0]
+
+    def test_an_unbootstrappable_curve_falls_back_flat_and_says_so(self):
+        curve, fell_back = desk.term_structure_curve({1: 0.20, 2: 0.01}, self.ZERO)
+        assert fell_back and curve.rates.tolist() == [-__import__("math").log(0.99)]
+
+    def test_a_curve_lookup_reaches_the_trade(self):
+        curve = desk.term_structure_curve({1: 0.01, 3: 0.02}, self.ZERO)[0]
+        t = desk.trade_from_enriched(row("S"), lambda g, trig: curve, TODAY)
+        assert t.trigger is curve
+
+
 class TestRunBook:
 
     @pytest.fixture(scope="class")
@@ -121,6 +155,11 @@ class TestRunBook:
         assert all("kpi" in t for t in book["trades"])
         bad = desk.run_book([row("S1", mtm=1e6)], {}, STATE, hazard_for, FAST, TODAY)
         assert bad["trades"][0]["kpi"]["breach"] and bad["summary"]["kpi_breaches"] == 1
+
+    def test_closed_trades_are_left_out_of_the_book(self):
+        out = desk.run_book([row("S1"), {**row("S2"), "notional": 0}], {}, STATE, hazard_for,
+                            FAST, TODAY)
+        assert [t["swap_id"] for t in out["trades"]] == ["S1"]
 
     def test_kpi_passes_when_the_front_office_agrees(self):
         trade = desk.trade_from_enriched(row("S1"), hazard_for, TODAY)

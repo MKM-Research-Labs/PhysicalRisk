@@ -150,7 +150,8 @@ def simulate(model: TriggerModel, triggers: Dict[str, ShiftedTrigger], times: np
         if top_up > 0:
             target = rng.exponential(1.0, n_paths) / top_up
             idio = _clock_inverse(clock, times, path_ids, target)
-        shift = trig.shift_integral(times)
+        # Non-decreasing by construction (phi >= 0); clip float noise for interp.
+        shift = np.maximum.accumulate(np.maximum(trig.shift_integral(times), 0.0))
         target = rng.exponential(1.0, n_paths)
         jump = np.where(target <= shift[-1], np.interp(target, shift, times), np.inf) \
             if shift[-1] > 0 else np.full(n_paths, np.inf)

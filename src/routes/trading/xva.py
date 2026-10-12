@@ -50,9 +50,29 @@ def xva_inputs():
         for r in database.list_counterparties(config.catchment_id)
     }
 
-    def hazard_for(gauge_id, trigger):
-        return market_mgr.get_gauge_rate(state, gauge_id, trigger)
+    from models.xva import desk
 
+    zero = desk.zero_curve(state)
+    curves = {}
+    hazard_for_fallbacks = []
+
+    def hazard_for(gauge_id, trigger):
+        """The gauge's term-structure curve, bootstrapped once per request (§16)."""
+        key = (gauge_id, trigger)
+        if key not in curves:
+            buckets = (state.get("hazard_term_structure", {}).get(gauge_id, {})
+                       .get(trigger, {}))
+            if buckets:
+                probs = {int(t): market_mgr.get_hazard_rate_for_tenor(state, gauge_id, trigger, int(t))
+                         for t in buckets}
+                curves[key], fell_back = desk.term_structure_curve(probs, zero)
+                if fell_back:
+                    hazard_for_fallbacks.append(gauge_id)
+            else:
+                curves[key] = market_mgr.get_gauge_rate(state, gauge_id, trigger)
+        return curves[key]
+
+    hazard_for.fallbacks = hazard_for_fallbacks
     return enriched, counterparties, state, hazard_for
 
 
@@ -64,6 +84,7 @@ def run_and_save(n_paths=None):
     enriched, counterparties, state, hazard_for = xva_inputs()
     result = desk.run_book(enriched, counterparties, state, hazard_for,
                            desk.with_paths(XvaConfig(), n_paths))
+    result["audit"]["hazard_curve_fallbacks"] = sorted(set(hazard_for.fallbacks))
     database.save_xva_run(config.catchment_id, result)
     return result
 

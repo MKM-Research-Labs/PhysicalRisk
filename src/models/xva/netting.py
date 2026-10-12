@@ -78,13 +78,14 @@ class NettingSet:
         if not self.close_out_netting and (self.csa.variation_margin or self.csa.im_received
                                            or self.csa.im_posted):
             raise ValueError("credit support without close-out netting is not modelled")
-        levels: Dict[str, float] = {}
+        curves: Dict[str, HazardCurve] = {}
         for trade in self.trades:
             if not trade.gauge_id:
                 raise ValueError("every trade in a netting set needs a gauge_id")
-            level = float(trade.trigger.hazard(0.0))
-            if levels.setdefault(trade.gauge_id, level) != level:
-                raise ValueError(f"trades on gauge {trade.gauge_id} disagree on its hazard")
+            first = curves.setdefault(trade.gauge_id, trade.trigger)
+            if not (np.array_equal(first.knots, trade.trigger.knots)
+                    and np.array_equal(first.rates, trade.trigger.rates)):
+                raise ValueError(f"trades on gauge {trade.gauge_id} disagree on its hazard curve")
 
     @property
     def gauges(self) -> Dict[str, HazardCurve]:

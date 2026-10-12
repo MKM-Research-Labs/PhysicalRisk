@@ -105,3 +105,19 @@ def test_event_times_lie_inside_the_horizon():
     paths = _run(_catalogue(0.5))
     assert paths.event_times.size > 0
     assert np.all((paths.event_times >= 0) & (paths.event_times <= HORIZON))
+
+
+@pytest.mark.parametrize("sigma", [0.0, 0.5])
+def test_a_term_structure_marginal_is_the_markets(sigma):
+    """Plan §16: shared catalogue events at the curve's lowest hazard, the rest
+    as the shift; the marginal is the market curve whatever the shape."""
+    curve = HazardCurve([1.0, 3.0], [0.006, 0.012])
+    factor = CirFactor(0.5, sigma)
+    triggers = {"G1": ShiftedTrigger(factor, curve)}
+    times = np.linspace(0.0, HORIZON, 121)
+    rng = np.random.default_rng(23)
+    _, clock = factor_paths(factor, times, N, rng)
+    first = simulate(_catalogue(0.1), triggers, times, clock, rng, gauges=["G1"]).first_trigger["G1"]
+    for t in (1.0, 3.0, HORIZON):
+        p = 1 - float(curve.survival(t))
+        assert abs(np.mean(first <= t) - p) < 4 * math.sqrt(p * (1 - p) / N), t

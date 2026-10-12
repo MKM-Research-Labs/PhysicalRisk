@@ -26,10 +26,11 @@ A catchment hazard factor Y follows CIR with Y(0) = theta = 1,
 
 so E[Y(t)] = 1: the factor moves the market's view of hazard without biasing
 it. Gauge g's trigger intensity is lambda_g Y(t) + phi_g(t). The shift phi_g
-is fitted so the model's survival at t = 0 is exactly the market curve the
-pricer uses (Brigo-Mercurio CIR++; Green's intensity family, 16.352), so V(0)
-on every path still reproduces MKM-PR-001. With sigma = 0 the shift is zero
-and the model is the deterministic WP1 engine exactly.
+is fitted so the model's survival at t = 0 is exactly the market curve
+(Brigo-Mercurio CIR++; Green's intensity family, 16.352), so V(0) on every
+path reproduces the deterministic value on that curve. With sigma = 0 the
+model is the deterministic WP1 engine exactly. lambda_g is the curve's lowest
+hazard, so a flat curve (the pricer's) has zero shift at sigma = 0.
 
 Given Y(t) = y and no trigger by t, survival to u is
 
@@ -88,19 +89,29 @@ class CirFactor:
 
 
 class ShiftedTrigger:
-    """One gauge's CIR++ trigger intensity, fitted to its market hazard curve."""
+    """One gauge's CIR++ trigger intensity, fitted to its market hazard curve.
+
+    The market curve may be flat (the pricer's convention) or a term structure
+    (piecewise-constant, bootstrapped from the desk's tenor-bucket hazards). The
+    stochastic part scales with the curve's *lowest* hazard, lambda_min:
+    because a CIR forward intensity started at its mean never exceeds that mean,
+    the shift phi(t) = lambda_mkt(t) - f_CIR(t) is then a non-negative
+    intensity everywhere, so it can be simulated as an idiosyncratic Poisson
+    trigger. The shift carries the whole term structure; at sigma = 0 the model
+    is the market curve exactly. A steeper curve leaves a smaller share of the
+    hazard in the shared, stochastic part (plan §16).
+    """
 
     def __init__(self, factor: CirFactor, market: HazardCurve):
         self.factor, self.market = factor, market
-        self.scale = float(market.hazard(0.0))
-        if np.any(market.rates != self.scale) and factor.sigma > 0:
-            raise ValueError("CIR++ fit is implemented for a flat trigger hazard (the pricer's)")
+        self.scale = float(np.min(market.rates))
 
     def shift_integral(self, t):
         """Phi(t) = H_market(t) + ln P_CIR(0, t): the deterministic part's integral."""
         t = np.asarray(t, dtype=float)
         if self.factor.sigma == 0.0:
-            return np.zeros_like(t)
+            # The deterministic CIR part is lambda_min exactly; the rest is shift.
+            return self.market.integrated(t) - self.scale * t
         return self.market.integrated(t) + np.log(self.factor.survival(t, self.scale))
 
     def survival(self, t, u, y):

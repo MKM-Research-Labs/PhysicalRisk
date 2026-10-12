@@ -96,6 +96,28 @@ class TestShiftedTrigger:
         low, high = trig.survival(1.0, np.array([3.0]), np.array([0.5, 2.0]))[:, 0]
         assert high < low
 
-    def test_rejects_a_term_structure_when_stochastic(self):
-        with pytest.raises(ValueError, match="flat trigger hazard"):
-            ShiftedTrigger(CirFactor(0.5, 0.3), HazardCurve([1.0, 2.0], [0.01, 0.02]))
+
+class TestTermStructure:
+    """Plan §16: the shift carries a hazard term structure; the stochastic part
+    scales with the curve's lowest hazard so the shift stays an intensity."""
+
+    CURVE = HazardCurve([1.0, 3.0, 5.0], [0.012, 0.020, 0.016])
+
+    @pytest.mark.parametrize("sigma", [0.0, 0.3, 0.8])
+    def test_reprices_a_term_structure_exactly(self, sigma):
+        trig = ShiftedTrigger(CirFactor(0.5, sigma), self.CURVE)
+        t = np.linspace(0.0, 8.0, 65)
+        assert np.allclose(trig.survival(0.0, t, 1.0), self.CURVE.survival(t), rtol=1e-13)
+
+    def test_scale_is_the_lowest_hazard(self):
+        assert ShiftedTrigger(CirFactor(0.5, 0.3), self.CURVE).scale == 0.012
+
+    @pytest.mark.parametrize("sigma", [0.0, 0.3, 0.8])
+    def test_shift_is_a_non_negative_intensity(self, sigma):
+        phi = ShiftedTrigger(CirFactor(0.5, sigma), self.CURVE).shift_integral(
+            np.linspace(0.0, 8.0, 161))
+        assert phi[0] == 0.0 and np.all(np.diff(phi) >= -1e-15)
+
+    def test_flat_curve_has_no_shift_without_volatility(self):
+        trig = ShiftedTrigger(CirFactor(0.5, 0.0), HazardCurve.flat(LAMBDA))
+        assert np.allclose(trig.shift_integral(np.linspace(0, 5, 11)), 0.0, atol=1e-15)
