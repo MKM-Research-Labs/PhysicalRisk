@@ -46,11 +46,13 @@ from dataclasses import asdict, replace
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path[:0] = [str(ROOT / "src"), str(ROOT)]
+# Run from the repository root (see above); paths then come from config, as the
+# project's path-definitions gate requires.
+sys.path[:0] = ["src", "."]
 
 import numpy as np  # noqa: E402
 
+from config import config  # noqa: E402
 from config.port import DEFAULT_YIELD_CURVE  # noqa: E402
 from config.xva import STATUS, XvaConfig  # noqa: E402
 from models.capital import counterparty as cc  # noqa: E402
@@ -63,6 +65,8 @@ from models.xva.cir import CirFactor, ShiftedTrigger  # noqa: E402
 from models.xva.netting import Csa, NettingSet  # noqa: E402
 from models.xva.valuation import fair_spread, legs  # noqa: E402
 from tests.models.xva._reference import Ref  # noqa: E402
+
+from _evidence_sensitivities import sensitivities  # noqa: E402
 
 ZERO = ZeroCurve(DEFAULT_YIELD_CURVE)
 NOTIONAL, TENOR, P_TRIGGER = 10_000_000.0, 5, 0.02
@@ -236,50 +240,9 @@ def capital_results(cfg):
     return {"rows": rows}
 
 
-# --- Sensitivities (§6) ------------------------------------------------------
-
-SENSITIVITIES = [
-    ("counterparty hazard x0.5", lambda c: c, {"cp_scale": 0.5}),
-    ("counterparty hazard x2", lambda c: c, {"cp_scale": 2.0}),
-    ("R_C 20%", lambda c: replace(c, counterparty_recovery=0.2), {}),
-    ("R_C 60%", lambda c: replace(c, counterparty_recovery=0.6), {}),
-    ("s_F 0bp", lambda c: replace(c, own_funding_spread=0.0), {}),
-    ("s_F 150bp", lambda c: replace(c, own_funding_spread=0.015), {}),
-    ("sigma 0", lambda c: replace(c, hazard_vol=0.0), {}),
-    ("sigma 0.6", lambda c: replace(c, hazard_vol=0.6), {}),
-    ("kappa 0.25", lambda c: replace(c, hazard_mean_reversion=0.25), {}),
-    ("kappa 1.0", lambda c: replace(c, hazard_mean_reversion=1.0), {}),
-    ("WWR beta 1", lambda c: replace(c, wwr_beta=1.0), {}),
-    ("settlement 0d", lambda c: replace(c, settlement_days=0), {}),
-    ("settlement 20d", lambda c: replace(c, settlement_days=20), {}),
-    ("credit-analogy SA-CCR", lambda c: replace(c, saccr_asset_class="credit_single_name"), {}),
-    ("RRAO on", lambda c: replace(c, rrao=True), {}),
-    ("gamma_K 8%", lambda c: replace(c, cost_of_capital=0.08), {}),
-    ("gamma_K 15%", lambda c: replace(c, cost_of_capital=0.15), {}),
-    ("phi = 1", lambda c: replace(c, capital_funding_fraction=1.0), {}),
-]
-
-
-def sensitivities(cfg):
-    base_cp = build_market(ZERO, cfg, rating="BBB").counterparty
-    rows = []
-    for buyer in (True, False):
-        def run(c, cp_scale=1.0):
-            cp = HazardCurve(base_cp.knots, base_cp.rates * cp_scale)
-            out = monte_carlo.run(NettingSet([_trade(buyer)], cp), ZERO, c, counterparty=PROFILE)
-            return out["booked"]["total"]["value"], out["kva"]["total"]["value"]
-        base_xva, base_kva = run(cfg)
-        rows.append({"bank": "buys" if buyer else "sells", "case": "base",
-                     "xva": base_xva, "kva": base_kva})
-        for label, change, kw in SENSITIVITIES:
-            x, k = run(change(cfg), **kw)
-            rows.append({"bank": "buys" if buyer else "sells", "case": label, "xva": x, "kva": k})
-    return {"rows": rows}
-
-
 def _commit() -> str:
     try:
-        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True,
+        return subprocess.run(["git", "rev-parse", "HEAD"], cwd=config.get_project_root(), capture_output=True,
                               text=True, check=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
@@ -301,7 +264,7 @@ def run(quick: bool = False) -> dict:
         "all_pass": all(c["pass"] for c in checks.values()),
         "results": {"analytic": analytic_results(cfg), "monte_carlo": mc_results(cfg),
                     "capital": capital_results(cfg)},
-        "sensitivities": sensitivities(cfg),
+        "sensitivities": sensitivities(cfg, ZERO, _trade, PROFILE),
         "audit": {"generated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                   "git_commit": _commit(), "config_sha256": cfg.fingerprint(),
                   "seed": cfg.seed, "n_paths": cfg.n_paths, "quick": quick,
@@ -317,7 +280,7 @@ def main(argv=None) -> int:
     evidence = run(args.quick)
     args.out.write_text(json.dumps(evidence, indent=2, sort_keys=True, default=float) + "\n")
     from _evidence_latex import write_tables
-    write_tables(evidence, ROOT / "docs/models/prs_xva")
+    write_tables(evidence, config.get_project_root() / "docs/models/prs_xva")
     for name, check in evidence["checks"].items():
         print(f"{'PASS' if check['pass'] else 'FAIL'}  {name}")
     return 0 if evidence["all_pass"] else 1

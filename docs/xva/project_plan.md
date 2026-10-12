@@ -768,3 +768,36 @@ The capital table's bp column in §12 was worked out by hand and was ten times t
 - MVA, TVA, warehousing
 - A Property PRS term pricer
 - A quote panel and a "Run XVA" button (L-16)
+
+---
+
+## 15. Desk run on the test portfolio (2026-10-12)
+
+The local test portfolio (`~/PhysicalRisk-testdata`, Thames, via `MKM_DATA_ROOT`;
+see `docs/refactor/local_test_dataset_plan.md`) holds only Property PRS, which is
+out of scope. So a 20-trade market-making gauge book was generated **into a
+scratch copy** (`phys.py book --style market-making -ng 12 --seed 20261012`) and
+the desk run (`desk.run_book`, 10,000 paths) was executed read-only. This
+partly closes L-17. The live book on the SSD is still to be run.
+
+| | |
+|---|---|
+| Trades / netting sets | 20 / 20 (one trade per counterparty, ratings AAA–BBB) |
+| Run time | 11 s |
+| Booked XVA / KVA | −7,201 / −1,199,543 (KVA reported, not booked) |
+| Valuation KPI | 18 of 20 breach 5bp of notional. Median gap 29bp, max 76bp |
+
+**The KPI breaches are explained exactly.** When the engine is given the front
+office's inputs (each trade's tenor-bucket hazard and whole-year remaining tenor),
+it reproduces the front-office MTM **to the pound** on every trade sampled. The
+gap is the difference in inputs (L-13), not a valuation error:
+- **Hazard (most of the gap).** The market state's tenor-bucket hazard differs
+  materially from the flat gauge rate the Monte Carlo uses. Example: PRS-19EA3D0B,
+  1.19% against 0.95%, takes the engine value from 10.5k to the front office's 57.7k.
+- **Tenor (smaller).** Rounding remaining tenor to whole years (5 against 5.25)
+  is worth about 3k on PRS-07A93DEA.
+
+**Consequence:** the term-structure CIR++ fit (WP6; L-5, L-13) moves to the top of
+WP6. It would close essentially all of the KPI gap. The test counterparties
+predate WP0, so they carry no `CreditSupport`, and every netting set ran
+uncollateralised.

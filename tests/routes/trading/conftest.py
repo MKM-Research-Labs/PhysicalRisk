@@ -36,6 +36,7 @@ from ._data_part1 import (  # noqa: F401 — re-export for test files that impor
     make_trade, make_gauge_entry,
     SAMPLE_GAUGEHC, SAMPLE_GAUGE_JSON,
 )
+from ._xva_eod import xva_off_at_eod  # noqa: F401 — autouse fixture
 from ._data_part2 import (  # noqa: F401
     CORE_TRADES, EXTENDED_TRADES, ALL_TRADES, TOTAL_TRADES,
     STORM_PORT_SEVERE, STORM_PORT_ALERT, SAMPLE_PORT_STRESS_STORMS,
@@ -101,11 +102,6 @@ def trading_env(tmp_path, monkeypatch):
                 'flood_simulation': {'readings': readings},
                 'storm_responses': [],
             }, f)
-
-    # The XVA model runs at EOD in production; route tests that are not about
-    # it switch it off, and tests/routes/trading/test_xva_routes.py turns it on.
-    import config.xva as xva_config
-    monkeypatch.setattr(xva_config, 'XVA_AT_EOD', False)
 
     from config import config
     monkeypatch.setattr(config, 'get_input_dir', lambda: input_dir)
@@ -177,11 +173,6 @@ def empty_trading_env(tmp_path, monkeypatch):
         json.dump(SAMPLE_GAUGE_JSON, f)
     with open(input_dir / 'property.json', 'w') as f:
         json.dump({'properties': []}, f)
-
-    # The XVA model runs at EOD in production; route tests that are not about
-    # it switch it off, and tests/routes/trading/test_xva_routes.py turns it on.
-    import config.xva as xva_config
-    monkeypatch.setattr(xva_config, 'XVA_AT_EOD', False)
 
     from config import config
     monkeypatch.setattr(config, 'get_input_dir', lambda: input_dir)
