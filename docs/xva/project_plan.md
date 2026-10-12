@@ -801,3 +801,48 @@ gap is the difference in inputs (L-13), not a valuation error:
 WP6. It would close essentially all of the KPI gap. The test counterparties
 predate WP0, so they carry no `CreditSupport`, and every netting set ran
 uncollateralised.
+
+---
+
+## 16. WP6 — hazard term structure (2026-10-12)
+
+The first WP6 item. It resolves L-5 and L-13.
+
+### What changed
+
+| where | change |
+|---|---|
+| `desk.term_structure_curve` | Bootstraps one piecewise-constant hazard curve per gauge from the market state's tenor-bucket hazards (`hazard_term_structure`, 1–5y). It uses the CDS bootstrap on the pricer's convention (recovery 0, unfloored), so every bucket reprices at the front office's fair spread. A curve that cannot be bootstrapped (a negative forward hazard) falls back to flat at the longest bucket. The fallback is reported in the run's audit block as `hazard_curve_fallbacks` |
+| `routes/trading/xva.py` | `hazard_for` returns that curve, bootstrapped once per request. A gauge with no buckets keeps its flat rate |
+| `cir.ShiftedTrigger` | Any market curve is accepted. The stochastic part scales with the curve's **lowest** hazard. A CIR forward intensity started at its mean never exceeds that mean, so the shift φ = λ_mkt − f_CIR stays a non-negative intensity, and the trigger simulation stays exact |
+| `netting.NettingSet` | Trades on one gauge must agree on the whole curve, not just its first rate |
+| Bug fixed | At σ = 0 the old code priced a non-flat curve off its first rate alone. It was never reached, because the desk only passed flat curves |
+
+### Effect on the 20-trade test book (§15)
+
+| | flat gauge rate | term structure |
+|---|---:|---:|
+| KPI breaches (> 5bp of notional) | 18 / 20 | 4 / 20 |
+| Median gap, engine vs front office | 29bp | 0.05bp |
+| Bootstrap fallbacks | — | 0 |
+
+**All four remaining breaches are F-4, a finding against MKM-TD-001.**
+- `enrich_trade._remaining_tenor` rounds remaining tenor to whole years.
+- A trade maturing November 2031 is valued as exactly 5 years, dropping its last quarter of premium and protection.
+- At the front office's own tenor, the gap on those four trades is 0.08bp or less.
+
+### Evidence and tests
+
+- The validation evidence was regenerated on the WP6 code. Every figure is unchanged, because the benchmarks use flat curves. Only the commit and the timestamp moved.
+- New tests check that:
+  - CIR++ reprices a term structure to 1e-13 at σ = 0, 0.3 and 0.8;
+  - the shift is non-negative and the scale is the lowest hazard;
+  - a term-structure trigger's simulated marginal matches the curve at 1, 3 and 5y;
+  - a deterministic term-structure trade reconciles the Monte Carlo to the analytic engine within 3 SE;
+  - each bucket reprices at the front office's fair spread;
+  - the fallback path and the route's lookup work.
+- 354 tests pass across the XVA, capital and trading-route suites. Coverage of `models.xva` and `routes.trading.xva` is 100%.
+
+### Limitation introduced
+
+A steep curve leaves a smaller share of each gauge's hazard in the shared, stochastic part, and more in the idiosyncratic shift. That weakens the catalogue correlation between gauges whose curves are steep. It is recorded in the model document (v0.10, L-5).

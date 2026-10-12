@@ -23,8 +23,8 @@
       "wwr_beta": 0.0
     },
     "config_sha256": "301a1ed41a8004f94e50c3032e91547306ca70bf6b2d644b9e979bc5bd5c40ee",
-    "generated_utc": "2026-10-09T14:15:26+00:00",
-    "git_commit": "04dbe701b2cf8aed654136b2790cda7469a20a65",
+    "generated_utc": "2026-10-12T12:55:02+00:00",
+    "git_commit": "fdcd37c0672e6857a8b3968a9b037e525b5251c0",
     "n_paths": 10000,
     "quick": false,
     "seed": 20261009,

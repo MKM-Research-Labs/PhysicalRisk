@@ -2,8 +2,8 @@
 
 \newcommand{\doctitle}{PRS XVA Model (MKM-XV-001)}
 \newcommand{\docsubtitle}{Credit, Funding and Capital Valuation Adjustments on the Physical Risk Swap}
-\newcommand{\docversion}{0.9}
-\newcommand{\docdate}{9-October-2026}
+\newcommand{\docversion}{0.10}
+\newcommand{\docdate}{12-October-2026}
 \newcommand{\docauthor}{David K Kelly}
 
 \input{../shared/mkm_header}
@@ -29,7 +29,7 @@ and the funding strategy decides which terms exist. The model is an overlay on
 the PRS pricer (MKM-PR-001): it reproduces the pricer's value at $t=0$ and does
 not change it.
 
-\paragraph{Status.} ILLUSTRATIVE, version 0.9, submitted for independent
+\paragraph{Status.} ILLUSTRATIVE, version 0.10, submitted for independent
 validation. Counterparty credit, the bank's funding spread and CSA terms are
 placeholders; the regulatory treatment that drives KVA is undecided. KVA is
 reported beside the booked XVA and never inside it (decision D-16).
@@ -129,7 +129,9 @@ Monte Carlo must reproduce.
 A catchment factor $Y$ follows CIR with $Y(0)=\theta=1$:
 $dY = \kappa(1-Y)\,dt + \sigma\sqrt{Y}\,dW$. Gauge $g$'s trigger intensity is
 $\lambda_g Y(t) + \varphi_g(t)$, with the shift fitted so the model's survival
-at $t=0$ is exactly the pricer's (Brigo--Mercurio). Given $Y(t)=y$ and no
+at $t=0$ is exactly the market curve (Brigo--Mercurio). The curve may be a term
+structure (\S\ref{sec:ts}); $\lambda_g$ is its lowest hazard, which keeps the
+shift a non-negative intensity. Given $Y(t)=y$ and no
 trigger,
 \begin{equation}
 S(t,u) = e^{-(\Phi_g(u)-\Phi_g(t))}\,A(u-t)\,e^{-B(u-t)\lambda_g y},
@@ -137,6 +139,15 @@ S(t,u) = e^{-(\Phi_g(u)-\Phi_g(t))}\,A(u-t)\,e^{-B(u-t)\lambda_g y},
 so $V(t)$ is closed form on every path. $A$ is evaluated in a form that is
 stable as $\sigma\to0$ (the textbook form loses precision there, which the
 tests caught). $Y$ is stepped exactly by its noncentral $\chi^2$ transition.
+
+\subsection{Hazard term structure (WP6)}\label{sec:ts}
+On the desk each gauge's curve is bootstrapped, piecewise constant, from the
+market state's tenor-bucket hazards so that every bucket reprices at the front
+office's fair spread (recovery 0, pricer convention). A curve that cannot be
+bootstrapped (a negative forward hazard) falls back to flat at the longest
+bucket and is recorded in the run's audit block. On a 20-trade test book this
+took the median gap between engine and front-office value from 29bp to 0.05bp
+of notional.
 
 \subsection{Correlated triggers}
 The MKM-EF-001 catalogue supplies dependence: catchment events arrive as a Cox
@@ -167,7 +178,7 @@ bank's 10.5\% ratio, shared with MKM-CR-001.
 \toprule
 \textbf{Parameter} & \textbf{Value} & \textbf{Source / status} \\
 \midrule
-Flood trigger hazard & market state & Pricer's gauge rate (MKM-PR-001 / EF-001) \\
+Flood trigger hazard & market state & Per-gauge term structure from the desk's tenor buckets (\S\ref{sec:ts}) \\
 Risk-free curve & market state & Desk yield curve (D-13) \\
 Counterparty hazard & rating proxy & \texttt{RATING\_CDS\_SPREADS}: \textbf{placeholder} (D-11) \\
 $R_C$, $R_B$ & 40\%, 40\% & Market convention \\
@@ -274,7 +285,7 @@ L-1 & Classical MPoR freezes collateral but not trade cash flows: a buyer that p
 L-2 & The event clock integrates $Y$ by the trapezoid rule; exact at $\sigma=0$. \\
 L-3 & WWR driver is the netting set's triggered gauges, not the counterparty's real flood book. \\
 L-4 & Euler allocation is exact only for uncollateralised netted sets; residuals reported. \\
-L-5 & CIR++ is fitted to a flat trigger hazard (the pricer's convention). \\
+L-5 & \emph{Resolved in WP6:} CIR++ fits a hazard term structure. A steeper curve leaves a smaller share of hazard in the shared, stochastic part. \\
 L-6 & One seed, no variance reduction; the closed form is available as a control variate. \\
 L-7 & Every regulatory treatment is provisional; KVA is not booked. \\
 L-8 & The credit analogy needs a ``reference rating'' for a flood trigger. \\
@@ -282,18 +293,21 @@ L-9 & BA-CVA applies CRE32's one-year maturity floor; to be confirmed. \\
 L-10 & Standalone BA-CVA: no diversification across counterparties. \\
 L-11 & No market-risk capital beyond the RRAO switch. \\
 L-12 & $\gamma_K$ is a single constant. \\
-L-13 & Desk uses one flat hazard per gauge; the front office's term structure is not used. \\
+L-13 & \emph{Resolved in WP6:} the desk bootstraps each gauge's term structure. \\
 L-14 & KVA allocated to trades pro rata to notional. \\
 L-15 & Netting set = counterparty (first CDM netting set). \\
 L-16 & No quote panel or ``Run XVA'' button in the UI yet. \\
-L-17 & Integration not yet exercised on the live book. \\
+L-17 & Exercised on a generated 20-trade book on the local test portfolio; not yet on the live book. \\
 \bottomrule
 \end{longtable}
 
 \paragraph{Findings against other models.} F-1: the pricer's MTM uses a fair
 spread floored at 2bp. F-2: the pricer ignores the settlement lag. F-3: the
 pricer rounds MTM to the penny. The trade record carries a 6M premium
-frequency while the pricer prices quarterly (D-10).
+frequency while the pricer prices quarterly (D-10). F-4: the Trading Desk
+rounds remaining tenor to whole years (\texttt{\_remaining\_tenor}), dropping or
+adding up to a quarter of premium and protection; it is the only remaining
+source of valuation-KPI breaches on the test book.
 
 % =========================================================================
 \mkmgovernance
@@ -338,7 +352,7 @@ Not yet for use: Tier 1, Amber. Acceptable for validation, with inputs and
 the regulatory treatment as gating items.
 
 % =========================================================================
-\mkmhistorypage{9-Oct-2026 & 0.9 & Built (WP0--WP4); submitted for validation & David K Kelly \\}
+\mkmhistorypage{9-Oct-2026 & 0.9 & Built (WP0--WP4); submitted for validation & David K Kelly \\ 12-Oct-2026 & 0.10 & Hazard term structure (WP6); F-4 & David K Kelly \\}
 % =========================================================================
 
 \end{document}
