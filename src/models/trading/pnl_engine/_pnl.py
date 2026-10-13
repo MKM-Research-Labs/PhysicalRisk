@@ -33,13 +33,19 @@ class _PnLComputeMixin:
     """Daily P&L decomposition and EOD snapshot writing."""
 
     def compute_daily_pnl(self, enriched_trades: List[Dict],
-                          previous_eod: Optional[Dict] = None) -> Dict:
+                          previous_eod: Optional[Dict] = None,
+                          as_of: Optional[str] = None) -> Dict:
         """
         Compute daily P&L for all trades.
 
         Args:
             enriched_trades: Trades enriched with current marks from DeltaEngine
             previous_eod: Previous EOD snapshot (for yesterday's marks)
+            as_of: The business date (YYYY-MM-DD) the P&L is for; a trade
+                dated that day is a new trade. Defaults to today, which is
+                right for the live blotter. An EOD passes its own date: using
+                the clock instead booked a trade's MTM as new-trade P&L again
+                in any EOD submitted on a different day from its date.
 
         Returns:
             Portfolio P&L summary
@@ -49,7 +55,7 @@ class _PnLComputeMixin:
             for pos in previous_eod.get('positions', []):
                 prev_marks[pos['swap_id']] = pos
 
-        today_str = date.today().isoformat()
+        today_str = as_of or date.today().isoformat()
         total_daily_pnl = 0.0
         total_running_pnl = 0.0
         total_new_trade_pnl = 0.0
@@ -170,7 +176,7 @@ class _PnLComputeMixin:
         previous_eod = self._get_previous_eod(eod_date)
 
         # Compute P&L
-        pnl_summary = self.compute_daily_pnl(enriched_trades, previous_eod)
+        pnl_summary = self.compute_daily_pnl(enriched_trades, previous_eod, as_of=eod_date)
 
         snapshot = {
             'eod_id': f"EOD-{eod_date.replace('-', '')}",
