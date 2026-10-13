@@ -67,6 +67,10 @@ class PnLEngine(_PnLComputeMixin, TradeMarks):
                 'total_notional': summary.get('total_notional', 0),
                 'total_daily_pnl': summary.get('total_daily_pnl', 0),
                 'total_running_pnl': summary.get('total_running_pnl', 0),
+                # XVA (MKM-XV-001): None for an EOD that did not run it.
+                'xva_total': summary.get('xva_total'),
+                'kva_total': summary.get('kva_total'),
+                'xva_pnl': summary.get('xva_pnl'),
                 'has_pdf': has_pdf,
             })
         return history

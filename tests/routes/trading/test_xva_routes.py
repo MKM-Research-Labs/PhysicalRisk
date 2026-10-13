@@ -127,6 +127,17 @@ class TestEod:
         assert second['summary']['total_daily_pnl'] == pytest.approx(
             second['summary']['daily_pnl_from_trades'] + second['summary']['daily_pnl_from_market'])
 
+    def test_history_carries_the_xva_tiles(self, trading_client, trading_env):
+        """The EOD screen's XVA tiles read these; an EOD without XVA has None."""
+        trading_client.post(f'{API}/eod', json={'date': '2026-02-26', 'xva': False})
+        self._eod(trading_client, '2026-02-27')
+        history = json.loads(trading_client.get(f'{API}/eod/history').data)['history']
+        by_date = {h['date']: h for h in history}
+        assert by_date['2026-02-26']['xva_total'] is None
+        assert by_date['2026-02-27']['xva_total'] is not None
+        assert by_date['2026-02-27']['kva_total'] < 0
+        assert by_date['2026-02-27']['xva_pnl'] is None
+
     def test_eod_survives_an_xva_failure(self, trading_client, trading_env, monkeypatch):
         import routes.trading.xva as xva_routes
         monkeypatch.setattr(xva_routes, 'run_and_save',

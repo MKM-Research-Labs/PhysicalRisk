@@ -49,8 +49,24 @@
                     card('Trades', live.num_trades || latest.num_open_trades || 0) +
                     card('Notional', fmtGBP(live.total_notional || latest.total_notional)) +
                     card('Daily P&L', fmtGBP(dailyPnl), dailyColor) +
-                    card('Running P&L', fmtGBP(runPnl), runColor);
+                    card('Running P&L', fmtGBP(runPnl), runColor) +
+                    window.tdEodXvaCards(latest, card);
             }
+
+            // XVA tiles (MKM-XV-001) from the latest EOD snapshot. Shown only when
+            // that EOD ran XVA, so an older EOD never shows zeros that read as
+            // "no credit or capital cost". XVA P&L is the change since the last
+            // earlier EOD with XVA, and a dash when there is none. KVA is a memo:
+            // reported, not booked, until the regulatory treatment is decided.
+            window.tdEodXvaCards = function(latest, card) {
+                if (!latest || latest.xva_total == null) return '';
+                var signed = function(v) { return v >= 0 ? Theme.value('gain') : Theme.value('loss'); };
+                var pnl = latest.xva_pnl;
+                return card('XVA', fmtGBP(Math.round(latest.xva_total)), signed(latest.xva_total)) +
+                    card('XVA P&L', pnl == null ? '\u2014' : fmtGBP(Math.round(pnl)),
+                         pnl == null ? 'var(--muted)' : signed(pnl)) +
+                    card('KVA memo', fmtGBP(Math.round(latest.kva_total || 0)), 'var(--text-3)');
+            };
 
             function renderEodHistory() {
                 var wrap = document.getElementById('td-eod-history-wrap');
