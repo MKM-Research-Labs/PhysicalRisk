@@ -173,7 +173,9 @@ class _PnLComputeMixin:
             eod_date = date.today().isoformat()
 
         # Load previous EOD for P&L comparison
-        previous_eod = self._get_previous_eod(eod_date)
+        # Strictly earlier: re-running an EOD must compare with the previous
+        # business day, not with the snapshot it is about to replace.
+        previous_eod = self._get_previous_eod(eod_date, strictly_before=True)
 
         # Compute P&L
         pnl_summary = self.compute_daily_pnl(enriched_trades, previous_eod, as_of=eod_date)
@@ -228,10 +230,17 @@ class _PnLComputeMixin:
             'xva_pnl': None if previous is None else total - previous,
         }
 
-    def _get_previous_eod(self, current_date: str) -> Optional[Dict]:
-        """Find the most recent EOD snapshot on or before the given date."""
+    def _get_previous_eod(self, current_date: str,
+                          strictly_before: bool = False) -> Optional[Dict]:
+        """Find the most recent EOD snapshot on or before the given date.
+
+        The live blotter wants "on or before": once today's EOD exists, the
+        day's P&L restarts from it. An EOD wants ``strictly_before``, or a
+        re-submitted EOD compares with itself and shows no market P&L.
+        """
         for snapshot in sorted(database.iter_eod_snapshots(self.catchment),
                                key=lambda s: s.get('date', ''), reverse=True):
-            if snapshot.get('date', '') <= current_date:
+            snap_date = snapshot.get('date', '')
+            if snap_date < current_date or (snap_date == current_date and not strictly_before):
                 return snapshot
         return None

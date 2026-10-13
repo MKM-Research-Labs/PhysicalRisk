@@ -58,3 +58,21 @@ def test_an_eod_for_tomorrow_does_not_book_todays_trades_again(pnl_engine):
     snap = pnl_engine.generate_eod_snapshot(trades, {}, tomorrow)
     assert snap["portfolio_summary"]["daily_pnl_from_trades"] == 0.0
     assert snap["portfolio_summary"]["total_daily_pnl"] == 0.0
+
+
+def test_resubmitting_an_eod_compares_with_the_previous_day(pnl_engine):
+    """A re-run EOD used to compare with the snapshot it replaced and show no
+    market P&L; it must give the same answer as the first submission."""
+    old = [_trade("2026-10-01", mtm=1_000.0, swap_id="PRS-OLD")]
+    moved = [_trade("2026-10-01", mtm=1_250.0, swap_id="PRS-OLD")]
+    pnl_engine.generate_eod_snapshot(old, {}, "2026-10-13")
+    first = pnl_engine.generate_eod_snapshot(moved, {}, "2026-10-14")
+    again = pnl_engine.generate_eod_snapshot(moved, {}, "2026-10-14")
+    assert first["portfolio_summary"]["daily_pnl_from_market"] == 250.0
+    assert again["portfolio_summary"]["daily_pnl_from_market"] == 250.0
+
+
+def test_the_blotter_lookup_still_includes_the_same_day(pnl_engine):
+    pnl_engine.generate_eod_snapshot([_trade("2026-10-01")], {}, "2026-10-14")
+    assert pnl_engine._get_previous_eod("2026-10-14")["date"] == "2026-10-14"
+    assert pnl_engine._get_previous_eod("2026-10-14", strictly_before=True) is None
