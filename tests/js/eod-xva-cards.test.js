@@ -40,11 +40,11 @@ describe('tdEodXvaCards', () => {
         expect(window.tdEodXvaCards(null, card)).toBe('');
     });
 
-    test('the first EOD with XVA shows a dash for XVA P&L', () => {
+    test('the first EOD with XVA shows n/a for XVA P&L, not a dash', () => {
         const html = window.tdEodXvaCards(
             {xva_total: -8885.2, kva_total: -1200088.7, xva_pnl: null}, card);
         expect(html).toContain('[XVA|£-8,885|var(--loss)]');
-        expect(html).toContain('[XVA P&L|\u2014|var(--muted)]');
+        expect(html).toContain('[XVA P&L|n/a|var(--muted)]');
         expect(html).toContain('[KVA memo|£-1,200,089|var(--text-3)]');
     });
 
@@ -52,5 +52,11 @@ describe('tdEodXvaCards', () => {
         const html = window.tdEodXvaCards(
             {xva_total: -8000, kva_total: -1.2e6, xva_pnl: 885.2}, card);
         expect(html).toContain('[XVA P&L|£885|var(--gain)]');
+    });
+
+    test('a zero change is passed to fmtGBP, whose dash means zero', () => {
+        global.fmtGBP = (n) => (n === 0 ? '\u2014' : String(n));
+        const html = window.tdEodXvaCards({xva_total: -1, kva_total: -1, xva_pnl: 0}, card);
+        expect(html).toContain('[XVA P&L|\u2014|var(--gain)]');
     });
 });

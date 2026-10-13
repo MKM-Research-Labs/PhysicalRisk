@@ -56,14 +56,15 @@
             // XVA tiles (MKM-XV-001) from the latest EOD snapshot. Shown only when
             // that EOD ran XVA, so an older EOD never shows zeros that read as
             // "no credit or capital cost". XVA P&L is the change since the last
-            // earlier EOD with XVA, and a dash when there is none. KVA is a memo:
+            // earlier EOD with XVA, and "n/a" when there is none -- not a dash,
+            // because fmtGBP already renders a zero change as one. KVA is a memo:
             // reported, not booked, until the regulatory treatment is decided.
             window.tdEodXvaCards = function(latest, card) {
                 if (!latest || latest.xva_total == null) return '';
                 var signed = function(v) { return v >= 0 ? Theme.value('gain') : Theme.value('loss'); };
                 var pnl = latest.xva_pnl;
                 return card('XVA', fmtGBP(Math.round(latest.xva_total)), signed(latest.xva_total)) +
-                    card('XVA P&L', pnl == null ? '\u2014' : fmtGBP(Math.round(pnl)),
+                    card('XVA P&L', pnl == null ? 'n/a' : fmtGBP(Math.round(pnl)),
                          pnl == null ? 'var(--muted)' : signed(pnl)) +
                     card('KVA memo', fmtGBP(Math.round(latest.kva_total || 0)), 'var(--text-3)');
             };
