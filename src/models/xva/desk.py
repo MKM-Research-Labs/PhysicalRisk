@@ -109,7 +109,8 @@ def trade_from_enriched(e: Dict, hazard_for: HazardLookup, today: date) -> Optio
                     trigger, e["gauge_id"])
 
 
-def counterparty_terms(record: Optional[Dict], zero: ZeroCurve, cfg: XvaConfig):
+def counterparty_terms(record: Optional[Dict], zero: ZeroCurve, cfg: XvaConfig,
+                       counterparty_id: Optional[str] = None):
     """(hazard curve, capital profile, CSA, close-out netting, netting set id, rating).
 
     The hazard curve is bootstrapped from the record's own CDS spreads, or from
@@ -122,7 +123,9 @@ def counterparty_terms(record: Optional[Dict], zero: ZeroCurve, cfg: XvaConfig):
     exposure_class, sector = PARTY_TYPE_CAPITAL.get(platform.get("PartyType"), DEFAULT_PARTY_CAPITAL)
     sets = (root.get("CreditSupport") or {}).get("NettingSets") or [None]
     ns = sets[0]
-    party = root.get("Party", {}).get("PartyID", UNASSIGNED)
+    # With no record, the netting set is named after the counterparty the
+    # trades carry, so two unknown counterparties never share one id.
+    party = root.get("Party", {}).get("PartyID") or counterparty_id or UNASSIGNED
     ns_id = (ns or {}).get("NettingSetID") or f"NS-{party}"
     hazard = hazard_curve(view, zero)
     return (hazard, CounterpartyProfile(rating, exposure_class, sector),
@@ -169,7 +172,7 @@ def _netting_sets(enriched, counterparties, hazard_for, zero, cfg, today):
         g["rows"].append(e)
     for cpty, g in groups.items():
         hazard, profile, csa, netting, ns_id, rating = counterparty_terms(
-            counterparties.get(cpty), zero, cfg)
+            counterparties.get(cpty), zero, cfg, cpty)
         yield cpty, g, NettingSet(g["trades"], hazard, csa, netting), profile, ns_id, rating
 
 
@@ -226,7 +229,7 @@ def quote(new_trade: Dict, enriched: List[Dict], counterparties: Dict[str, Dict]
     existing = [t for t in (trade_from_enriched(e, hazard_for, today) for e in enriched
                             if (e.get("counterparty_id") or UNASSIGNED) == cpty) if t is not None]
     hazard, profile, csa, netting, ns_id, rating = counterparty_terms(
-        counterparties.get(cpty), zero, cfg)
+        counterparties.get(cpty), zero, cfg, cpty)
 
     def totals(trades):
         if not trades:

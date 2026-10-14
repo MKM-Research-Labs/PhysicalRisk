@@ -53,41 +53,8 @@ def _get_engines():
 
 def _load_open_trades():
     """Load all PRS trades, merge with trade marks for status."""
-    from models.trading.pnl_engine import PnLEngine
-
-    catchment = config.catchment_id
-    config.get_reports_dir("prs").mkdir(parents=True, exist_ok=True)
-
-    pnl_eng = PnLEngine()
-    marks = pnl_eng.load_trade_marks()
-
-    trades = []
-    for prs_id in database.iter_prs_trade_ids(catchment):
-        if not prs_id.startswith('PRS-'):
-            continue
-        trade = database.get_prs_trade(catchment, prs_id)
-        if trade is None:
-            continue
-
-        # Skip property PRS trades (served by /trading/client instead)
-        if 'PropertySet' in trade.get('PhysicalSwap', {}):
-            continue
-
-        swap_id = trade.get('PhysicalSwap', {}).get(
-            'Header', {}).get('SwapID', '')
-
-        # Merge trade marks (status, inception mark, etc.)
-        mark = marks.get(swap_id, {})
-        trade['TradingMetadata'] = mark
-
-        # Skip closed trades unless requested
-        status = mark.get('trade_status', 'Open')
-        trade.setdefault('PhysicalSwap', {}).setdefault(
-            'Header', {})['TradeStatus'] = status
-
-        trades.append(trade)
-
-    return trades
+    from models.trading.open_trades import load_open_trades
+    return load_open_trades()
 
 
 def _load_gauge_locations() -> dict:

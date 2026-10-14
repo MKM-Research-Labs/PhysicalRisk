@@ -23,10 +23,18 @@
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
+from config import config
 from reports.theme_pdf import pdf_colour
 
 logger = logging.getLogger(__name__)
 
+
+
+def _get_prs_output_dir() -> Path:
+    """Get PRS output directory."""
+    prs_dir = config.get_reports_dir("prs")
+    prs_dir.mkdir(parents=True, exist_ok=True)
+    return prs_dir
 
 def _generate_trade_pdf(cdm_record: dict, cashflows: list, output_dir: Path) -> Path:
     """Generate a PRS trade confirmation PDF."""

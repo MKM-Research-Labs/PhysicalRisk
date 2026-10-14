@@ -23,7 +23,6 @@
 import logging
 import uuid
 from datetime import datetime, timedelta
-from pathlib import Path
 
 from flask import Blueprint, jsonify, request, send_file
 
@@ -43,16 +42,10 @@ from port.cdm.prs import PhysicalRiskSwapCDM
 from port.src.counterparty._credit_support import netting_set_id
 
 from .._rbac import require
-from .pdf import _generate_trade_pdf
+from ._xva import _refresh_xva
+from .pdf import _generate_trade_pdf, _get_prs_output_dir
 
 prs_bp = Blueprint("prs", __name__)
-
-
-def _get_prs_output_dir() -> Path:
-    """Get PRS output directory."""
-    prs_dir = config.get_reports_dir("prs")
-    prs_dir.mkdir(parents=True, exist_ok=True)
-    return prs_dir
 
 
 @prs_bp.route("/prs/commit", methods=["POST"])
@@ -252,6 +245,7 @@ def commit_prs_trade():
             "pdf_path": str(pdf_path),
             "pdf_base64": pdf_base64,
             "message": f"Trade {swap_id} committed successfully",
+            "xva": _refresh_xva(cdm_record) if trade_type == "PRS" else None,
         })
 
     except Exception as e:

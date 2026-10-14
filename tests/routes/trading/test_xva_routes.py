@@ -162,7 +162,7 @@ class TestHazardCurves:
         from models.trading.market_state import MarketStateManager
         monkeypatch.setattr(MarketStateManager, "load", lambda self: self_state)
         self_state = self._state(hts)
-        monkeypatch.setattr(xva_routes, "_load_open_trades", lambda: [])
+        monkeypatch.setattr("models.trading.open_trades.load_open_trades", lambda: [])
         return xva_routes.xva_inputs()[3]
 
     def test_buckets_become_a_curve_and_flat_gauges_stay_flat(self, trading_env, monkeypatch):
@@ -183,3 +183,66 @@ class TestHazardCurves:
     def test_the_run_records_fallbacks(self, trading_client, trading_env):
         run = json.loads(trading_client.post(f'{API}/xva/run', json={'n_paths': PATHS}).data)
         assert run["audit"]["hazard_curve_fallbacks"] == []
+
+
+class TestTradeCommitHook:
+    """A committed gauge PRS reruns its netting set, so the blotter shows its
+    XVA at once (config.xva.XVA_ON_TRADE_COMMIT)."""
+
+    def _commit(self, client, cpty='CTPY-HOOK'):
+        from tests.routes.trading._data_part1 import GAUGE_WESTMINSTER
+        payload = {'gauge_id': GAUGE_WESTMINSTER, 'gauge_name': 'Westminster', 'trigger': 'severe',
+                   'direction': 'pay', 'notional': 5_000_000, 'spread_bps': 120.0, 'tenor': 3,
+                   'counterparty_id': cpty, 'counterparty_name': 'Hook Re'}
+        return json.loads(client.post('/api/v1/prs/commit', json=payload).data)
+
+    def test_commit_returns_and_stores_the_trades_xva(self, trading_client, trading_env, monkeypatch):
+        import config.xva as xva_config
+        monkeypatch.setattr(xva_config, 'XVA_ON_TRADE_COMMIT', True)
+        out = self._commit(trading_client)
+        assert out['status'] == 'success' and out['xva'] is not None and out['xva']['kva'] < 0
+        run = json.loads(trading_client.get(f'{API}/xva').data)
+        assert out['swap_id'] in {t['swap_id'] for t in run['trades']}
+
+    def test_off_means_no_xva_in_the_response(self, trading_client, trading_env):
+        assert self._commit(trading_client)['xva'] is None
+
+    def test_an_xva_failure_never_blocks_the_commit(self, trading_client, trading_env, monkeypatch):
+        import config.xva as xva_config
+        from models.xva import service
+        monkeypatch.setattr(xva_config, 'XVA_ON_TRADE_COMMIT', True)
+        monkeypatch.setattr(service, 'refresh_netting_set',
+                            lambda *a, **k: (_ for _ in ()).throw(RuntimeError('boom')))
+        out = self._commit(trading_client)
+        assert out['status'] == 'success' and out['xva'] is None
+
+
+class TestPortHook:
+    """The port pipeline's blotter stage runs XVA on the new book (XVA_IN_PORT)."""
+
+    def test_runs_and_reports(self, trading_env, monkeypatch, capsys):
+        import config.xva as xva_config
+        from app.commands.port.stages import trading as stage
+        from models.xva import service
+        monkeypatch.setattr(xva_config, 'XVA_IN_PORT', True)
+        monkeypatch.setattr(service, 'run_and_save', lambda: {'summary': {
+            'n_trades': 3, 'n_netting_sets': 2, 'xva_total': -10.0, 'kva_total': -99.0}})
+        stage._run_xva()
+        assert '3 trades in 2 netting sets' in capsys.readouterr().out
+
+    def test_off_clears_a_stale_run(self, trading_env, monkeypatch):
+        import database
+        from app.commands.port.stages import trading as stage
+        database.save_xva_run(database.active_catchment(), {'as_of': 'old', 'trades': []})
+        stage._run_xva()
+        assert not database.get_xva_run(database.active_catchment())
+
+    def test_a_failure_never_stops_the_pipeline(self, trading_env, monkeypatch, capsys):
+        import config.xva as xva_config
+        from app.commands.port.stages import trading as stage
+        from models.xva import service
+        monkeypatch.setattr(xva_config, 'XVA_IN_PORT', True)
+        monkeypatch.setattr(service, 'run_and_save',
+                            lambda: (_ for _ in ()).throw(RuntimeError('boom')))
+        stage._run_xva()
+        assert 'XVA skipped: boom' in capsys.readouterr().out

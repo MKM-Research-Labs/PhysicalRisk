@@ -34,59 +34,20 @@ from config.auth import FUNC_TRADE_PRS, READ, WRITE
 
 from .._rbac import require
 from . import trading_bp
-from ._helpers import _get_engines, _load_open_trades
 
 logger = logging.getLogger(__name__)
 
 
 def xva_inputs():
     """(enriched open trades, counterparties by PartyID, market state, hazard lookup)."""
-    market_mgr, delta_eng, _ = _get_engines()
-    state = market_mgr.load()
-    enriched = [t for t in delta_eng.revalue_all(_load_open_trades(), state)
-                if t.get("trade_status", "Open").lower() != "closed"]
-    counterparties = {
-        r.get("CounterpartySet", {}).get("Party", {}).get("PartyID"): r
-        for r in database.list_counterparties(config.catchment_id)
-    }
-
-    from models.xva import desk
-
-    zero = desk.zero_curve(state)
-    curves = {}
-    hazard_for_fallbacks = []
-
-    def hazard_for(gauge_id, trigger):
-        """The gauge's term-structure curve, bootstrapped once per request (§16)."""
-        key = (gauge_id, trigger)
-        if key not in curves:
-            buckets = (state.get("hazard_term_structure", {}).get(gauge_id, {})
-                       .get(trigger, {}))
-            if buckets:
-                probs = {int(t): market_mgr.get_hazard_rate_for_tenor(state, gauge_id, trigger, int(t))
-                         for t in buckets}
-                curves[key], fell_back = desk.term_structure_curve(probs, zero)
-                if fell_back:
-                    hazard_for_fallbacks.append(gauge_id)
-            else:
-                curves[key] = market_mgr.get_gauge_rate(state, gauge_id, trigger)
-        return curves[key]
-
-    hazard_for.fallbacks = hazard_for_fallbacks
-    return enriched, counterparties, state, hazard_for
+    from models.xva import service
+    return service.book_inputs()
 
 
 def run_and_save(n_paths=None):
     """Run XVA on the open book and store it as the latest run."""
-    from config.xva import XvaConfig
-    from models.xva import desk
-
-    enriched, counterparties, state, hazard_for = xva_inputs()
-    result = desk.run_book(enriched, counterparties, state, hazard_for,
-                           desk.with_paths(XvaConfig(), n_paths))
-    result["audit"]["hazard_curve_fallbacks"] = sorted(set(hazard_for.fallbacks))
-    database.save_xva_run(config.catchment_id, result)
-    return result
+    from models.xva import service
+    return service.run_and_save(n_paths)
 
 
 @trading_bp.route("/trading/xva/run", methods=["POST"])

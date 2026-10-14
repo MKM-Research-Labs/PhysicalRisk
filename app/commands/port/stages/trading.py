@@ -153,6 +153,7 @@ def run_blotter(ctx: StageContext):
     except Exception as e:
         print(f"  ⚠️  ERROR generating historical EOD: {e}")
         print("     Run `python phys.py port --blotter` to retry after data is complete")
+    _run_xva()
     elapsed = time.time() - t_step
     ctx.record(
         step_name="blotter",
@@ -170,6 +171,26 @@ def run_blotter(ctx: StageContext):
         stale_name="blotter",
     )
     print()
+
+
+def _run_xva():
+    """XVA on the new book (MKM-XV-001), stored for the blotter and EOD.
+
+    The book was just regenerated, so a stored run from the old one is cleared
+    either way. A failure is reported and never stops the pipeline.
+    """
+    import config.xva as xva_config
+    database.save_xva_run(database.active_catchment(), {})
+    if not xva_config.XVA_IN_PORT:
+        return
+    print("  Running XVA on the new book...")
+    try:
+        from models.xva import service
+        s = service.run_and_save()["summary"]
+        print(f"  XVA: {s['n_trades']} trades in {s['n_netting_sets']} netting sets, "
+              f"booked {s['xva_total']:,.0f}, KVA memo {s['kva_total']:,.0f}")
+    except Exception as exc:  # noqa: BLE001 -- XVA must never stop the pipeline
+        print(f"  XVA skipped: {exc}")
 
 
 def run_all(ctx: StageContext):

@@ -155,3 +155,11 @@ VALUATION_KPI_TOLERANCE_BPS = 5.0
 
 #: Run the XVA model as part of EOD submission (a request can override it).
 XVA_AT_EOD = True
+
+#: Rerun the committed trade's netting set when a PRS trade is booked, so the
+#: blotter shows its XVA at once (seconds, not a whole-book run).
+XVA_ON_TRADE_COMMIT = True
+
+#: Run XVA on the book the port pipeline generates, so a new portfolio arrives
+#: with XVA filled in.
+XVA_IN_PORT = True
