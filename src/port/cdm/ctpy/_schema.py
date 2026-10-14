@@ -189,5 +189,32 @@ COUNTERPARTY_SCHEMA = {
                 "description": "Netting sets under which trades with this party are closed out",
             },
         },
+
+        # Credit curve of the party (MKM-XV-001): what its default risk costs.
+        # The XVA model bootstraps a hazard curve from these spreads; with no
+        # block it falls back to a rating proxy and says so.
+        "Credit": {
+            "CdsSpreads": {
+                "type": "array",
+                "items": {
+                    "TenorYears": {"type": "decimal", "description": "CDS maturity in years"},
+                    "SpreadBps": {"type": "decimal", "description": "Par CDS spread in basis points"},
+                },
+                "description": "Par CDS spreads by tenor, shortest first",
+            },
+            "Recovery": {
+                "type": "decimal",
+                "description": "Recovery rate the spreads are quoted at (0-1)",
+            },
+            "Source": {
+                "type": "menu",
+                "options": ["Market", "RatingProxy"],
+                "description": "Market quotes, or a proxy derived from the credit rating",
+            },
+            "AsOf": {
+                "type": "date",
+                "description": "Date the spreads were observed",
+            },
+        },
     }
 }

@@ -28,6 +28,8 @@ from flask import Blueprint, jsonify
 
 from config import config
 import database
+from models.xva.counterparty_credit import credit_of
+from models.xva.counterparty_credit import summary as credit_summary
 
 counterparty_bp = Blueprint("counterparty", __name__)
 
@@ -58,6 +60,9 @@ def list_counterparties():
                 "credit_rating": platform.get("CreditRating", "NR"),
                 "max_notional": platform.get("MaxNotional"),
                 "max_tenor": platform.get("MaxTenor"),
+                # Credit curve the XVA model prices with (MKM-XV-001): the
+                # record's own CDS spreads, or a labelled rating proxy.
+                **credit_summary(credit_of(ctpy)),
             })
 
         return jsonify({

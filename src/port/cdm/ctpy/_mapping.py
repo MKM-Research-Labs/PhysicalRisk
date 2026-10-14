@@ -22,6 +22,7 @@
 
 from typing import Dict, List
 
+from ._credit import credit_errors
 from ._credit_support import credit_support_errors
 
 
@@ -92,6 +93,10 @@ class _CounterpartyMappingMixin:
             cs_errors = credit_support_errors(root)
             if cs_errors:
                 errors["CreditSupport"] = cs_errors
+
+            credit = credit_errors(root)
+            if credit:
+                errors["Credit"] = credit
 
             return errors
 

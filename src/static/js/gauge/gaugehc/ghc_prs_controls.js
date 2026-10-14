@@ -27,7 +27,8 @@
                 // Build counterparty options from loaded data
                 var ctpyOptions = '<option value="">-- Select --</option>';
                 counterpartyData.forEach(function(c) {
-                    var label = c.short_name + ' (' + c.credit_rating + ')';
+                    var spread = c.cds_5y_bps != null ? ', ' + Math.round(c.cds_5y_bps) + 'bp' : '';
+                    var label = c.short_name + ' (' + c.credit_rating + spread + ')';
                     ctpyOptions += '<option value="' + c.counterparty_id + '">' + label + '</option>';
                 });
 
@@ -52,6 +53,7 @@
                     '<select id="prs-counterparty" style="' + selectStyle + 'min-width:140px;">' +
                     ctpyOptions +
                     '</select>' +
+                    '<span id="prs-ctpy-credit" style="font-size:var(--size-xxs);color:var(--muted);white-space:nowrap;"></span>' +
                     '<input id="prs-trigger" type="hidden" value="severe">' +
                     '<span style="' + labelStyle + '">Notional:</span>' +
                     '<input id="prs-notional" type="text" value="10,000,000" style="' + inputStyle + '">' +
@@ -66,6 +68,16 @@
                     '<input id="prs-spread" type="number" value="0" min="0" max="1000" style="' + inputStyle + 'width:60px;">' +
                     '<span id="prs-hazard-display" style="font-size:var(--size-xxs);color:var(--muted);"></span>' +
                     '</div>';
+
+                // Counterparty credit beside the dropdown (MKM-XV-001): the spread
+                // the XVA model prices with, and whether it is a market quote.
+                var ctpySel = document.getElementById('prs-counterparty');
+                var showCredit = function() {
+                    var el = document.getElementById('prs-ctpy-credit');
+                    var c = counterpartyData.filter(function(x) { return x.counterparty_id === ctpySel.value; })[0];
+                    if (el) el.innerHTML = window.prsCounterpartyCredit(c);
+                };
+                if (ctpySel) { ctpySel.addEventListener('change', showCredit); showCredit(); }
 
                 // Auto-recompute on any input change
                 var ids = ['prs-direction', 'prs-counterparty', 'prs-trigger', 'prs-notional', 'prs-maturity', 'prs-spread'];
@@ -166,3 +178,15 @@
                 popup.innerHTML = html;
                 document.body.appendChild(popup);
             };
+
+
+            // The credit line shown beside the pricer's counterparty dropdown.
+            // A rating proxy is labelled as such: it is not a market quote.
+            window.prsCounterpartyCredit = function(c) {
+                if (!c || c.cds_5y_bps == null) return '';
+                var proxy = c.credit_source === 'RatingProxy';
+                var source = proxy ? '<em>rating proxy</em>' : 'market' + (c.credit_as_of ? ' ' + c.credit_as_of : '');
+                return 'CDS 5y ' + Math.round(c.cds_5y_bps) + 'bp \u00b7 R ' +
+                    Math.round((c.recovery || 0) * 100) + '% \u00b7 ' + source;
+            };
+

@@ -192,3 +192,34 @@ class TestCounterpartyErrors:
         assert r.status_code == 500
         data = json.loads(r.data)
         assert data["status"] == "error"
+
+
+# ===========================================================================
+# Credit curve in the list (MKM-XV-001): what the PRS pricer shows
+# ===========================================================================
+
+class TestCounterpartyCredit:
+
+    def test_records_without_a_credit_block_show_a_labelled_proxy(self, ctpy_env):
+        data = json.loads(ctpy_env.get('/api/v1/counterparties').data)
+        first = next(c for c in data['counterparties'] if c['counterparty_id'] == 'CTPY-001')
+        assert first['credit_source'] == 'RatingProxy' and first['credit_derived'] is True
+        assert first['cds_5y_bps'] > 0 and first['recovery'] == 0.4
+
+    def test_a_records_own_curve_is_shown(self, tmp_path, monkeypatch):
+        from config import config
+        from jsonfiles import JSONFileConfig
+        record = {"CounterpartySet": {
+            "Party": {"PartyID": "CTPY-9", "PartyName": "Market Re"},
+            "_platform": {"ShortName": "MarketRe", "CreditRating": "A"},
+            "Credit": {"CdsSpreads": [{"TenorYears": 5, "SpreadBps": 77.0}], "Recovery": 0.35,
+                       "Source": "Market", "AsOf": "2026-10-14"}}}
+        (tmp_path / JSONFileConfig.COUNTERPARTY_PORTFOLIO).write_text(
+            json.dumps({"counterparties": [record]}))
+        monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
+        monkeypatch.setattr(config, "get_gaugets_dir", lambda: tmp_path / "gaugets")
+        from server import create_app
+        app = create_app()
+        app.config["TESTING"] = True
+        c = json.loads(app.test_client().get('/api/v1/counterparties').data)['counterparties'][0]
+        assert (c['cds_5y_bps'], c['credit_source'], c['credit_as_of']) == (77.0, 'Market', '2026-10-14')

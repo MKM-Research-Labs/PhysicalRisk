@@ -42,16 +42,16 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 from config.xva import (
     DEFAULT_PARTY_CAPITAL,
     PARTY_TYPE_CAPITAL,
-    RATING_CDS_SPREADS,
     STATUS,
-    UNKNOWN_COUNTERPARTY_RATING,
     VALUATION_KPI_TOLERANCE_BPS,
     XvaConfig,
 )
 
 from . import monte_carlo
 from .capital import CounterpartyProfile
-from .curves import HazardCurve, ZeroCurve, bootstrap_cds, cds_par_spread, flat_cds_curve
+from .counterparty_credit import credit_of, hazard_curve
+from .counterparty_credit import summary as credit_summary
+from .curves import HazardCurve, ZeroCurve, bootstrap_cds, cds_par_spread
 from .inputs import PrsTrade
 from .netting import NettingSet, close_out_netting_from_cdm, csa_from_cdm
 from .valuation import legs, value
@@ -110,18 +110,21 @@ def trade_from_enriched(e: Dict, hazard_for: HazardLookup, today: date) -> Optio
 
 
 def counterparty_terms(record: Optional[Dict], zero: ZeroCurve, cfg: XvaConfig):
-    """(hazard curve, capital profile, CSA, close-out netting, netting set id, rating)."""
+    """(hazard curve, capital profile, CSA, close-out netting, netting set id, rating).
+
+    The hazard curve is bootstrapped from the record's own CDS spreads, or from
+    the rating proxy when it has none (``counterparty_credit``).
+    """
     root = (record or {}).get("CounterpartySet", {})
     platform = root.get("_platform", {})
-    rating = platform.get("CreditRating")
-    if rating not in RATING_CDS_SPREADS:
-        rating = UNKNOWN_COUNTERPARTY_RATING
+    view = credit_of(record, cfg)
+    rating = view.rating
     exposure_class, sector = PARTY_TYPE_CAPITAL.get(platform.get("PartyType"), DEFAULT_PARTY_CAPITAL)
     sets = (root.get("CreditSupport") or {}).get("NettingSets") or [None]
     ns = sets[0]
     party = root.get("Party", {}).get("PartyID", UNASSIGNED)
     ns_id = (ns or {}).get("NettingSetID") or f"NS-{party}"
-    hazard = flat_cds_curve(RATING_CDS_SPREADS[rating], cfg.counterparty_recovery, zero)
+    hazard = hazard_curve(view, zero)
     return (hazard, CounterpartyProfile(rating, exposure_class, sector),
             csa_from_cdm(ns), close_out_netting_from_cdm(ns), ns_id, rating)
 
@@ -182,6 +185,7 @@ def run_book(enriched: List[Dict], counterparties: Dict[str, Dict], market_state
         out = monte_carlo.run(nset, zero, cfg, counterparty=profile)
         summary, per_trade = _netting_set_result(ns_id, cpty, rating, nset.csa, out,
                                                  g["trades"], g["rows"])
+        summary["credit"] = credit_summary(credit_of(counterparties.get(cpty), cfg))
         for row, t, e in zip(per_trade, g["trades"], g["rows"]):
             row["kpi"] = _kpi(e, t, zero)
         sets.append(summary)

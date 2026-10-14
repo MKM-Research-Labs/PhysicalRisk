@@ -28,6 +28,7 @@ import database
 from config import config
 from port.cdm.ctpy import CounterpartyCDM
 
+from port.src.counterparty._credit import with_credit_curve
 from port.src.counterparty._credit_support import with_credit_support
 from port.src.counterparty._data import _ALL_COUNTERPARTIES
 from port.src.counterparty._records import _RecordBuilderMixin
@@ -64,15 +65,15 @@ class CounterpartyPortfolioGenerator(_RecordBuilderMixin):
         # (see book_property.py); the lineage / blotter tests assert
         # that every PRS counterparty exists in counterparty.json, so
         # this entry must always be present.
-        counterparties = [with_credit_support(self._generate_reit())]
+        counterparties = [with_credit_curve(with_credit_support(self._generate_reit()))]
         if self.verbose:
             logger.info(
                 "[REIT] Thames Property REIT (CTPY-REIT-001)"
             )
 
         for i, (full_name, short_name, ctpy_type) in enumerate(names):
-            ctpy = with_credit_support(
-                self._generate_one(i, full_name, short_name, ctpy_type))
+            ctpy = with_credit_curve(with_credit_support(
+                self._generate_one(i, full_name, short_name, ctpy_type)))
             counterparties.append(ctpy)
             if self.verbose:
                 party_id = ctpy["CounterpartySet"]["Party"]["PartyID"]
