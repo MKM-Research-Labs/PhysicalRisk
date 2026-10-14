@@ -125,11 +125,11 @@
 
                 spSimMap = L.map(container, {
                     zoomControl: true,
-                    attributionControl: false,
                 }).setView([__MAP_LAT__, __MAP_LON__], 11);
 
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 18,
+                L.tileLayer('__MAP_TILE_URL__', {
+                    attribution: '__MAP_TILE_ATTRIBUTION__',
+                    maxZoom: __MAP_TILE_MAX_ZOOM__,
                 }).addTo(spSimMap);
 
                 setTimeout(function() { if (spSimMap) spSimMap.invalidateSize(); }, 100);

@@ -90,3 +90,12 @@ def css_static(name: str) -> str:
     *name* is the bare filename (e.g. ``"training-ui.css"``).
     """
     return (_STATIC_DIR / "css" / name).read_text(encoding="utf-8")
+
+
+def with_map_tiles(js: str) -> str:
+    """Fill the ``__MAP_TILE_*__`` placeholders of a Leaflet fragment from
+    ``config.visual``, so every JavaScript-built map uses the same tiles."""
+    from config.visual import MAP_TILE_ATTRIBUTION, MAP_TILE_MAX_ZOOM, MAP_TILE_URL
+    return (js.replace('__MAP_TILE_URL__', MAP_TILE_URL)
+            .replace('__MAP_TILE_ATTRIBUTION__', MAP_TILE_ATTRIBUTION)
+            .replace('__MAP_TILE_MAX_ZOOM__', str(MAP_TILE_MAX_ZOOM)))

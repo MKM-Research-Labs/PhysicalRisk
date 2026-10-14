@@ -44,6 +44,16 @@ MAP_DEFAULT_ZOOM: int = 8
 # Default tile provider
 MAP_DEFAULT_TILES: str = 'OpenStreetMap'
 
+# Raster tiles for the Leaflet maps built in JavaScript (storm simulation,
+# flood animation, trading aggregate view). OpenStreetMap's own tile server:
+# no key, free for light use, and its tile policy requires the attribution
+# to stay visible on every map.
+MAP_TILE_URL: str = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+MAP_TILE_ATTRIBUTION: str = (
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+)
+MAP_TILE_MAX_ZOOM: int = 19
+
 # Last-resort map centre (lat, lon) — only used if the active catchment's
 # BOUNDS cannot be read. Prefer get_map_center(), which follows the catchment
 # in play, so maps never default to a fixed region.

@@ -27,7 +27,7 @@ Embedded Leaflet map showing:
 - Popups with aggregate trade summaries
 """
 
-from visual.interactivity._jsbundle import js_static
+from visual.interactivity._jsbundle import js_static, with_map_tiles
 
 
 def get_js() -> str:
@@ -35,7 +35,7 @@ def get_js() -> str:
     from config.visual import get_map_center
     _lat, _lon = get_map_center()
     return (
-        js_static('trading/aggregate/map_view.js')
+        with_map_tiles(js_static('trading/aggregate/map_view.js'))
         .replace('__MAP_LAT__', f"{_lat:.5f}")
         .replace('__MAP_LON__', f"{_lon:.5f}")
     )

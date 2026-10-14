@@ -79,9 +79,9 @@
 
                 // Create map
                 tdTradeMap = L.map(container, {zoomControl: true}).setView([__MAP_LAT__, __MAP_LON__], 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '\u00a9 OpenStreetMap',
-                    maxZoom: 18
+                L.tileLayer('__MAP_TILE_URL__', {
+                    attribution: '__MAP_TILE_ATTRIBUTION__',
+                    maxZoom: __MAP_TILE_MAX_ZOOM__,
                 }).addTo(tdTradeMap);
 
                 var bounds = [];

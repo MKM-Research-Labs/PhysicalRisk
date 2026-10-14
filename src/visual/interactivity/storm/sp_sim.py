@@ -25,7 +25,7 @@ Embedded Leaflet map showing frame-by-frame flood propagation from
 gauges to properties with play/pause, speed control, and scrubber.
 """
 
-from visual.interactivity._jsbundle import js_static
+from visual.interactivity._jsbundle import js_static, with_map_tiles
 
 
 def get_js() -> str:
@@ -34,7 +34,7 @@ def get_js() -> str:
     from . import catchment_map_center
     _max = STORM_SIMULATION_HOURS - 1
     _lat, _lon = catchment_map_center()
-    js = _get_js_template()
+    js = with_map_tiles(_get_js_template())
     return (
         js.replace("'__SCRUBBER_MAX__'", f"'{_max}'")
         .replace('__ANIM_MAX__', str(_max))

@@ -20,7 +20,7 @@
 
 """Flood Animation — mini-map, data loading, frame rendering."""
 
-from visual.interactivity._jsbundle import js_static
+from visual.interactivity._jsbundle import js_static, with_map_tiles
 
 from config.format import storm_option_js as _storm_opt
 
@@ -29,6 +29,6 @@ def get_js():
     """Return JS fragment for mini-map, data loading, and frame rendering."""
     from . import catchment_map_center
     _lat, _lon = catchment_map_center()
-    return js_static('storm/fa_render.js').replace('__STORM_OPT__', _storm_opt('s')) \
+    return with_map_tiles(js_static('storm/fa_render.js')).replace('__STORM_OPT__', _storm_opt('s')) \
        .replace('__MAP_LAT__', f"{_lat:.5f}") \
        .replace('__MAP_LON__', f"{_lon:.5f}")
