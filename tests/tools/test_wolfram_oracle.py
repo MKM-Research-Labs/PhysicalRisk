@@ -35,8 +35,8 @@ import mpmath as mp
 import pytest
 
 from config.models import ORACLE_FIT_LL_TOL, ORACLE_REL_TOL
-from tools.wolfram_oracle import fit, return_levels
-from tools.wolfram_oracle._model import load_gev_fitter
+from tools.wolfram_oracle.gev import fit, return_levels
+from tools.wolfram_oracle.gev._code import load_gev_fitter
 from tools.wolfram_oracle._wl import (
     load_wolfram, rel_err, wl_exact, wl_gev, wl_machine, wl_number, write_wl,
 )

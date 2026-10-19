@@ -34,8 +34,10 @@ import types
 import pytest
 
 from tools.wolfram_oracle import __main__ as cli
-from tools.wolfram_oracle import fit, latex, return_levels
-from tools.wolfram_oracle._model import load_gev_fitter, provenance
+from tools.wolfram_oracle import _run
+from tools.wolfram_oracle.gev import fit, latex, return_levels
+from tools.wolfram_oracle.gev._code import gev_provenance as provenance
+from tools.wolfram_oracle.gev._code import load_gev_fitter
 from tools.wolfram_oracle._wl import evaluate_live, save_wolfram, write_wl
 
 ONE_SERIES = {"n30_xi0.1": (30, 3.0, 0.4, 0.1)}
@@ -114,7 +116,7 @@ class TestLiveSession:
 
     def test_a_live_run_is_folded_in_and_recorded(self, tmp_path, monkeypatch, synthetic, answers):
         _fake_client(monkeypatch, _by_expr(answers))
-        assert cli.main(["--out", str(tmp_path), "--no-pdf"]) == 0
+        assert cli.main(["gh001", "--out", str(tmp_path), "--no-pdf"]) == 0
         assert "level_model_vs_wolfram" in (tmp_path / "return_levels.csv").read_text()
         assert "Level vs W." in (tmp_path / "evidence_tables_return_levels.tex").read_text()
         macros = (tmp_path / "evidence_tables_macros.tex").read_text()
@@ -125,13 +127,13 @@ class TestLiveSession:
 
 class TestWolframscriptFile:
     def test_a_file_run_is_folded_in(self, tmp_path, synthetic, answers):
-        assert cli.main(["--out", str(tmp_path), "--no-pdf", "--no-live"]) == 0
+        assert cli.main(["gh001", "--out", str(tmp_path), "--no-pdf", "--no-live"]) == 0
         assert "Wolfram pending" in (tmp_path / "evidence_tables_macros.tex").read_text()
         for wl in tmp_path.glob("*.wl"):
             ids = re.findall(r'<\|"id" -> "([^"]+)"', wl.read_text())
             save_wolfram(tmp_path / f"{wl.stem}_wolfram.json", "14.3 (file)",
                          {i: answers[i] for i in ids})
-        assert cli.main(["--out", str(tmp_path), "--no-pdf", "--no-live"]) == 0
+        assert cli.main(["gh001", "--out", str(tmp_path), "--no-pdf", "--no-live"]) == 0
         macros = (tmp_path / "evidence_tables_macros.tex").read_text()
         assert r"\bmWolfram}{14.3 (file)}" in macros
         assert "via wolframscript file" in macros and r"\bmOutcome}{all pass}" in macros
@@ -139,8 +141,8 @@ class TestWolframscriptFile:
     def test_stale_output_is_ignored(self, tmp_path, capsys):
         write_wl(tmp_path / "x.wl", [("a", "1")], "x_wolfram.json")
         save_wolfram(tmp_path / "x_wolfram.json", "v", {"old": "1"})
-        assert cli._from_file(tmp_path, "x.wl", [("a", "1")]) == (None, None)
-        assert cli._wolfram(tmp_path, [("x.wl", [("a", "1")])], live=False) == (None, None, None)
+        assert _run.from_file(tmp_path, "x.wl", [("a", "1")]) == (None, None)
+        assert _run.wolfram(tmp_path, [("x.wl", [("a", "1")])], live=False) == (None, None, None)
         assert "different inputs" in capsys.readouterr().err
 
 
@@ -148,17 +150,17 @@ class TestCli:
     def test_gauge_export(self, tmp_path):
         g = tmp_path / "g.json"
         g.write_text(json.dumps({"G1": [float(v) for v in _series()["n30_xi0.1"]]}))
-        assert cli.main(["--out", str(tmp_path), "--gauges", str(g), "--no-pdf", "--no-live"]) == 0
+        assert cli.main(["gh001", "--out", str(tmp_path), "--gauges", str(g), "--no-pdf", "--no-live"]) == 0
         assert "G1/gev" in (tmp_path / "fit.csv").read_text()
         assert "gauge export g.json" in (tmp_path / "evidence_tables_macros.tex").read_text()
 
     def test_build_failure_is_reported(self, tmp_path, synthetic, capsys):
-        assert cli.main(["--out", str(tmp_path), "--no-live"]) == 1
+        assert cli.main(["gh001", "--out", str(tmp_path), "--no-live"]) == 1
         assert "Could not build" in capsys.readouterr().out
 
     def test_build_runs_the_makefile(self, tmp_path):
         (tmp_path / "Makefile").write_text("all:\n\ttrue\n")
-        assert cli.build_pdf(tmp_path) is True
+        assert _run.build_pdf(tmp_path) is True
 
     def test_provenance_names_the_code(self):
         prov = provenance()

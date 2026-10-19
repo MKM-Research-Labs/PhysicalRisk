@@ -31,6 +31,8 @@ import os
 # project root. One level below docs/models, so the document's
 # \input{../shared/mkm_header} and the header's ../shared/Logos resolve.
 ORACLE_GEV_OUT_DIR = "docs/models/gev_hazard_benchmark"
+# The code under test, relative to the project root.
+ORACLE_GEV_SOURCE = "src/models/hazard/gev.py"
 # The hand-written LaTeX document (stem; the Makefile builds <stem>.pdf from it).
 ORACLE_GEV_DOC = "MKM-GH-001_wolfram_benchmark"
 # Generated LaTeX the document \input{}s: <prefix>macros.tex, <prefix>findings.tex, ...
