@@ -1,0 +1,143 @@
+# Copyright (c) 2022-2026 MKM Research Labs.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+"""Wolfram Language in and out: literals that mean what they say, and results back.
+
+Python's repr is not Wolfram syntax. ``1e-09`` parses as ``1*e - 9``, and a
+machine real such as ``100.0`` caps ``N[expr, 30]`` at machine precision whatever
+it is asked for. So a model input goes over as the EXACT value of its binary
+double — the very number the model computed with — set to 60-digit precision
+(``wl_precise``), and ``N[..., 30]`` then really means 30 digits. Not left as an
+exact rational: an exact exponent like -1/xi makes Wolfram attempt exact powers
+with ~2^60 denominators, and the kernel dies. Results come back as InputForm strings, not JSON
+numbers, so those digits survive the trip.
+
+Two ways to reach Wolfram, giving identical results: a live kernel session
+through ``wolframclient`` (``evaluate_live``), or a ``.wl`` script for
+``wolframscript`` whose output is read back (``write_wl`` / ``load_wolfram``).
+A live run also writes that output file, so the evidence is the same either way.
+"""
+
+import json
+import sys
+from fractions import Fraction
+
+import mpmath as mp
+
+from config.models import ORACLE_WOLFRAM_WORKING_DIGITS
+
+
+def wl_exact(x):
+    """The exact value of a double (or int) as a Wolfram rational."""
+    f = Fraction(x)
+    return str(f.numerator) if f.denominator == 1 else f"{f.numerator}/{f.denominator}"
+
+
+def wl_precise(x):
+    """A double's exact value at working precision; integers stay exact."""
+    exact = wl_exact(x)
+    return exact if "/" not in exact else f"SetPrecision[{exact}, {ORACLE_WOLFRAM_WORKING_DIGITS}]"
+
+
+def wl_machine(x):
+    """A double as a Wolfram machine real, never in e-notation."""
+    mantissa, exponent = f"{float(x):.17e}".split("e")
+    return f"{mantissa}*^{int(exponent)}"
+
+
+def wl_list(xs, fmt):
+    return "{" + ", ".join(fmt(x) for x in xs) + "}"
+
+
+def wl_gev(mu, sigma, xi):
+    """The GEV with shape xi in the EVT sign. Wolfram's GumbelDistribution is the
+    MINIMUM extreme-value law; the maximum one is ExtremeValueDistribution."""
+    m, s = wl_precise(mu), wl_precise(sigma)
+    if xi == 0:
+        return f"ExtremeValueDistribution[{m}, {s}]"
+    return f"MaxStableDistribution[{m}, {s}, {wl_precise(xi)}]"
+
+
+_FMT = "ToString[({}), InputForm, NumberMarks -> False]"
+
+
+def evaluate_live(items, kernel=None, startup_timeout=None):
+    """Evaluate each ``(id, expr)`` in a local Wolfram kernel.
+
+    Returns ``(version, {id: value})``, or ``(None, None)`` when there is no
+    wolframclient or no kernel it can start — not installed, or not activated.
+    """
+    try:
+        from wolframclient.evaluation import WolframLanguageSession
+        from wolframclient.language import wlexpr
+    except ImportError:
+        return None, None
+    session = WolframLanguageSession(kernel) if kernel else WolframLanguageSession()
+    if startup_timeout:
+        session.set_parameter("STARTUP_TIMEOUT", startup_timeout)
+    try:
+        session.start()
+    except Exception as exc:  # wolframclient raises several kinds; all mean "no kernel"
+        print(f"Wolfram kernel unavailable: {exc}", file=sys.stderr)
+        return None, None
+    try:
+        version = session.evaluate(wlexpr("$Version"))
+        return version, {i: session.evaluate(wlexpr(_FMT.format(e))) for i, e in items}
+    finally:
+        session.terminate()
+
+
+def save_wolfram(path, version, values):
+    """Write a live run's results in the format a wolframscript run produces."""
+    path.write_text(json.dumps({"wolfram_version": version, "results": [
+        {"id": i, "value": v} for i, v in values.items()]}, indent=1))
+
+
+def write_wl(path, items, out_name):
+    """A script that evaluates each ``(id, expr)`` and exports them as strings."""
+    rows = ",\n".join(f'  <|"id" -> "{i}", "value" -> ({e})|>' for i, e in items)
+    path.write_text(
+        f"(* Generated by tools.wolfram_oracle. Run: wolframscript -file {path.name} *)\n"
+        "fmt[v_] := ToString[v, InputForm, NumberMarks -> False];\n"
+        f"rows = {{\n{rows}\n}};\n"
+        f'Export[FileNameJoin[{{DirectoryName[$InputFileName], "{out_name}"}}],\n'
+        '  <|"wolfram_version" -> $Version, "results" ->\n'
+        '    Map[<|"id" -> #id, "value" -> fmt[#value]|> &, rows]|>, "RawJSON"];\n')
+
+
+def wl_number(s):
+    """Parse a Wolfram InputForm number ("1.23*^-15", "{a, b}") to mpf / list."""
+    s = s.strip()
+    if s.startswith("{"):
+        return [wl_number(p) for p in s[1:-1].split(",")]
+    return mp.mpf(s.replace("*^", "e"))
+
+
+def load_wolfram(path):
+    """``(version, {id: value})`` from a Wolfram run, or ``(None, None)`` if not run."""
+    if not path.exists():
+        return None, None
+    data = json.loads(path.read_text())
+    return data["wolfram_version"], {r["id"]: r["value"] for r in data["results"]}
+
+
+def rel_err(a, ref):
+    a, ref = mp.mpf(a), mp.mpf(ref)
+    return float(abs(a - ref) / abs(ref)) if ref else float(abs(a))

@@ -1,0 +1,181 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{GEV Hazard Curve Model (MKM-GH-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of the GEV Implementation}
+\newcommand{\docversion}{0.1}
+\newcommand{\docdate}{19-October-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in case names and code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{evidence_tables_macros}
+
+\begin{document}
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the implementation of the GEV Hazard Curve Model
+(MKM-GH-001): the \texttt{GEVFitter} class that fits a generalised extreme value
+(GEV) distribution to gauge peak levels and turns the fit into return levels and
+exceedance probabilities. It asks two questions of the code, and answers each
+against references that share none of its numerics.
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Does it compute its formulae correctly?} Return levels and
+  exceedance probabilities are checked against the closed form evaluated to 50
+  significant digits, and against Wolfram. Within the operating range
+  ($T \le \bmOperatingT$ years) the worst relative error is \bmWorstLevel{} on a
+  return level and \bmWorstExc{} on an exceedance probability, against a
+  tolerance of \bmTol. \bmWolframConfirms
+\item \textbf{Does its fit reach the maximum of the likelihood?} The model's
+  maximum-likelihood fit is compared with an independent multi-start optimiser
+  on a likelihood written from the density. The largest gain in log-likelihood
+  the independent fit finds is \bmLLGain{} (tolerance \bmLLTol): the model's
+  optimiser stops at the maximum.
+\end{enumerate}
+
+\paragraph{Finding.} The implementation is sound; the tail risk is in the
+\emph{estimate}, not the arithmetic. On samples drawn from known parameters, the
+fitted 1-in-1000 level ranges from \bmRatioMin{} to \bmRatioMax{} times the true
+one through sampling variation alone (Table~\ref{tab:bm-fit}). The model reports
+return levels without a confidence interval.
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test: \bmCodeFile{} at commit \bmCodeCommit{}\bmCodeDirty.
+\item SHA-256 of that file: \bmCodeSha{}\ldots
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+The four public methods of \texttt{GEVFitter} in
+\texttt{src/models/hazard/gev.py}, exactly as the hazard-curve builder calls
+them: \texttt{fit} (GEV, and Gumbel when forced), \texttt{return\_level},
+\texttt{exceedance\_probability}, and the sign conversion between the
+extreme-value shape $\xi$ and scipy's $c=-\xi$. The class is loaded from its file
+alone, so the benchmark exercises the production code and nothing around it.
+
+\subsection{What is not}
+This is a benchmark of the implementation (validation question Q8). It is not
+independent validation (Q9): it shows the model computes what its formulae say,
+not that a GEV fitted to per-storm peaks is the right model for the hazard.
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+With location $\mu$, scale $\sigma>0$ and shape $\xi$ ($\xi>0$ a heavy Fr\'echet
+tail, $\xi<0$ bounded above), the GEV distribution function is
+\begin{equation}
+F(x) = \exp\!\left\{-\left[1+\xi\,\frac{x-\mu}{\sigma}\right]^{-1/\xi}\right\},
+\qquad
+F(x) = \exp\!\left\{-e^{-(x-\mu)/\sigma}\right\}\ \ (\xi=0).
+\end{equation}
+The $T$-year return level solves $F(x_T)=1-1/T$. Writing the reduced variate
+$y_T=-\log(1-1/T)$,
+\begin{equation}
+x_T = \mu + \frac{\sigma}{\xi}\left(y_T^{-\xi}-1\right),
+\qquad x_T = \mu - \sigma\log y_T\ \ (\xi=0),
+\end{equation}
+and the exceedance probability is $P(X>x) = 1-F(x)$. \texttt{GEVFitter} takes the
+Gumbel branch when $|\xi|<10^{-10}$.
+
+The log-likelihood of peaks $x_1,\dots,x_n$, with $t_i = 1+\xi(x_i-\mu)/\sigma>0$, is
+\begin{equation}
+\ell(\mu,\sigma,\xi) = -n\log\sigma - \left(1+\frac1\xi\right)\sum_i \log t_i
+ - \sum_i t_i^{-1/\xi}.
+\end{equation}
+
+\paragraph{Sign convention.} scipy's \texttt{genextreme} uses $c=-\xi$. Passed
+unflipped, the 1-in-1000 level for $\xi=0.2$ would be \bmTrapWrong{} rather than
+\bmTrapRight; \texttt{GEVFitter} converts in one named place and is correct.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+\subsection{Closed-form reference}
+Each return level and exceedance probability is evaluated with \texttt{mpmath}
+at 50 significant digits, using $\mathrm{expm1}$ and the reduced variate so
+neither $1-1/T$ nor $1-F$ loses digits. The exceedance threshold for each case
+is the exact $T$-year level, so the right answer is $1/T$. Six parameter cases
+cover the Gumbel, Fr\'echet, bounded and near-zero-shape regimes, including a
+shape just below the model's Gumbel switch.
+
+\subsection{Wolfram oracle}
+\begin{sloppypar}
+The same quantities are evaluated in Wolfram with \texttt{Quantile} and
+\texttt{SurvivalFunction} of \texttt{MaxStableDistribution}$[\mu,\sigma,\xi]$
+(same sign of $\xi$) and, for $\xi=0$, \texttt{ExtremeValueDistribution}.
+Wolfram's \texttt{GumbelDistribution} is the \emph{minimum} law and would be
+wrong here.
+Inputs go to Wolfram as the exact value of each double the model used, set to
+60-digit precision, so \texttt{N[$\cdot$, 30]} returns 30 genuine digits rather
+than machine precision.
+\end{sloppypar}
+
+\subsection{Independent fit}
+The likelihood above is maximised by Nelder--Mead from six starting shapes, with
+no \texttt{scipy.stats} code, and evaluated at 50 digits at both the model's and
+the independent parameters. Wolfram's \texttt{EstimatedDistribution} gives a
+third fit. A positive gain means the model's optimiser stopped short of the
+maximum. Data: \bmData.
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{Return levels and exceedance}
+Worst in range: return level at \texttt{\bmWorstLevelAt}; \\
+exceedance at \texttt{\bmWorstExcAt}. The \texttt{below\_gumbel\_switch} case carries the
+model's rounding to Gumbel at $\xi=10^{-11}$, an error of order $\xi$ that is
+immaterial. Beyond the
+operating range the model's $\mathrm{ppf}(1-p)$ and $1-\mathrm{cdf}$ lose
+digits as $p\to0$; this is reported, not judged.
+
+\input{evidence_tables_return_levels}
+
+\subsection{Maximum-likelihood fit}
+\input{evidence_tables_fit}
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The model is shown to compute its
+  formulae; whether those formulae suit the hazard is a separate question.
+\item \textbf{Per-storm peaks.} \texttt{GEVFitter} fits the GEV to every
+  storm's peak level. The GEV is the limiting law for block maxima (e.g.\ annual
+  maxima); the per-storm choice is a methodology question this benchmark does
+  not answer.
+\item \textbf{Parameter uncertainty dominates.} At the sample sizes tested,
+  sampling variation moves the 1-in-1000 level by a factor of up to \bmRatioMax;
+  the model reports no confidence interval.
+\item \textbf{Data.} Unless a gauge export is named under Evidence, the fit
+  section uses synthetic samples; it then shows estimator behaviour, not the
+  behaviour on the real gauge record.
+\end{enumerate}
+
+\mkmhistorypage{19-Oct-2026 & 0.1 & First issue & David K Kelly \\}
+
+\end{document}
