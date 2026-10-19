@@ -25,9 +25,16 @@ files its evidence. Changing a case changes the evidence, so they live here
 rather than in the tool.
 """
 
-# Where a run writes its report, CSVs and Wolfram scripts, under the project root.
-ORACLE_GEV_OUT_DIR = "docs/models/benchmark/gev_hazard"
-ORACLE_GEV_REPORT_PDF = "gev_hazard_benchmark.pdf"
+import os
+
+# Where a run writes its evidence tables, CSVs and Wolfram scripts, under the
+# project root. One level below docs/models, so the document's
+# \input{../shared/mkm_header} and the header's ../shared/Logos resolve.
+ORACLE_GEV_OUT_DIR = "docs/models/gev_hazard_benchmark"
+# The hand-written LaTeX document (stem; the Makefile builds <stem>.pdf from it).
+ORACLE_GEV_DOC = "MKM-GH-001_wolfram_benchmark"
+# Generated LaTeX the document \input{}s: <prefix>macros.tex, <prefix>findings.tex, ...
+ORACLE_GEV_TABLE_PREFIX = "evidence_tables_"
 ORACLE_GEV_RETURN_LEVELS_CSV = "return_levels.csv"
 ORACLE_GEV_FIT_CSV = "fit.csv"
 ORACLE_GEV_RETURN_LEVELS_WL = "return_levels.wl"
@@ -40,6 +47,18 @@ ORACLE_MODEL_NAME = "GEV Hazard Curve Model"
 
 ORACLE_REFERENCE_DPS = 50  # mpmath working digits for the closed-form reference
 ORACLE_WOLFRAM_DIGITS = 30  # N[expr, d] — real digits, because inputs go over exact
+# Precision each input is given in Wolfram: the double's exact value, rounded once
+# to this many digits. Exact rationals would be exact, but an exact exponent such
+# as -1/xi (denominator ~2^60) sends SurvivalFunction into exact arithmetic that
+# kills the kernel.
+ORACLE_WOLFRAM_WORKING_DIGITS = 60
+# Kernel for a live session. The Engine's own kernel, not the Wolfram Player one
+# bundled beside it; override with WOLFRAM_KERNEL on another machine.
+ORACLE_WOLFRAM_KERNEL = os.environ.get(
+    "WOLFRAM_KERNEL", "/Applications/Wolfram Engine.app/Contents/MacOS/WolframKernel")
+# Seconds to wait for the kernel to start. wolframclient's default is 20; the
+# Engine takes ~37 s to start on the development Mac, so the default never connects.
+ORACLE_WOLFRAM_STARTUP_TIMEOUT = 180
 
 # name: (mu, sigma, xi). xi > 0 is a heavy Frechet tail (EVT convention).
 ORACLE_GEV_CASES = {

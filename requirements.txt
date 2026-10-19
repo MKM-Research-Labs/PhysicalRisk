@@ -4,6 +4,7 @@ pandas==2.2.3
 geopandas==1.0.1
 scipy==1.15.1
 mpmath==1.4.1  # tools.wolfram_oracle: 50-digit reference for the GH-001 benchmark
+wolframclient==1.4.0  # tools.wolfram_oracle: live Wolfram Engine session
 scikit-learn==1.6.1
 
 # Geospatial libraries

@@ -52,7 +52,7 @@ from config.models import (
     ORACLE_REFERENCE_DPS,
     ORACLE_WOLFRAM_DIGITS,
 )
-from tools.wolfram_oracle._wl import rel_err, wl_exact, wl_list, wl_machine, wl_number
+from tools.wolfram_oracle._wl import rel_err, wl_gev, wl_list, wl_machine, wl_number, wl_precise
 
 EULER_GAMMA = float(mp.euler)
 
@@ -149,13 +149,12 @@ def wl_items(rows):
     items = []
     for r in rows:
         xi, mu, s = r["model_xi_loc_scale"]
+        at_model = wl_gev(mu, s, xi)  # xi is exactly 0.0 for a Gumbel fit
         if r["family"] == "gumbel":
-            at_model = f"ExtremeValueDistribution[{wl_exact(mu)}, {wl_exact(s)}]"
             family, pars = "ExtremeValueDistribution[m, s]", "{0, #[[1]], #[[2]]}"
         else:
-            at_model = f"MaxStableDistribution[{wl_exact(mu)}, {wl_exact(s)}, {wl_exact(xi)}]"
             family, pars = "MaxStableDistribution[m, s, x]", "{#[[3]], #[[1]], #[[2]]}"
-        exact, machine = wl_list(r["x"], wl_exact), wl_list(r["x"], wl_machine)
+        exact, machine = wl_list(r["x"], wl_precise), wl_list(r["x"], wl_machine)
         fit = (f"EstimatedDistribution[{machine}, {family}, "
                'ParameterEstimator -> "MaximumLikelihood"]')
         items += [

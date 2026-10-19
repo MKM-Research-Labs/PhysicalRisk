@@ -39,7 +39,7 @@ from config.models import (
     ORACLE_RETURN_PERIODS,
     ORACLE_WOLFRAM_DIGITS,
 )
-from tools.wolfram_oracle._wl import rel_err, wl_exact, wl_gev, wl_number
+from tools.wolfram_oracle._wl import rel_err, wl_gev, wl_number, wl_precise
 
 
 def return_level_ref(mu, sigma, xi, T):
@@ -88,7 +88,7 @@ def wl_items(rows):
         dist = wl_gev(r["mu"], r["sigma"], r["xi"])
         items.append((r["id"] + "/level", f"N[Quantile[{dist}, 1 - 1/{r['T']}], {d}]"))
         items.append((r["id"] + "/exc",
-                      f"N[SurvivalFunction[{dist}, {wl_exact(r['threshold'])}], {d}]"))
+                      f"N[SurvivalFunction[{dist}, {wl_precise(r['threshold'])}], {d}]"))
     return items
 
 

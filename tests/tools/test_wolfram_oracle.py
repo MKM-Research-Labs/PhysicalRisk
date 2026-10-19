@@ -24,20 +24,19 @@ The Wolfram-literal tests pin the three bugs the pilot shipped with: e-notation
 that Wolfram misparses, machine reals that cap N[] at machine precision, and
 GumbelDistribution (the minimum law) standing in for the maximum one. The rest
 run the benchmark itself — so a change to gev.py that breaks its numerics fails
-here, not only in the filed PDF — and fake a Wolfram run to cover the read-back.
+here, not only in the filed PDF. The run itself — CLI, LaTeX, Wolfram read-back —
+is covered in test_wolfram_oracle_run.py.
 """
 
 import json
-import re
 from fractions import Fraction
 
 import mpmath as mp
 import pytest
 
 from config.models import ORACLE_FIT_LL_TOL, ORACLE_REL_TOL
-from tools.wolfram_oracle import __main__ as cli
 from tools.wolfram_oracle import fit, return_levels
-from tools.wolfram_oracle._model import load_gev_fitter, provenance
+from tools.wolfram_oracle._model import load_gev_fitter
 from tools.wolfram_oracle._wl import (
     load_wolfram, rel_err, wl_exact, wl_gev, wl_machine, wl_number, write_wl,
 )
@@ -61,7 +60,7 @@ class TestWolframLiterals:
 
     def test_gumbel_is_the_maximum_law(self):
         assert wl_gev(100.0, 20.0, 0.0) == "ExtremeValueDistribution[100, 20]"
-        assert wl_gev(100.0, 20.0, 0.5) == "MaxStableDistribution[100, 20, 1/2]"
+        assert wl_gev(100.0, 20.0, 0.5) == "MaxStableDistribution[100, 20, SetPrecision[1/2, 60]]"
 
     def test_number_parsing(self):
         assert wl_number("1.5*^-15") == mp.mpf("1.5e-15")
@@ -117,52 +116,6 @@ class TestFit:
             {"peak_level_m": 3.0}]}}}))
         got = fit.load_gauges(p)
         assert list(got["a"]) == [1.0, 2.0] and list(got["b"]) == [3.0]
-
-
-def _fake_wolfram(out):
-    """Answer every .wl item from the Python side, as a Wolfram run would."""
-    rl = json.loads((out / "rl.json").read_text())
-    for wl in out.glob("*.wl"):
-        ids = re.findall(r'<\|"id" -> "([^"]+)"', wl.read_text())
-        values = {i: rl[i] for i in ids}
-        (out / f"{wl.stem}_wolfram.json").write_text(json.dumps({
-            "wolfram_version": "14.3 (fake)",
-            "results": [{"id": i, "value": v} for i, v in values.items()]}))
-
-
-class TestCli:
-    def test_run_without_then_with_wolfram(self, tmp_path, monkeypatch, gev_fitter):
-        monkeypatch.setattr(fit, "synthetic_series", _series)
-        assert cli.main(["--out", str(tmp_path)]) == 0
-        assert (tmp_path / "gev_hazard_benchmark.pdf").stat().st_size > 0
-        assert (tmp_path / "return_levels.csv").read_text().startswith("id,")
-        rl = {r["id"] + "/level": r["level_ref"] for r in return_levels.run(gev_fitter)}
-        rl.update({r["id"] + "/exc": r["exc_ref"].replace("e", "*^") for r in return_levels.run(gev_fitter)})
-        for r in fit.run(gev_fitter, _series(), ONE_SERIES):
-            rl[r["id"] + "/ll_at_model"] = r["ll_model"]
-            rl[r["id"] + "/fit_xi_loc_scale"] = "{%r, %r, %r}" % tuple(r["indep_xi_loc_scale"])
-            rl[r["id"] + "/ll_at_fit"] = r["ll_indep"]
-        (tmp_path / "rl.json").write_text(json.dumps(rl))
-        _fake_wolfram(tmp_path)
-        assert cli.main(["--out", str(tmp_path)]) == 0
-        assert "level_model_vs_wolfram" in (tmp_path / "return_levels.csv").read_text()
-
-    def test_run_on_a_gauge_export(self, tmp_path):
-        g = tmp_path / "g.json"
-        g.write_text(json.dumps({"G1": [float(v) for v in _series()["n30_xi0.1"]]}))
-        assert cli.main(["--out", str(tmp_path), "--gauges", str(g)]) == 0
-        assert "G1/gev" in (tmp_path / "fit.csv").read_text()
-
-    def test_stale_wolfram_output_is_ignored(self, tmp_path, capsys):
-        write_wl(tmp_path / "x.wl", [("a", "1")], "x_wolfram.json")
-        (tmp_path / "x_wolfram.json").write_text(json.dumps(
-            {"wolfram_version": "v", "results": [{"id": "old", "value": "1"}]}))
-        assert cli._wolfram(tmp_path, "x.wl", [("a", "1")]) == (None, None)
-        assert "different inputs" in capsys.readouterr().err
-
-    def test_provenance_names_the_code(self):
-        prov = provenance()
-        assert prov["file"] == "src/models/hazard/gev.py" and len(prov["sha256"]) == 64
 
 
 _SYNTHETIC = fit.synthetic_series

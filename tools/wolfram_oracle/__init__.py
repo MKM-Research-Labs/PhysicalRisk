@@ -21,6 +21,6 @@
 """Wolfram oracle benchmark for MKM-GH-001 (GEV Hazard Curve Model).
 
 Checks GH-001's own GEVFitter against a 50-digit closed form, an independent
-maximum-likelihood fit and Wolfram, and writes a Benchmark Test PDF + CSVs for
+maximum-likelihood fit and Wolfram, and writes a LaTeX benchmark document (PDF) + CSVs for
 filing in ModelRisk. Run with ``python -m tools.wolfram_oracle``.
 """
