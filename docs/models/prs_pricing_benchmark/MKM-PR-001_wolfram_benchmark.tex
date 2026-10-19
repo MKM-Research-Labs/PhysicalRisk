@@ -1,0 +1,181 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{PRS Analytical Pricing Model (MKM-PR-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of the Fair-Spread Implementation}
+\newcommand{\docversion}{0.1}
+\newcommand{\docdate}{19-October-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{evidence_tables_macros}
+
+\begin{document}
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the PRS Analytical Pricing Model (MKM-PR-001): the
+function that turns a gauge's annual trigger probability into the fair spread of
+a Physical Risk Swap. It asks two questions, and answers each against references
+that share none of the model's numerics.
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Does the code compute the documented formula?} The model document
+  (\texttt{prs\_pricing.pdf}, \S3.1) specifies the spread exactly. Over \bmCases{}
+  cases --- probabilities from $10^{-4}$ to the cap, tenors of 1 to 10 years, two
+  recoveries, a flat rate and the book's yield curve --- the model agrees with a
+  50-digit implementation of that formula to \bmWorst{} (tolerance \bmTol).
+  \bmWolframConfirms{} The floor, the zero rule, the cap and the curve
+  interpolation behave as documented.
+\item \textbf{Does the model document describe the model accurately?} Three of its
+  statements are numerical, and the benchmark tests them as written
+  (Table~\ref{tab:bm-claims}). Two are not met; the third is a finding.
+\end{enumerate}
+
+\paragraph{Findings.} The implementation is correct. The documentation is not:
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Discretisation is understated (\S8.3).} The quarterly scheme prices
+  every spread higher than continuous time by a factor of about
+  $1+(\lambda+r)\Delta t/2$, at every tenor. That is \bmDiscLow{} bp at worst for
+  probabilities up to 0.20, where the document says the scheme is accurate, and
+  \bmDiscHigh{} bp above, where it says ``up to 2--3 bp''. At UK flood
+  probabilities (around 1--2\%) the overstatement is about a bp
+  (Table~\ref{tab:bm-worked}).
+\item \textbf{The curve is no longer flat (\S8.4).} The document says the
+  discount curve is flat; the book prices on a term structure. The effect is
+  below 1 bp for probabilities under \bmCurveOver, as the document says, but
+  reaches \bmCurveWorst{} bp.
+\item \textbf{The basis compares two different formulae (\S3.3).} The basis code
+  takes the gauge leg as $p\times10^4$ and the property leg from Eq.~7. At the
+  same probability the two legs differ, so part of every reported basis is an
+  artefact of the formulae: over 1 bp from $p=\bmBasisOver$.
+\end{enumerate}
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test: \bmCodeFile{} at commit \bmCodeCommit{}\bmCodeDirty.
+\item SHA-256 of that file: \bmCodeSha{}\ldots
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle pr001}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+\texttt{compute\_prs\_spread} and \texttt{interpolate\_yield\_rate} in
+\texttt{src/models/hazard/prs\_analytical.py}: the fair spread every PRS in the
+book is priced at, and the curve it is discounted on. The module is loaded from
+its file alone, and called exactly as the book calls it.
+
+\subsection{What is not}
+The basis waterfall's bookkeeping (counts, distances, inverse-distance weights)
+is not a calculation a mathematical oracle can check, and is out of scope; only
+the consistency of its two spread legs is examined. The delta engine (MKM-DE-001)
+and the XVA overlay (MKM-XV-001) consume this function and are benchmarked
+separately. This is a benchmark of the implementation (validation question Q8),
+not independent validation (Q9).
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+Following the model document (\S3.1): the annual probability $p$, capped at
+0.999, gives the hazard rate $\lambda=-\ln(1-p)$; survival is
+$S(t)=e^{-\lambda t}$ and discounting $D(t)=e^{-r(t)\,t}$. With quarterly dates
+$t_i=i\,\Delta t$, $\Delta t=\tfrac14$, $n=4T$,
+\begin{equation}
+A=\sum_{i=1}^{n}\Delta t\,S(t_i)\,D(t_i),\qquad
+P=\sum_{i=1}^{n}(1-R)\bigl(S(t_{i-1})-S(t_i)\bigr)\,D\!\left(t_i-\tfrac{\Delta t}{2}\right),
+\end{equation}
+and the fair spread is $s=10^4\,P/A$ bp, floored at \bmFloor{} bp. The rate $r(t)$
+is either flat or the book's curve, linear between whole-year points and flat
+beyond them.
+
+\paragraph{Continuous time.} With protection paid when the trigger occurs and
+premium paid continuously, both legs integrate the same $S(t)D(t)$:
+\begin{equation}
+s_{\mathrm{c}}=10^4\,\frac{(1-R)\int_0^T\lambda\,S(t)D(t)\,\mathrm{d}t}{\int_0^T S(t)D(t)\,\mathrm{d}t}
+=10^4\,(1-R)\,\lambda,
+\end{equation}
+whatever the curve and tenor. This is the benchmark the document's \S8.3 refers to.
+
+\paragraph{The quarterly scheme in closed form.} On a flat curve,
+$S(t_{i-1})-S(t_i)=(e^{\lambda\Delta t}-1)S(t_i)$ and
+$D(t_i-\Delta t/2)=e^{r\Delta t/2}D(t_i)$, so the sums cancel:
+\begin{equation}
+s=10^4\,(1-R)\,\frac{e^{\lambda\Delta t}-1}{\Delta t}\,e^{r\Delta t/2},
+\qquad\frac{s}{s_{\mathrm{c}}}\approx1+\frac{(\lambda+r)\,\Delta t}{2}.
+\end{equation}
+The premium is paid in arrears with no accrual on a trigger, and the protection
+half a period earlier; both raise the spread. The fallback of \S3.1.7 can never
+apply: $A\ge\Delta t\,S(T)D(T)>0$ for any $p$ up to the cap.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+\subsection{References}
+The equations above are evaluated with \texttt{mpmath} at 50 significant digits,
+implemented from the model document rather than the code. Wolfram evaluates the
+same sums exactly, with the curve as a \texttt{Piecewise} function, from each
+input's exact value at 60-digit precision, returning 30 digits.
+
+\subsection{Cases}
+Ten probabilities ($10^{-4}$ to 0.999), four tenors (1, 3, 5, 10 years), two
+recoveries (0, 0.4) and two curves (flat 3\%, the book's
+\texttt{DEFAULT\_YIELD\_CURVE}): \bmCases{} cases. The book trades $R=0$
+(\S3.2); 0.4 checks the recovery term.
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{Fair spread}
+\input{evidence_tables_spreads}
+
+\subsection{The model document's claims}
+\input{evidence_tables_claims}
+\input{evidence_tables_worked}
+
+\noindent The relative column of Table~\ref{tab:bm-worked} follows
+$(\lambda+r)\Delta t/2$; the book curve's rates sit above 3\%, which is why it
+prices slightly higher than the flat curve.
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The code is shown to compute the
+  documented formula; whether a constant hazard rate and quarterly pricing suit
+  the product is a separate question.
+\item \textbf{Documentation.} \S8.3 and \S8.4 of the model document should be
+  corrected to the figures above, and the code's docstring, which says the
+  protection leg is discounted at $D(t_i)$, to the midpoint the code and the
+  document both use.
+\item \textbf{Basis legs.} Whether the gauge leg should be priced with Eq.~7, so
+  that the basis measures the property against the gauge rather than one formula
+  against another, is for the model owner.
+\item \textbf{High probabilities.} Near the cap the spread exceeds $10^5$ bp; the
+  formula is computed correctly there, but the number has no economic meaning.
+\end{enumerate}
+
+\mkmhistorypage{19-Oct-2026 & 0.1 & First issue & David K Kelly \\}
+
+\end{document}
