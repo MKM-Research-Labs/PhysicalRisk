@@ -40,3 +40,4 @@ from config.models._valuation import *  # noqa: F401,F403
 from config.models._misc import *  # noqa: F401,F403
 from config.models._wolfram_oracle import *  # noqa: F401,F403
 from config.models._wolfram_oracle_prs import *  # noqa: F401,F403
+from config.models._wolfram_oracle_si import *  # noqa: F401,F403

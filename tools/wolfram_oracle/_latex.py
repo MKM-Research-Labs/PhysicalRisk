@@ -35,10 +35,10 @@ def esc(text):
     return text
 
 
-def sci(x):
+def sci(x, digits=1):
     if x == 0:
         return "0"
-    mant, exp = f"{x:.1e}".split("e")
+    mant, exp = f"{x:.{digits}e}".split("e")
     return f"${mant}\\times10^{{{int(exp)}}}$"
 
 
