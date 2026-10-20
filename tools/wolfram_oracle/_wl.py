@@ -123,10 +123,13 @@ def write_wl(path, items, out_name):
 
 
 def wl_number(s):
-    """Parse a Wolfram InputForm number ("1.23*^-15", "{a, b}") to mpf / list."""
+    """Parse a Wolfram InputForm number ("1.23*^-15", "{a, b}", a zero with an
+    accuracy) to mpf / list."""
     s = s.strip()
     if s.startswith("{"):
         return [wl_number(p) for p in s[1:-1].split(",")]
+    if s.startswith("SetAccuracy[0,"):
+        return mp.mpf(0)  # an exact-precision zero, e.g. InverseCDF at 1/2
     return mp.mpf(s.replace("*^", "e"))
 
 

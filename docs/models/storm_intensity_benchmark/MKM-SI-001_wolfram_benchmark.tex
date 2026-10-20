@@ -1,0 +1,189 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Storm Intensity Distribution (MKM-SI-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of the Hybrid Normal--Pareto Implementation}
+\newcommand{\docversion}{0.1}
+\newcommand{\docdate}{20-October-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{evidence_tables_macros}
+
+\begin{document}
+% Long code paths and identifiers cannot hyphenate; let the spacing stretch instead.
+\sloppy
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the Storm Intensity Distribution (MKM-SI-001): a Normal
+body joined to a Pareto tail, clamped to $[I_{\min},I_{\max}]$, with five scenario
+families from \texttt{historical} to \texttt{extreme}. It asks whether the code
+computes what its model document (\texttt{storm\_intensity.pdf}, v1.3) says, and
+whether what the document says holds.
+
+\paragraph{The model is not in the production chain.} Production storm
+intensities are drawn in \texttt{src/port/src/storm\_multi/generators/
+batch\_generator.py}: an intensity category from \texttt{DEFAULT\_INTENSITY\_WEIGHTS},
+then a Normal draw per category from \texttt{BASE\_INTENSITY\_PARAMS}, varied by
+$\pm20\%$ within a sequence. Nothing in the port, the routes, the app commands or the
+scripts imports \texttt{IntensityDistribution}; only its own command line and tests
+do. The model inventory records handovers from SI-001 to SG-001, SS-001, RA-001 and
+FC-001 that the code does not implement, and its stress scenarios do not reach the
+storm catalogue, the hazard curves (MKM-GH-001) or PRS pricing (MKM-PR-001).
+
+\paragraph{The code computes its documented formulae.} Over \bmCases{} cases the
+model agrees with a 50-digit implementation of the document's equations: exceedance
+to \bmExcWorst, return-period intensity to \bmRpWorst, and the quantile to
+\bmInvWorst{} --- the error of Acklam's inverse-normal approximation, carried through
+$\mu+\sigma z$. \bmWolframConfirms
+
+\paragraph{Findings.} Of the six claims tested (Table~\ref{tab:bm-claims}), two hold,
+three do not, and one is a finding:
+\begin{enumerate}[leftmargin=*]
+\item \textbf{The clamp is not a slight distortion.} The Pareto tail runs past
+  $I_{\max}=100$, and every storm it would place there is set to exactly 100: from
+  \bmMassMaxLow\% of storms (\texttt{historical}) to \bmMassMaxHigh\% (\texttt{extreme}).
+\item \textbf{So return periods saturate.} The $T$-year intensity is $I_{\max}$ for
+  every $T$ beyond \bmCapHistorical{} years in the \texttt{historical} scenario and
+  \bmCapBaseline{} years in \texttt{baseline}; in the stress scenarios, for every
+  return period of interest (Table~\ref{tab:bm-rp}). A 1-in-2-year storm and a
+  1-in-1000-year storm are the same.
+\item \textbf{The density is discontinuous at the threshold.} The exceedance is
+  continuous there, as the document proves; the code's docstring further says the
+  Pareto scale makes the \emph{density} continuous, which it does not: the density
+  jumps by a factor of \bmPdfLow{} to \bmPdfHigh.
+\item \textbf{Acklam's accuracy is relative, not absolute.} The document quotes
+  $1.15\times10^{-9}$ absolute error; the measured worst is \bmAcklamAbs{} absolute
+  and \bmAcklamRel{} relative, in the far tail. The effect on intensities is
+  negligible.
+\end{enumerate}
+The sampling jitter changes the mean and standard deviation by at most \bmJitter\%,
+as the document says.
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test, at commit \bmCodeCommit{}\bmCodeDirty:\\ \bmCodeFiles.
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle si001}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+\texttt{IntensityDistribution} in \texttt{src/models/intensity/distribution}:
+\texttt{exceedance\_probability}, \texttt{inverse\_exceedance},
+\texttt{return\_period\_intensity} and the Acklam inverse normal behind them, for
+each of the five \texttt{SCENARIO\_FAMILIES}, imported as production would import
+the package.
+
+\subsection{What is not}
+The calibration the document describes (\S4.3: maximum likelihood on the body, Hill
+estimation on the tail) has no code in the repository; the scenario parameters are
+constants. The inventory's methodology line, ``maximum likelihood threshold
+estimation'', contradicts the document's own \S8.6 (``no automatic threshold
+selection''). Neither can be benchmarked. This is a benchmark of the implementation
+(validation question Q8), not independent validation (Q9).
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+With Normal body $(\mu,\sigma)$, threshold $u$, tail index $\alpha$ and clamp
+$[I_{\min},I_{\max}]$, the document defines $p_{\text{tail}}=S_N(u)$, the Normal's
+exceedance at $u$, and
+\begin{equation}
+S(x)=\begin{cases}
+1 & x\le I_{\min}\\
+S_N(x) & I_{\min}<x\le u\\
+p_{\text{tail}}\,(u/x)^{\alpha} & u<x<I_{\max}\\
+0 & x\ge I_{\max}
+\end{cases}
+\qquad
+S^{-1}(p)=\begin{cases}
+\mu+\sigma\,\Phi^{-1}(1-p) & p\ge p_{\text{tail}}\\
+u\,(p_{\text{tail}}/p)^{1/\alpha} & p<p_{\text{tail}}
+\end{cases}
+\end{equation}
+with $S^{-1}$ clamped to $[I_{\min},I_{\max}]$, and the $T$-year intensity
+$S^{-1}\bigl(1/(T\lambda)\bigr)$ for $\lambda$ storms a year. Above $u$ the tail is
+a generalised Pareto with shape $1/\alpha$ and scale $u/\alpha$: a GPD whose scale is
+tied to the threshold, not fitted.
+
+\paragraph{The clamp.} Because the tail is unbounded and the clamp is not a
+renormalisation, the sampled intensity has point masses
+$p_{\text{tail}}(u/I_{\max})^{\alpha}$ at $I_{\max}$ and $1-S_N(I_{\min})$ at
+$I_{\min}$. The $T$-year intensity reaches $I_{\max}$ once $1/(T\lambda)$ falls
+below the first of these, that is for $T>1/\bigl(\lambda\,p_{\text{tail}}(u/I_{\max})^{\alpha}\bigr)$.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+\subsection{References}
+The equations above are evaluated with \texttt{mpmath} at 50 significant digits, from
+the document rather than the code, with the exact inverse normal. Wolfram evaluates
+the same expressions from each input's exact value at 60-digit precision. The Normal
+exceedance is written out as $\tfrac12\operatorname{erfc}\bigl((x-\mu)/(\sigma\sqrt2)\bigr)$:
+Wolfram~15.0's \texttt{SurvivalFunction} of a \texttt{NormalDistribution} returns a
+machine-precision result even for a 60-digit argument, which would have capped the
+oracle at 16 digits. Acklam's approximation is compared with Wolfram's exact
+\texttt{InverseCDF} on the very doubles it is handed, so input rounding is not
+counted as approximation error. The moments of the sampled intensity are integrated
+over $p$ by both, and the jitter's effect is computed in closed form.
+
+\subsection{Cases}
+For every scenario: the exceedance at every 2.5 from $I_{\min}$ to $I_{\max}$; the
+quantile at $p=1,2,5\times10^{-k}$ ($k=1..6$) and their complements; the return-period
+intensity for $T$ from 2 to 1000 years. Acklam's approximation alone over both tails
+down to $10^{-15}$ and the body in steps of 0.01.
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{The model document's claims}
+\input{evidence_tables_claims}
+
+\subsection{By scenario}
+\input{evidence_tables_scenarios}
+\input{evidence_tables_return_periods}
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The code is shown to compute the documented
+  formulae; whether a Normal--Pareto hybrid suits storm intensity, and whether the
+  scenario parameters are calibrated, are separate questions.
+\item \textbf{Wiring.} Whether SI-001 should drive the storm catalogue, or the
+  inventory's handovers should be corrected to the code, is for the model owner and
+  the MRC.
+\item \textbf{The clamp.} Renormalising the tail on $[u,I_{\max}]$, or raising
+  $I_{\max}$, would remove the point mass and restore informative return periods;
+  either changes the model and is for the owner.
+\item \textbf{Documentation.} \S3.5 and \S5.3 should quote Acklam's accuracy as
+  relative; \S8.4 should state the masses above; the code's docstring should drop
+  the claim of a continuous density.
+\end{enumerate}
+
+\mkmhistorypage{20-Oct-2026 & 0.1 & First issue & David K Kelly \\}
+
+\end{document}
