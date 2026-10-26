@@ -24,6 +24,7 @@ import math
 from typing import Dict
 
 from models.hazard.prs_analytical import compute_prs_spread, interpolate_yield_rate
+from config.models import MIN_PRS_SPREAD_BPS
 from config.port import BUMP_1BP
 
 
@@ -81,8 +82,15 @@ def compute_gauge_delta(annual_hazard_rate: float, tenor: int,
         risk_free_rate: Continuous risk-free rate
         yield_curve: Optional yield curve for tenor-matched discounting
 
+    The spread is floored (MIN_PRS_SPREAD_BPS), and while it sits on the floor a
+    small rise in the hazard rate does not move it: FS01 is then near zero, which
+    is the right P&L sensitivity -- MTM does not move either -- but hides the flood
+    risk underneath. So the result also carries ``at_floor`` and
+    ``hazard_delta_bps``, the same bump on the unfloored spread.
+
     Returns:
-        Dict with delta_spread_bps, dv01_gbp, risky_annuity
+        Dict with delta_spread_bps, dv01_gbp, risky_annuity (rounded for
+        display), at_floor and hazard_delta_bps
     """
     spread_base = compute_prs_spread(
         annual_hazard_rate, tenor, recovery, risk_free_rate,
@@ -90,6 +98,11 @@ def compute_gauge_delta(annual_hazard_rate: float, tenor: int,
     spread_bumped = compute_prs_spread(
         annual_hazard_rate + BUMP_1BP, tenor, recovery, risk_free_rate,
         yield_curve=yield_curve)
+    hazard_delta_bps = (
+        compute_prs_spread(annual_hazard_rate + BUMP_1BP, tenor, recovery,
+                           risk_free_rate, min_spread_bps=0.0, yield_curve=yield_curve)
+        - compute_prs_spread(annual_hazard_rate, tenor, recovery, risk_free_rate,
+                             min_spread_bps=0.0, yield_curve=yield_curve))
 
     delta_spread_bps = spread_bumped - spread_base
     risky_annuity = compute_risky_annuity(
@@ -101,6 +114,8 @@ def compute_gauge_delta(annual_hazard_rate: float, tenor: int,
         'delta_spread_bps': round(delta_spread_bps, 4),
         'dv01_gbp': round(dv01, 2),
         'risky_annuity': round(risky_annuity, 6),
+        'at_floor': spread_base <= MIN_PRS_SPREAD_BPS,
+        'hazard_delta_bps': round(hazard_delta_bps, 4),
     }
 
 
