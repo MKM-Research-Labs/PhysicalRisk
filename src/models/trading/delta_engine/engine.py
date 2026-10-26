@@ -100,7 +100,10 @@ class DeltaEngine:
             current_rate, max(tenor, 1), notional, recovery, rf_rate,
             yield_curve)
 
-        risky_annuity = delta_info['risky_annuity']
+        # The annuity delta_info carries is rounded for display; valuing with it
+        # moved MTM by up to GBP 3.40 on GBP 10m (MKM-DE-001 Wolfram benchmark).
+        risky_annuity = compute_risky_annuity(
+            current_rate, max(tenor, 1), rf_rate, yield_curve)
 
         mtm = compute_mark_to_market(
             trade_spread, fair_spread, risky_annuity, notional, is_payer)
@@ -148,7 +151,9 @@ class DeltaEngine:
             'gauge_fs01': delta_info['dv01_gbp'] * direction,
             'basis_delta_bps': basis_info.get('basis_delta_bps', 0),
             'basis_dv01': basis_info.get('basis_dv01_gbp', 0) * direction,
-            'risky_annuity': risky_annuity,
+            'risky_annuity': delta_info['risky_annuity'],
+            'gauge_at_floor': delta_info['at_floor'],
+            'gauge_hazard_delta_bps': delta_info['hazard_delta_bps'],
             'mtm': mtm,
             'current_hazard_rate': current_rate,
             'new_trade_pnl': round(new_trade_pnl, 2),

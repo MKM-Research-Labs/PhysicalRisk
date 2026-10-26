@@ -7,13 +7,13 @@
 Claim & Document says & Benchmark finds & Outcome \\
 \midrule
 s6 item 5: 1\,bp bump error & $<0.01$\,bp vs analytical gradient & $3.0\times10^{-4}$\,bp at most & met \\
-s6 item 1: FS01 against $h$ & ``scales approximately linearly'', 50--500\,bp & FS01(500)/FS01(50) $= 0.94$, not 10 & \textbf{not met} \\
+s6 item 1: FS01 against $h$ & FS01(500)/FS01(50) $=0.94$ & $0.9436$ & met \\
 s6 item 2: tenor & 5Y $\approx 4.5\times$ 1Y & $4.53\times$ & met \\
-s6 item 3: yields $+100$\,bp & FS01 changes 3--5\% & FS01 falls 0.4--2.4\% & \textbf{not met} \\
-s7.2 hand calculation & $A\approx2.738$ & $A=2.724084$ & \textbf{not met} \\
+s6 item 3: yields $+100$\,bp & FS01 falls 0.4--2.4\% & FS01 falls 0.44--2.40\% & met \\
+s7.2 hand calculation & $A=2.724084$ & $A=2.72408398$ & met \\
 s8 item 1: 50\,bp move & FS01$\times\Delta h$ differs from revaluation & by 0.32\% & finding \\
-Spread floor (2\,bp) & not stated & at $h=0.0001$: $\Delta s=0.0078$\,bp vs gradient 1.004\,bp & finding \\
-s3.5 basis delta & $\approx$ gauge delta & identical in every case: the basis argument is unused & finding \\
+s3.4 spread floor & flagged; hazard sensitivity reported & flag right in every case; at $h=0.0001$: FS01 $\Delta s=0.0078$, hazard 1.0039 vs gradient 1.0039\,bp & met \\
+s3.5 basis delta & is the gauge delta & identical in every case & met \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}

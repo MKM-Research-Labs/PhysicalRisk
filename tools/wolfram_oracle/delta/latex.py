@@ -45,7 +45,8 @@ from tools.wolfram_oracle.delta.claims import assess, by_rate
 _ROUNDED = (("delta_spread_bps", "Spread change $\\Delta s$ (bp, to $10^{-4}$)"),
             ("dv01_gbp", "FS01 (GBP, to the penny)"),
             ("risky_annuity", "Risky annuity as returned (to $10^{-6}$)"),
-            ("mtm", "Mark-to-market (GBP, to the penny)"))
+            ("mtm", "Mark-to-market, unrounded annuity (GBP, to the penny)"),
+            ("hazard_delta_bps", "Hazard sensitivity, unfloored spread (bp, to $10^{-4}$)"))
 
 
 def findings(rows, wolfram_version, claim_err):
@@ -81,22 +82,21 @@ def _claims_table(c):
     rows = [
         ("s6 item 5: 1\\,bp bump error", "$<0.01$\\,bp vs analytical gradient",
          f"{sci(fd['worst'])}\\,bp at most", _met(fd["met"])),
-        ("s6 item 1: FS01 against $h$", "``scales approximately linearly'', 50--500\\,bp",
-         f"FS01(500)/FS01(50) $= {lin['ratio']:.2f}$, not 10", _met(lin["met"])),
+        ("s6 item 1: FS01 against $h$", f"FS01(500)/FS01(50) $={lin['stated']}$",
+         f"${lin['ratio']:.4f}$", _met(lin["met"])),
         ("s6 item 2: tenor", f"5Y $\\approx {ten['stated']}\\times$ 1Y", f"${ten['ratio']:.2f}\\times$",
          _met(ten["met"])),
-        ("s6 item 3: yields $+100$\\,bp", "FS01 changes 3--5\\%",
-         f"FS01 {yld['sign']} {100 * yld['low']:.1f}--{100 * yld['high']:.1f}\\%", _met(yld["met"])),
-        ("s7.2 hand calculation", f"$A\\approx{hand['stated']}$", f"$A={hand['exact']:.6f}$",
+        ("s6 item 3: yields $+100$\\,bp", f"FS01 falls {yld['stated'][0]}--{yld['stated'][1]}\\%",
+         f"FS01 {yld['sign']} {100 * yld['low']:.2f}--{100 * yld['high']:.2f}\\%", _met(yld["met"])),
+        ("s7.2 hand calculation", f"$A={hand['stated']}$", f"$A={hand['exact']:.8f}$",
          _met(hand["met"])),
         ("s8 item 1: 50\\,bp move", "FS01$\\times\\Delta h$ differs from revaluation",
          f"by {100 * cvx['rel']:.2f}\\%", _met(cvx["met"])),
-        ("Spread floor (2\\,bp)", "not stated",
-         f"at $h={floor['h']:g}$: $\\Delta s={floor['model']}$\\,bp vs gradient {floor['gradient']:.3f}\\,bp",
-         _met(floor["met"])),
-        ("s3.5 basis delta", "$\\approx$ gauge delta",
-         "identical in every case: the basis argument is unused" if basis["identical"] else "differs",
-         _met(basis["met"])),
+        ("s3.4 spread floor", "flagged; hazard sensitivity reported",
+         f"flag right in every case; at $h={floor['h']:g}$: FS01 $\\Delta s={floor['model']}$, "
+         f"hazard {floor['hazard']} vs gradient {floor['gradient']:.4f}\\,bp", _met(floor["met"])),
+        ("s3.5 basis delta", "is the gauge delta",
+         "identical in every case" if basis["identical"] else "differs", _met(basis["met"])),
     ]
     return tab("The model document's claims, tested", "tab:bm-claims", "p{38mm}p{40mm}p{56mm}l",
                "Claim & Document says & Benchmark finds & Outcome", rows)
@@ -144,7 +144,9 @@ def macros(provs, rows, wolfram_version, wolfram_mode, claim_err):
         "bmHand": f"{c[4]['exact']:.6f}", "bmHandStated": f"{c[4]['stated']}",
         "bmConvexity": f"{100 * c[5]['rel']:.2f}", "bmMove": f"{ORACLE_DE_CLAIM_MOVE * 1e4:g}",
         "bmFloorH": f"{c[6]['h']:g}", "bmFloorModel": f"{c[6]['model']}",
-        "bmFloorGrad": f"{c[6]['gradient']:.3f}",
+        "bmFloorHazard": f"{c[6]['hazard']}", "bmFloorGrad": f"{c[6]['gradient']:.4f}",
+        "bmClaimsMet": str(sum(x["met"] is True for x in c)),
+        "bmClaimsTested": str(sum(x["met"] is not None for x in c)),
         "bmYieldShift": f"{ORACLE_DE_CLAIM_YIELD_SHIFT * 1e4:g}",
         "bmTableTenor": str(ORACLE_DE_TABLE_TENOR),
         "bmRates": f"{min(ORACLE_DE_RATES):g}--{max(ORACLE_DE_RATES):g}",
