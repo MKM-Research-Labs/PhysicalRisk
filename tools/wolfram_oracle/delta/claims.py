@@ -20,14 +20,16 @@
 
 """DE-001's model document and code, tested as stated.
 
+Model document v1.1:
+
 * s6 item 5 -- the 1 bp forward difference is within 0.01 bp of the gradient;
-* s6 item 1 -- FS01 "scales approximately linearly with hazard rate" (50-500 bp);
+* s6 item 1 -- FS01 at 500 bp is 0.94 times FS01 at 50 bp;
 * s6 item 2 -- a 5Y trade has "approximately 4.5x" the FS01 of a 1Y;
-* s6 item 3 -- a 100 bp parallel yield shift changes FS01 by "approximately 3-5%";
-* s7.2 -- the hand-calculated annuity, 3Y at 200 bp and 4% flat, "~2.738";
-* s8 item 1 -- FS01 x dh against full revaluation for a 50 bp move;
-* the 2 bp spread floor, under which the forward difference sees no move;
-* s3.5 -- basis delta "~ gauge delta": the code ignores the basis it is given.
+* s6 item 3 -- a 100 bp yield rise lowers FS01 by 0.4% (1Y) to 2.4% (5Y);
+* s7.2 -- the hand-calculated annuity, 3Y at 200 bp and 4% flat, is 2.724084;
+* s3.4 -- on the 2 bp floor the engine flags it and reports the hazard sensitivity;
+* s3.5 -- the basis delta is the gauge delta;
+* s8 item 1 -- FS01 x dh against full revaluation for a 50 bp move.
 
 FS01 is the document's forward difference, from the 50-digit reference, on the
 flat curve and at R = 0 unless stated.
@@ -40,7 +42,6 @@ from config.models import (
     ORACLE_DE_CLAIM_HAND,
     ORACLE_DE_CLAIM_HAND_DP,
     ORACLE_DE_CLAIM_LINEAR,
-    ORACLE_DE_CLAIM_LINEAR_TOL,
     ORACLE_DE_CLAIM_MOVE,
     ORACLE_DE_CLAIM_TENOR,
     ORACLE_DE_CLAIM_YIELD_RANGE,
@@ -63,7 +64,7 @@ def _row(rows, h, tenor, curve="flat"):
 
 def assess(rows):
     """Each claim as a dict with its figures and ``met`` (None for a finding)."""
-    lo_h, hi_h = ORACLE_DE_CLAIM_LINEAR
+    lo_h, hi_h, stated_linear, linear_dp = ORACLE_DE_CLAIM_LINEAR
     linear = float(fs01(hi_h, ORACLE_DE_TABLE_TENOR, None) / fs01(lo_h, ORACLE_DE_TABLE_TENOR, None))
     short, long_, ratio, tol = ORACLE_DE_CLAIM_TENOR
     tenor = float(fs01(0.02, long_, None) / fs01(0.02, short, None))
@@ -76,21 +77,27 @@ def assess(rows):
     lin = mp.mpf(_row(rows, 0.02, ORACLE_DE_TABLE_TENOR)["gradient_bp"]) * ORACLE_DE_CLAIM_MOVE / BUMP_1BP
     lowest = _row(rows, min(ORACLE_DE_RATES), ORACLE_DE_TABLE_TENOR)
     fd = max(abs(r["fd_minus_gradient_bp"]) for r in rows)
-    lo_y, hi_y = ORACLE_DE_CLAIM_YIELD_RANGE
+    lo_y, hi_y, y_dp = ORACLE_DE_CLAIM_YIELD_RANGE
+    low_y, high_y = min(abs(s) for s in shifts), max(abs(s) for s in shifts)
+    flagged = all(r["at_floor_model"] == r["floored"] for r in rows)
     return [
         {"claim": "s6.5 bump error", "worst": fd, "limit": ORACLE_DE_CLAIM_FD_BP,
          "met": fd <= ORACLE_DE_CLAIM_FD_BP},
-        {"claim": "s6.1 linear in h", "ratio": linear, "met": abs(linear / 10 - 1) <= ORACLE_DE_CLAIM_LINEAR_TOL},
+        {"claim": "s6.1 FS01 against h", "ratio": linear, "stated": stated_linear,
+         "met": round(linear, linear_dp) == stated_linear},
         {"claim": "s6.2 tenor ratio", "ratio": tenor, "stated": ratio, "met": abs(tenor - ratio) <= tol},
-        {"claim": "s6.3 yield shift", "low": min(abs(s) for s in shifts), "high": max(abs(s) for s in shifts),
+        {"claim": "s6.3 yield shift", "low": low_y, "high": high_y, "stated": (lo_y, hi_y),
          "sign": "falls" if max(shifts) < 0 else "moves",
-         "met": all(lo_y <= abs(s) <= hi_y for s in shifts)},
+         "met": max(shifts) < 0 and round(100 * low_y, y_dp) == lo_y
+         and round(100 * high_y, y_dp) == hi_y},
         {"claim": "s7.2 hand calculation", "exact": hand, "stated": stated,
          "met": round(hand, ORACLE_DE_CLAIM_HAND_DP) == stated},
         {"claim": "s8.1 convexity", "rel": float(full / lin - 1), "met": None},
-        {"claim": "floor", "h": min(ORACLE_DE_RATES), "model": lowest["delta_spread_bps_model"],
-         "gradient": float(mp.mpf(lowest["gradient_bp"])), "met": None},
-        {"claim": "s3.5 basis delta", "identical": all(r["basis_equals_gauge"] for r in rows), "met": None},
+        {"claim": "s3.4 floor flagged", "h": min(ORACLE_DE_RATES), "model": lowest["delta_spread_bps_model"],
+         "hazard": lowest["hazard_delta_bps_model"],
+         "gradient": float(mp.mpf(lowest["gradient_bp"])), "met": flagged},
+        {"claim": "s3.5 basis delta", "identical": all(r["basis_equals_gauge"] for r in rows),
+         "met": all(r["basis_equals_gauge"] for r in rows)},
     ]
 
 

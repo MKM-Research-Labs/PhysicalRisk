@@ -2,7 +2,7 @@
 
 \newcommand{\doctitle}{Delta Engine (MKM-DE-001)}
 \newcommand{\docsubtitle}{Wolfram Oracle Benchmark of FS01, the Risky Annuity and Mark-to-Market}
-\newcommand{\docversion}{0.1}
+\newcommand{\docversion}{0.2}
 \newcommand{\docdate}{26-October-2026}
 \newcommand{\docauthor}{David K Kelly}
 
@@ -11,6 +11,18 @@
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \input{evidence_tables_macros}
+% The shared history table sets every column to its natural width; wrap the description.
+\renewcommand{\mkmhistorypage}[1]{%
+    \section{Document History}
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{l|l|p{9cm}|l}
+            \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author} \\
+            \hline
+            #1
+        \end{tabular}
+    \end{table}
+}
 
 \begin{document}
 % Long code paths and identifiers cannot hyphenate; let the spacing stretch instead.
@@ -35,35 +47,34 @@ differences is PR-001's, benchmarked separately.
 \paragraph{The code computes its documented formulae, to the precision it reports.}
 Over \bmCases{} cases --- annual hazard rates \bmRates, tenors 1 to 10 years, a flat
 3\% curve and the book's yield curve, notional GBP~\bmNotional{} --- the risky annuity
-agrees with a 50-digit reference to \bmAnnuity, and the spread change, FS01 and the
-returned annuity agree to within half a unit of the rounding the engine applies.
-\bmWolframConfirms{} The exception is mark-to-market: the engine reuses the annuity
-\emph{after} rounding it to six decimal places, which moves MTM by up to
-GBP~\bmMtm{} (GBP~\bmMtmLow{} for hazard rates up to 5\%). That is immaterial on a
-GBP~\bmNotional{} trade, but it is an error, and the fix is to round only for display.
+agrees with a 50-digit reference to \bmAnnuity, and the spread change, FS01, the
+returned annuity, the hazard sensitivity and mark-to-market agree to within half a
+unit of the rounding the engine applies. \bmWolframConfirms
 
-\paragraph{Findings on the model document} (Table~\ref{tab:bm-claims}):
+\paragraph{What changed since v0.1.} Benchmark v0.1 tested the engine against model
+document v1.0 and found two defects in the code and three errors in the document:
 \begin{enumerate}[leftmargin=*]
-\item \textbf{FS01 does not scale with the hazard rate.} The document says it scales
-  approximately linearly over 50--500\,bp. It barely moves: FS01 at 500\,bp is
-  \bmLinear{} times FS01 at 50\,bp, not ten times (Table~\ref{tab:bm-fs01}). A 1\,bp
-  rise in $h$ raises the spread by about 1\,bp at any level, so FS01 is set by the
-  risky annuity and the notional.
-\item \textbf{The yield-curve sensitivity is overstated.} A 100\,bp parallel rise in
-  yields lowers FS01 by \bmYieldLow--\bmYieldHigh\%, not the 3--5\% stated.
-\item \textbf{The hand calculation is wrong.} The 3-year annuity at 200\,bp and 4\% is
-  \bmHand, not \bmHandStated. The model computes it correctly.
-\item \textbf{FS01 is blind below the spread floor.} At $h=\bmFloorH$ the fair spread
-  sits on the 2\,bp floor, so the 1\,bp bump moves it by \bmFloorModel\,bp where the
-  true sensitivity is \bmFloorGrad\,bp: a position on a quiet gauge reports almost
-  no flood risk.
-\item \textbf{Basis delta is the gauge delta by construction.} The code ignores the
-  basis it is given; the document's approximation is exact only because nothing
-  else is computed.
+\item \textbf{MTM used a rounded annuity}, rounded to six places for display, which
+  moved MTM by up to GBP~3.40 on GBP~10m. The engine now values with the unrounded
+  annuity; MTM now agrees to the penny.
+\item \textbf{FS01 was silent on the spread floor.} At $h=\bmFloorH$ the fair spread
+  sits on the 2\,bp floor and FS01 reflects a \bmFloorModel\,bp spread change ---
+  the right P\&L sensitivity, since MTM does not move either, but blind to the flood
+  risk. The engine now flags the floor and reports the hazard sensitivity beside
+  FS01: \bmFloorHazard\,bp, against an exact \bmFloorGrad\,bp.
+\item \textbf{The document} said FS01 scaled linearly with the hazard rate (it is
+  nearly flat), put the yield sensitivity at 3--5\% (it is 0.4--2.4\%), and gave the
+  worked annuity as 2.738 (it is 2.724084). Model document v1.1 corrects all three,
+  states that the basis delta \emph{is} the gauge delta, and documents the floor.
 \end{enumerate}
-Two claims hold: the 1\,bp bump is within \bmFd\,bp of the exact gradient (the
-document says $<0.01$\,bp), and a 5-year trade carries \bmTenor{} times the FS01 of
-a 1-year (stated 4.5). A \bmMove\,bp move is \bmConvexity\% from full revaluation.
+
+\paragraph{The model document's claims} (v1.1, Table~\ref{tab:bm-claims}): all
+\bmClaimsMet{} of the \bmClaimsTested{} claims tested hold, each to the precision the
+document quotes: FS01 at 500\,bp is \bmLinear{} times FS01 at 50\,bp; a 100\,bp
+yield rise lowers FS01 by \bmYieldLow--\bmYieldHigh\%; a 5-year trade carries
+\bmTenor{} times the FS01 of a 1-year; the worked annuity is \bmHand; and the 1\,bp
+bump is within \bmFd\,bp of the exact gradient. A \bmMove\,bp move is
+\bmConvexity\% from full revaluation.
 
 \paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
 (Table~\ref{tab:bm-checks}).
@@ -79,15 +90,15 @@ a 1-year (stated 4.5). A \bmMove\,bp move is \bmConvexity\% from full revaluatio
 % =========================================================================
 
 \subsection{What is benchmarked}
-\texttt{compute\_risky\_annuity}, \texttt{compute\_gauge\_delta},
-\texttt{compute\_basis\_delta} and \texttt{compute\_mark\_to\_market} in
-\texttt{src/models/trading/delta\_engine/pricer.py}, called as
-\texttt{DeltaEngine.enrich\_trade} calls them, with the rounding they apply.
+\texttt{compute\_risky\_annuity}, \texttt{compute\_gauge\_delta} (FS01, the floor
+flag and the hazard sensitivity), \texttt{compute\_basis\_delta} and
+\texttt{compute\_mark\_to\_market} in \texttt{src/models/trading/delta\_engine/pricer.py},
+called as \texttt{DeltaEngine.enrich\_trade} calls them, with the rounding they apply,
+against model document v1.1 (\texttt{delta\_engine\_v1.1.pdf}).
 
 \subsection{What is not}
 The fair spread itself (MKM-PR-001's benchmark); the market-state inputs the trader
-maintains; the risk-grid aggregation, which is a sum. The document's architecture
-section names \texttt{delta\_engine.py}, which is now a package. This is a benchmark
+maintains; the risk-grid aggregation, which is a sum. This is a benchmark
 of the implementation (validation question Q8), not independent validation (Q9).
 
 % =========================================================================
@@ -146,15 +157,15 @@ an inception spread of \bmTradeSpread\,bp.
 \item \textbf{Benchmark, not validation.} The engine is shown to compute its
   documented formulae; whether a parallel 1\,bp bump in the annual rate is the right
   risk measure is a separate question.
-\item \textbf{Mark-to-market.} Round the annuity for display only, and pass the
-  unrounded value to \texttt{compute\_mark\_to\_market}.
-\item \textbf{The floor.} Where the fair spread is on the 2\,bp floor, FS01 should be
-  reported as the analytic sensitivity or flagged, not as near zero.
-\item \textbf{Documentation.} \S6 items 1 and 3 and the \S7.2 hand calculation should
-  be corrected to the figures above; \S3.5 should say the basis delta \emph{is} the
-  gauge delta; \S5.1 should name the package.
+\item \textbf{The floor.} The engine now flags it, but risk limits and the risk grid
+  aggregate FS01 alone; positions on the floor contribute almost nothing to them.
+  Whether limits should also read the hazard sensitivity is for the desk and the
+  model owner.
+\item \textbf{Parallel bump only.} FS01 bumps the annual rate in parallel across
+  tenors; term-structure and cross-gauge sensitivities are outside this benchmark.
 \end{enumerate}
 
-\mkmhistorypage{26-Oct-2026 & 0.1 & First issue & David K Kelly \\}
+\mkmhistorypage{26-Oct-2026 & 0.1 & First issue, against model document v1.0 & David K Kelly \\
+26-Oct-2026 & 0.2 & After the MTM and floor fixes, against model document v1.1 & David K Kelly \\}
 
 \end{document}

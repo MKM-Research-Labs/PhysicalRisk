@@ -118,13 +118,17 @@ def run(pricer):
                                                        ORACLE_DE_FLAT_RATE, curve)
                     fair = pricer.compute_prs_spread(h, tenor, 0.0, ORACLE_DE_FLAT_RATE,
                                                      yield_curve=curve)
-                    mtm = pricer.compute_mark_to_market(ORACLE_DE_TRADE_SPREAD_BPS, fair,
-                                                        got["risky_annuity"], ORACLE_DE_NOTIONAL)
+                    # As DeltaEngine.enrich_trade values it: the unrounded annuity.
+                    mtm = pricer.compute_mark_to_market(
+                        ORACLE_DE_TRADE_SPREAD_BPS, fair,
+                        pricer.compute_risky_annuity(h, tenor, ORACLE_DE_FLAT_RATE, curve),
+                        ORACLE_DE_NOTIONAL)
                     exact = {"delta_spread_bps": ds,
                              "dv01_gbp": ds / ORACLE_PRS_BPS * ann * ORACLE_DE_NOTIONAL,
                              "risky_annuity": ann,
                              "mtm": (floored(s) - mp.mpf(ORACLE_DE_TRADE_SPREAD_BPS))
-                             / ORACLE_PRS_BPS * ann * ORACLE_DE_NOTIONAL}
+                             / ORACLE_PRS_BPS * ann * ORACLE_DE_NOTIONAL,
+                             "hazard_delta_bps": s_up - s}
                     model = {**got, "mtm": mtm}
                     rows.append({
                         "id": f"{name}/T={tenor}/h={h!r}", "curve": name, "T": tenor, "h": h,
@@ -138,6 +142,7 @@ def run(pricer):
                         **{f"{k}_err": float(abs(mp.mpf(model[k]) - v)) for k, v in exact.items()},
                         "basis_equals_gauge": basis["basis_delta_bps"] == got["delta_spread_bps"],
                         "floored": bool(s < MIN_PRS_SPREAD_BPS),
+                        "at_floor_model": got["at_floor"],
                         "gradient_bp": mp.nstr(grad, 25),
                         "fd_minus_gradient_bp": float(s_up - s - grad),
                     })

@@ -21,8 +21,9 @@
 """Wolfram oracle benchmark parameters for MKM-DE-001 (Delta Engine).
 
 The cases a benchmark run checks the delta engine's pricer against, the claims
-in DE-001's model document (``delta_engine.pdf`` v1.0) it tests, and where it
-files its evidence. Shared settings -- kernel, precision -- are in ``_wolfram_oracle``.
+in DE-001's model document (``delta_engine_v1.1.pdf``) it tests, and where it
+files its evidence. Benchmark v0.1 tested v1.0's claims; three were wrong and
+were corrected in v1.1, which this tests. Shared settings -- kernel, precision -- are in ``_wolfram_oracle``.
 """
 
 # The code under test, imported as production imports it (config puts src/ on the path).
@@ -51,25 +52,25 @@ ORACLE_DE_TRADE_SPREAD_BPS = 150.0       # an inception spread for the MTM check
 # are judged to half a unit in their last place; the unrounded annuity to:
 ORACLE_DE_ANNUITY_TOL = 1e-12
 ORACLE_DE_ROUNDING = {"delta_spread_bps": 1e-4, "dv01_gbp": 1e-2, "risky_annuity": 1e-6,
-                      "mtm": 1e-2}
+                      "mtm": 1e-2, "hazard_delta_bps": 1e-4}
 
-# The model document's claims, tested as stated:
-#   s6.5  the 1 bp bump's finite-difference error is below this, in bp, against
-#         the analytical gradient;
-#   s6.1  FS01 "scales approximately linearly with hazard rate" over 50-500 bp --
-#         read as FS01(500 bp)/FS01(50 bp) within this fraction of 10;
-#   s6.2  a 5Y trade has "approximately 4.5x" the FS01 of a 1Y -- within this;
-#   s6.3  a 100 bp parallel yield shift changes FS01 by "approximately 3-5%";
-#   s7.2  the hand-calculated risky annuity, 3Y at 200 bp and 4% flat, "~2.738";
-#   s8.1  FS01 x dh against full revaluation for a 50 bp move.
+# The model document's claims (v1.1), tested as stated, each to the precision
+# the document quotes:
+#   s6 item 5  the 1 bp bump's finite-difference error is below this, in bp;
+#   s6 item 1  FS01 at 500 bp is 0.94 times FS01 at 50 bp (5-year trade);
+#   s6 item 2  a 5Y trade has "approximately 4.5x" the FS01 of a 1Y -- within this;
+#   s6 item 3  a 100 bp parallel yield rise lowers FS01 by 0.4% (1Y) to 2.4% (5Y);
+#   s7.2       the hand-calculated risky annuity, 3Y at 200 bp and 4% flat, 2.724084;
+#   s3.4       the floor is flagged, with the hazard sensitivity beside FS01;
+#   s3.5       the basis delta is the gauge delta;
+#   s8 item 1  FS01 x dh against full revaluation for a 50 bp move.
 ORACLE_DE_CLAIM_FD_BP = 0.01
-ORACLE_DE_CLAIM_LINEAR = (0.005, 0.05)
-ORACLE_DE_CLAIM_LINEAR_TOL = 0.25
+ORACLE_DE_CLAIM_LINEAR = (0.005, 0.05, 0.94, 2)     # low h, high h, stated ratio, dp
 ORACLE_DE_CLAIM_TENOR = (1, 5, 4.5, 0.25)          # short, long, ratio, tolerance
 ORACLE_DE_CLAIM_YIELD_SHIFT = 0.01
-ORACLE_DE_CLAIM_YIELD_RANGE = (0.03, 0.05)
-ORACLE_DE_CLAIM_HAND = (0.02, 3, 0.04, 2.738)       # rate, tenor, flat r, stated A
-ORACLE_DE_CLAIM_HAND_DP = 3                         # the document quotes 3 dp
+ORACLE_DE_CLAIM_YIELD_RANGE = (0.4, 2.4, 1)         # stated %, low and high, dp
+ORACLE_DE_CLAIM_HAND = (0.02, 3, 0.04, 2.724084)    # rate, tenor, flat r, stated A
+ORACLE_DE_CLAIM_HAND_DP = 6                         # the document quotes 6 dp
 ORACLE_DE_CLAIM_MOVE = 0.005
 ORACLE_DE_FLAT_RATE = 0.03                          # the engine's default flat rate
 # Step for the reference's high-precision central difference of s(h). It must

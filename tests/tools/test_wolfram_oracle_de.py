@@ -20,7 +20,8 @@
 
 """Tests for tools.wolfram_oracle.delta, the DE-001 benchmark.
 
-The reference's gradient is checked against the flat-curve closed form it does
+Benchmark v0.2: the engine after its MTM and floor fixes, against model document
+v1.1. The reference's gradient is checked against the flat-curve closed form it does
 not use, and its annuity against the document's own worked example, so it is not
 merely agreeing with itself. The model gate then runs the full grid, so a change
 to the delta engine that breaks its documented formulae fails here. Wolfram is
@@ -64,11 +65,12 @@ class TestReference:
 class TestModel:
     def test_annuity_and_rounded_outputs_match(self, rows):
         assert max(r["annuity_rel_err"] for r in rows) <= ORACLE_DE_ANNUITY_TOL
-        for key in ("delta_spread_bps", "dv01_gbp", "risky_annuity"):
+        for key in ORACLE_DE_ROUNDING:
             assert max(r[f"{key}_err"] for r in rows) <= ORACLE_DE_ROUNDING[key] / 2
 
-    def test_mtm_carries_the_rounded_annuity(self, rows):
-        assert max(r["mtm_err"] for r in rows) > ORACLE_DE_ROUNDING["mtm"] / 2
+    def test_the_floor_flag_matches_the_reference(self, rows):
+        assert all(r["at_floor_model"] == r["floored"] for r in rows)
+        assert any(r["floored"] for r in rows)
 
     def test_wolfram_gets_the_bumped_double(self, rows):
         items = dict(sens.wl_items(rows))
@@ -77,11 +79,12 @@ class TestModel:
 
 
 class TestClaims:
-    def test_the_claims_as_found(self, rows):
+    def test_document_v11_claims_hold(self, rows):
         fd, lin, ten, yld, hand, cvx, floor, basis = claims.assess(rows)
-        assert fd["met"] and ten["met"]
-        assert lin["met"] is False and yld["met"] is False and hand["met"] is False
-        assert floor["model"] < 0.1 * floor["gradient"] and basis["identical"]
+        assert all(c["met"] for c in (fd, lin, ten, yld, hand, floor, basis))
+        assert cvx["met"] is None
+        assert floor["model"] < 0.1 * floor["gradient"]
+        assert floor["hazard"] == pytest.approx(floor["gradient"], abs=1e-4)
 
 
 class TestRun:
@@ -101,4 +104,4 @@ class TestRun:
                      {i: answers[i].replace("e", "*^") for i in ids})
         assert cli.main(["de001", "--out", str(tmp_path), "--no-pdf", "--no-live"]) == 0
         macros = (tmp_path / "evidence_tables_macros.tex").read_text()
-        assert "15.0 (file)" in macros and r"\bmOutcome}{1 fail}" in macros
+        assert "15.0 (file)" in macros and r"\bmOutcome}{all pass}" in macros
