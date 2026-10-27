@@ -85,7 +85,8 @@ def _rates(base, growth, tenor):
 
 
 def term(m):
-    """Exact tenor probability, and the per-year-hazard convention beside it."""
+    """Exact tenor probability: the model's, its term structure's (v2.4, s5.10),
+    and v2.3's convention -- the annual probabilities compounded -- beside them."""
     rows, rp = [], m["rate_process"]
     base, growth = ORACLE_EF_TREND
     cases = [("const", lam, 0.0) for lam in (2.0, 10.0)] + [("trend", base, growth)]
@@ -96,12 +97,14 @@ def term(m):
                 for t in ORACLE_EF_TENORS:
                     exact = -mp.expm1(-mp.mpf(p) * mp.fsum(_rates(lam, g, t)))
                     hazards = m["annualise"].annual_hazard_by_year(process, p, t)
-                    convention = m["term"].compute_term_structure(hazards, t)[-1].prob_at_least_one
+                    structure = m["term"].compute_term_structure(hazards, t)[-1].prob_at_least_one
+                    v23 = -mp.expm1(-mp.fsum(-mp.expm1(-mp.mpf(p) * r) for r in _rates(lam, g, t)))
                     rows.append(_row("term", f"{kind},lam={lam!r},p={p!r},T={t}",
                                      rp.term_exceedance_probability(process, p, t), exact,
                                      lam=lam, growth=g, p=p, T=t,
-                                     convention=repr(float(convention)),
-                                     convention_gap=float(mp.mpf(convention) / exact - 1)))
+                                     structure=repr(float(structure)),
+                                     structure_rel_err=rel_err(structure, exact),
+                                     v23=mp.nstr(v23, 30), v23_gap=float(v23 / exact - 1)))
     return rows
 
 

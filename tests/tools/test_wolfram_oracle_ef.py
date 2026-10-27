@@ -19,6 +19,9 @@
 # SOFTWARE.
 """Tests for tools.wolfram_oracle.frequency, the EF-001 benchmark.
 
+Benchmark v0.2: the term structure and annualisation after their fixes, against
+model document v2.4.
+
 The reference is checked against figures it does not compute from (a hand value of
 1 - exp(-x), the Poisson limit of the Negative Binomial), and the model gate then
 runs the full grid, so a change to the frequency model that breaks its documented
@@ -71,17 +74,21 @@ class TestModel:
     def test_matches_the_reference(self, rows, group, tol):
         assert max(r["rel_err"] for r in _group(rows, group)) <= tol
 
-    def test_annual_probability_in_its_operating_range(self, rows):
-        assert max(r["rel_err"] for r in claims.operating(rows) if r["group"] == "annual") <= ORACLE_EF_REL_TOL
+    def test_annual_probability_over_the_whole_range(self, rows):
+        assert max(r["rel_err"] for r in rows if r["group"] == "annual") <= ORACLE_EF_REL_TOL
+
+    def test_the_term_structure_is_exact(self, rows):
+        terms = [r for r in rows if r["group"] == "term"]
+        assert max(r["structure_rel_err"] for r in terms) <= ORACLE_EF_REL_TOL
+        assert min(r["v23_gap"] for r in terms) < -0.17
 
 
 class TestClaims:
     def test_document_claims_and_findings(self, rows):
         eq4, z, samp, term, prec, nb = claims.assess(rows)
         assert eq4["met"] and eq4["identity"] is None
-        assert z["met"] and samp["met"] and nb["met"]
-        assert term["met"] is None and term["high"] < term["low"] < 0
-        assert prec["met"] is None and prec["worst"] > ORACLE_EF_REL_TOL
+        assert z["met"] and samp["met"] and nb["met"] and term["met"] and prec["met"]
+        assert term["high"] < term["low"] < 0
 
     def test_wolfram_must_confirm_the_identity(self, rows):
         assert not claims.assess(rows, {"claim/eq4": "0", "claim/mean_abs_z": "0.7978845608"})[0]["met"]

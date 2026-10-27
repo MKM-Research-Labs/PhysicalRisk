@@ -24,18 +24,18 @@ from datetime import date
 
 from config.models import (
     ORACLE_EF_LL_TOL,
-    ORACLE_EF_OPERATING_MIN_X,
     ORACLE_EF_PVALUE_TOL,
     ORACLE_EF_REL_TOL,
     ORACLE_EF_TABLE_PREFIX,
 )
 from tools.wolfram_oracle._latex import GENERATED, esc, macros as as_macros, outcome, sci, tab, write_files
-from tools.wolfram_oracle.frequency.claims import assess, operating
+from tools.wolfram_oracle.frequency.claims import assess
 
 _GROUPS = (
-    ("annual", f"Annual probability $1-e^{{-\\lambda p}}$, $\\lambda p\\ge{ORACLE_EF_OPERATING_MIN_X:g}$", ORACLE_EF_REL_TOL),
+    ("annual", "Annual probability $1-e^{-\\lambda p}$, $\\lambda p$ from $5\\times10^{-7}$", ORACLE_EF_REL_TOL),
     ("rate", "Aggregate rate $\\lambda p$", ORACLE_EF_REL_TOL),
     ("term", "Tenor probability $1-e^{-p\\sum\\lambda_y}$", ORACLE_EF_REL_TOL),
+    ("term", "Term structure, compounded year by year (\\S5.10)", ORACLE_EF_REL_TOL, "structure_rel_err"),
     ("aal", "Compound-Poisson average annual loss", ORACLE_EF_REL_TOL),
     ("aal_se", "Its standard error over $n$ years", ORACLE_EF_REL_TOL),
     ("disp_stat", "Dispersion statistic $(n-1)s^2/\\bar x$", ORACLE_EF_REL_TOL),
@@ -51,9 +51,10 @@ def _worst(rows, group, key="rel_err"):
 
 
 def findings(rows, version):
-    judged = operating(rows)
-    out = [(label + ": model vs reference", sci(_worst(judged, g)), sci(tol), _worst(judged, g) <= tol)
-           for g, label, tol in _GROUPS]
+    out = []
+    for g, label, tol, *key in _GROUPS:
+        worst = _worst(rows, g, *key)
+        out.append((label + ": model vs reference", sci(worst), sci(tol), worst <= tol))
     if version:
         ref = max(r["wolfram_vs_ref"] for r in rows if "wolfram_vs_ref" in r)
         gain = max(r["wolfram_ll_gain"] for r in rows if "wolfram_ll_gain" in r)
@@ -86,25 +87,26 @@ def _claims_table(c):
          _met(z["met"])),
         ("\\S7.2 sampling error", "5, 1.6, 0.5, 0.16\\% at $10^3$..$10^6$ years",
          f"$1/\\sqrt n$ from the first gives {scaled}", _met(samp["met"])),
-        ("Term structure (annualise, gev)", "annual probability used as the per-year hazard",
-         f"tenor probability understated by {100 * -term['low']:.2f}--{100 * -term['high']:.1f}\\%",
+        ("\\S5.10 term structure", "$1-\\exp(-p\\sum_y\\lambda_y)$ at every tenor",
+         f"to {sci(term['worst'])}; v2.3 understated it by {100 * -term['low']:.2f}--{100 * -term['high']:.1f}\\%",
          _met(term["met"])),
-        ("Annualisation precision", "$1-\\exp(-x)$",
-         f"{sci(prec['worst'])} relative below $\\lambda p={prec['below']:g}$; $-\\mathrm{{expm1}}(-x)$ is exact",
+        ("C21 precision", "$-\\mathrm{expm1}(-\\lambda p)$ keeps full precision",
+         f"{sci(prec['worst'])} relative below $\\lambda p={prec['below']:g}$ (v2.3: $1.0\\times10^{{-10}}$)",
          _met(prec["met"])),
         ("Negative Binomial search", "bounded scalar search on $\\alpha$",
          f"log-likelihood within {sci(nb['worst'])} of the maximum", _met(nb["met"])),
     ]
-    return tab("The model document's claims, and the code's own conventions, tested", "tab:bm-claims",
+    return tab("The model document's claims (v2.4), tested", "tab:bm-claims",
                "p{36mm}p{44mm}p{56mm}l", "Claim & Stated & Benchmark finds & Outcome", rows)
 
 
 def _term_table(rows):
     body = [(r["id"].split("/")[1].split(",")[0], f"{r['lam']:g}", f"{r['p']:g}", str(r["T"]),
-             f"{float(r['ref']):.6f}", f"{float(r['convention']):.6f}", f"{100 * r['convention_gap']:+.2f}\\%")
+             f"{float(r['ref']):.6f}", f"{float(r['structure']):.6f}", f"{float(r['v23']):.6f}",
+             f"{100 * r['v23_gap']:+.2f}\\%")
             for r in rows if r["group"] == "term" and r["T"] in (1, 10)]
-    return tab("The multi-year exceedance probability: exact against the per-year-hazard convention",
-               "tab:bm-term", "lrrrrrr", "Rate & $\\lambda_0$ & $p$ & $T$ & Exact & Convention & Gap", body)
+    return tab("The multi-year exceedance probability: the term structure now, and v2.3's convention",
+               "tab:bm-term", "lrrrrrrr", "Rate & $\\lambda_0$ & $p$ & $T$ & Exact & Now & v2.3 & v2.3 gap", body)
 
 
 def macros(provs, rows, version, mode, wl):
@@ -126,8 +128,8 @@ def macros(provs, rows, version, mode, wl):
         "bmOutcome": ("all pass" if not failed else f"{failed} fail") + ("" if version else "; Wolfram pending"),
         "bmTermLow": f"{100 * -c[3]['low']:.2f}", "bmTermHigh": f"{100 * -c[3]['high']:.1f}",
         "bmPrecision": sci(c[4]["worst"]), "bmPrecisionBelow": f"{c[4]['below']:g}",
+        "bmStructure": sci(c[3]["worst"]),
         "bmNbGap": sci(c[5]["worst"]), "bmImpliedP": f"{c[2]['implied_p']:.2f}",
-        "bmOperating": f"{ORACLE_EF_OPERATING_MIN_X:g}",
     })
 
 

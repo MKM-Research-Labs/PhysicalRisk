@@ -6,9 +6,10 @@
 \toprule
 Check & Result & Tolerance & Outcome \\
 \midrule
-Annual probability $1-e^{-\lambda p}$, $\lambda p\ge0.0001$: model vs reference & $5.7\times10^{-14}$ & $1.0\times10^{-12}$ & pass \\
+Annual probability $1-e^{-\lambda p}$, $\lambda p$ from $5\times10^{-7}$: model vs reference & $1.3\times10^{-16}$ & $1.0\times10^{-12}$ & pass \\
 Aggregate rate $\lambda p$: model vs reference & $5.6\times10^{-17}$ & $1.0\times10^{-12}$ & pass \\
-Tenor probability $1-e^{-p\sum\lambda_y}$: model vs reference & $6.1\times10^{-15}$ & $1.0\times10^{-12}$ & pass \\
+Tenor probability $1-e^{-p\sum\lambda_y}$: model vs reference & $2.6\times10^{-16}$ & $1.0\times10^{-12}$ & pass \\
+Term structure, compounded year by year (\S5.10): model vs reference & $2.6\times10^{-16}$ & $1.0\times10^{-12}$ & pass \\
 Compound-Poisson average annual loss: model vs reference & $2.3\times10^{-16}$ & $1.0\times10^{-12}$ & pass \\
 Its standard error over $n$ years: model vs reference & $4.6\times10^{-17}$ & $1.0\times10^{-12}$ & pass \\
 Dispersion statistic $(n-1)s^2/\bar x$: model vs reference & $1.4\times10^{-16}$ & $1.0\times10^{-12}$ & pass \\
