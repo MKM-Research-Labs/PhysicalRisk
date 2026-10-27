@@ -25,6 +25,7 @@
     python -m tools.wolfram_oracle si001 [--out DIR] [--no-live] [--no-pdf]
     python -m tools.wolfram_oracle de001 [--out DIR] [--no-live] [--no-pdf]
     python -m tools.wolfram_oracle ef001 [--out DIR] [--no-live] [--no-pdf]
+    python -m tools.wolfram_oracle mp001 [--out DIR] [--no-live] [--no-pdf]
 
 With an activated Wolfram Engine and ``wolframclient`` installed, one run
 evaluates every oracle in a live kernel. Without them it writes ``.wl`` scripts
@@ -43,6 +44,7 @@ BENCHMARKS = {
     "si001": "tools.wolfram_oracle.intensity.run",
     "de001": "tools.wolfram_oracle.delta.run",
     "ef001": "tools.wolfram_oracle.frequency.run",
+    "mp001": "tools.wolfram_oracle.mortgage.run",
 }
 
 
