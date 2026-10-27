@@ -153,4 +153,4 @@ def term_exceedance_probability(
     """
     p = min(1.0, max(0.0, p_event))
     exponent = process.cumulative_rate(n_years) * p
-    return 1.0 - math.exp(-max(0.0, exponent))
+    return -math.expm1(-max(0.0, exponent))

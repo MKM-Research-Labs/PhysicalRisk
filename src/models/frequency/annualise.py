@@ -44,7 +44,9 @@ def annual_exceedance_probability(lambda_per_year: float, p_event: float) -> flo
 
     For a Poisson number of events N with rate lambda, each exceeding
     independently with probability p, ``E[(1-p)^N] = exp(-lambda*p)``, so the
-    probability of at least one exceedance is ``1 - exp(-lambda*p)``.
+    probability of at least one exceedance is ``1 - exp(-lambda*p)``. It is
+    evaluated as ``-expm1(-lambda*p)``: ``1 - exp(-x)`` cancels for small x and
+    loses about 1e-16/x of relative precision (1e-10 at lambda*p = 1e-6).
 
     Args:
         lambda_per_year: the catchment event arrival rate.
@@ -54,7 +56,7 @@ def annual_exceedance_probability(lambda_per_year: float, p_event: float) -> flo
         An annual probability in ``[0, 1]``. Non-positive inputs give zero.
     """
     exponent = max(0.0, lambda_per_year) * max(0.0, p_event)
-    return 1.0 - math.exp(-exponent)
+    return -math.expm1(-exponent)
 
 
 def annual_exceedance_rate(lambda_per_year: float, p_event: float) -> float:
@@ -91,19 +93,20 @@ def return_period_years(lambda_per_year: float, p_event: float) -> float:
 def annual_hazard_by_year(
     process: RateProcess, p_event: float, max_years: int
 ) -> List[float]:
-    """Return the annual exceedance probability for each year of a tenor.
+    """Return the exceedance intensity for each year of a tenor.
 
-    Year ``y``'s value is ``annual_exceedance_probability(λ_y, p)`` where
-    ``λ_y`` is the arrival rate the *process* gives for that year. Under a
-    ``ConstantRate`` every year is identical and this is a flat list, which is
-    what keeps a non-stationary term structure a strict generalisation of the
-    stationary one (MKM-EF-001, Stage 6h).
+    Year ``y``'s value is ``annual_exceedance_rate(λ_y, p) = λ_y·p``, where
+    ``λ_y`` is the arrival rate the *process* gives for that year: the hazard of
+    the year's Poisson exceedance process. Under a ``ConstantRate`` every year is
+    identical and this is a flat list, which keeps a non-stationary term
+    structure a strict generalisation of the stationary one (MKM-EF-001,
+    Stage 6h).
 
-    These are the per-year hazards the multi-year term structure compounds. They
-    follow the platform's existing convention — the annual *probability* used as
-    the per-year hazard — rather than the exact ``1 - exp(-p·Σλ)`` of
-    ``term_exceedance_probability``, so that wiring a flat (stationary) process
-    reproduces the current term structure exactly.
+    These are the per-year hazards the multi-year term structure compounds, so
+    compounding them gives exactly ``term_exceedance_probability``'s
+    ``1 - exp(-p·Σλ_y)``. They were once the annual *probabilities*
+    ``1 - exp(-λ_y·p)``; compounding those as intensities understated the tenor
+    probability by up to 17% (MKM-EF-001 Wolfram benchmark v0.1).
 
     Args:
         process: the arrival-rate process over the tenor.
@@ -111,9 +114,9 @@ def annual_hazard_by_year(
         max_years: the tenor length in years.
 
     Returns:
-        A list of *max_years* annual exceedance probabilities, year 1 first.
+        A list of *max_years* exceedance intensities, year 1 first.
     """
     return [
-        annual_exceedance_probability(process.rate_at(year), p_event)
+        annual_exceedance_rate(process.rate_at(year), p_event)
         for year in range(max(0, max_years))
     ]
