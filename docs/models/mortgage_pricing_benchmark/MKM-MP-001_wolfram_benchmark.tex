@@ -1,0 +1,179 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Mortgage Pricing Model (MKM-MP-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of the Fair-Value Calculation}
+\newcommand{\docversion}{0.1}
+\newcommand{\docdate}{27-October-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{evidence_tables_macros}
+
+\begin{document}
+% Long code paths and identifiers cannot hyphenate; let the spacing stretch instead.
+\sloppy
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the Mortgage Pricing Model (MKM-MP-001), which values a
+flood-exposed residential mortgage from its amortisation schedule, an
+affordability-based credit spread and a loss given default. It asks whether the code
+computes what its model document (\texttt{mortgage\_pricer.pdf}, v1.1) says, and
+whether what the document says is right. An earlier review suspected that the fair
+value counts the expected loss twice.
+
+\paragraph{The code computes its documented formulae.} Over \bmCases{} loans ---
+loan-to-value 0.5 to 1.0, recovery haircuts 0 to 40\%, two incomes, two coupons,
+three terms, discounted at the coupon and at a risk-free rate --- the payment, spread,
+expected cashflows, expected losses and fair value agree with a 50-digit
+implementation of Eqs.~1--24 to \bmCodeErr. \bmWolframConfirms
+
+\paragraph{The expected loss is counted twice: confirmed.} The document's expected
+cashflow (Eq.~19) pays the lender, in the month of default, the balance \emph{less}
+the loss given default. The fair value (Eq.~24) then subtracts the present value of
+that same loss again. Wolfram values the loan independently, as the expectation over
+the month of default of the payments made before it and the recovery made in it,
+and that value equals Eq.~22 alone, with no loss term. The model understates fair
+value by the full PV of expected loss: on \bmDoubleShare\% of the loans in the grid,
+up to \bmDoubleWorst\% of par, so a GBP~\bmWorstLoan{} loan worth
+GBP~\bmWorstPath{} is valued at GBP~\bmWorstFv{} (Table~\ref{tab:bm-double}). The
+expected-loss outputs are themselves right; the fair value and the discount to par
+are not. The document's own sensitivity tables never show it, because their
+baseline (LTV 0.67, haircut 25\%) has no loss given default.
+
+\paragraph{Other findings} (Table~\ref{tab:bm-claims}):
+\begin{enumerate}[leftmargin=*]
+\item \textbf{The recovery is measured a month late.} Eq.~19 pays $B_{i-1}-\mathrm{LGD}_i$
+  with the loss on the end-of-month balance $B_i$, so when the loan is under water
+  the lender recovers a month's principal more than the property fetches: up to
+  \bmExcess\% of par.
+\item \textbf{Payment sensitivity is understated (\S6.1).} A 100\,bp rise raises a
+  25-year payment by \bmPayLow--\bmPayHigh\%, not 6--8\%.
+\item \textbf{The zero-income fallback cannot trigger (\S3.2.4).} Income is floored
+  at GBP~1 before the spread is computed, so zero income prices at
+  \bmZeroIncome\%, not 15\%.
+\item \textbf{Production does not discount as documented (\S3.8).} The loan
+  calculator discounts at a risk-free rate, not the coupon; at the grid's rates that
+  moves fair value by up to \bmDiscount\%, and the discount to par no longer measures
+  credit alone (\S5.3).
+\end{enumerate}
+The document's Table~7 is reproduced exactly, the expected-loss bound of \S7.2.2
+holds, and Wolfram proves the par identity of \S5.3 and \S7.2.1 symbolically.
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test, at commit \bmCodeCommit{}\bmCodeDirty.
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle mp001}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+\texttt{LoanPricer.price\_loan} in \texttt{src/models/loan/pricer/} (\texttt{\_pricing.py},
+with the spread in \texttt{credit.py}), imported as production imports it and called
+as the loan calculator (\texttt{src/routes/\_loan\_pricing}) calls it. The document's
+\S5.1 names \texttt{src/models/mortgage\_pricer.py} and \texttt{MortgagePricer.price\_mortgage},
+which have since been renamed.
+
+\subsection{What is not}
+The calibration of the spread schedule (\S4.3), the coupon the calculator builds
+upstream of the pricer, and the portfolio aggregation (\S3.9), which is arithmetic.
+This is a benchmark of the implementation (validation question Q8), not independent
+validation (Q9).
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+Following the document (\S3): monthly payment $M$, balances $B_0,\dots,B_n$, monthly
+default probability $h=1-e^{-s/12}$, survival $S_i=(1-h)^i$,
+$\mathrm{PD}_i=S_{i-1}-S_i$, recoverable value $R=(1-\delta)V$,
+$\mathrm{LGD}_i=\max(0,B_i-R)$ and discount factors $D_i$. Then
+\begin{equation}
+\mathrm{PV}_{\mathrm{CF}}=\sum_i D_i\bigl[M S_i+(B_{i-1}-\mathrm{LGD}_i)\,\mathrm{PD}_i\bigr],\quad
+\mathrm{PV}_{\mathrm{EL}}=\sum_i D_i\,\mathrm{LGD}_i\,\mathrm{PD}_i,\quad
+\mathrm{FV}=\mathrm{PV}_{\mathrm{CF}}-\mathrm{PV}_{\mathrm{EL}}.
+\end{equation}
+
+\paragraph{The pathwise value.} Let $\tau$ be the month of default, so that
+$P(\tau=i)=\mathrm{PD}_i$ and $P(\tau>n)=S_n$. On the path where it defaults in month
+$\tau$, the lender receives $M$ in each month before $\tau$ and the recovery
+$B_{\tau-1}-\mathrm{LGD}_\tau$ in month $\tau$; on the path where it never defaults,
+all $n$ payments. Taking the expectation,
+\begin{equation}
+\mathbb{E}[\mathrm{PV}]=\sum_{i=1}^n D_i\bigl[M\,P(\tau>i)+(B_{i-1}-\mathrm{LGD}_i)\,P(\tau=i)\bigr]
+=\mathrm{PV}_{\mathrm{CF}}.
+\end{equation}
+The loss is already in the recovery. Subtracting $\mathrm{PV}_{\mathrm{EL}}$ counts it a
+second time, so $\mathrm{FV}$ understates value by exactly $\mathrm{PV}_{\mathrm{EL}}$.
+Either Eq.~19 should carry the gross balance $B_{i-1}$ and Eq.~24 subtract the loss,
+or Eq.~19 should stand and Eq.~24 be $\mathrm{FV}=\mathrm{PV}_{\mathrm{CF}}$.
+
+\paragraph{The recovery.} The property fetches $R$ whatever the balance, so the
+recovery in month $i$ is $\min(B_{i-1},R)$. Eq.~19's $B_{i-1}-\max(0,B_i-R)$ equals
+$R+(B_{i-1}-B_i)$ when $B_i>R$: a month's principal more.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+The equations above are evaluated with \texttt{mpmath} at 50 significant digits, from
+the document rather than the code; the loan-to-value ratio is taken as the double the
+code compares against its bands, since a band edge such as 0.95 falls between the
+exact ratio and its double. Wolfram evaluates, from each input's exact value at
+60-digit precision, both the document's fair value and the pathwise value, the
+latter as an expectation over a \texttt{GeometricDistribution} default month with the
+payments' present values accumulated, and it proves symbolically that the
+contractual payments discounted at the coupon are worth par.
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{The double-counted loss}
+\input{evidence_tables_double}
+
+\subsection{The model document's claims}
+\input{evidence_tables_claims}
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The code is shown to compute its documented
+  formulae, and one of those formulae is shown to be wrong; whether an
+  affordability-based spread is the right default model is a separate question.
+\item \textbf{The fair value.} Set $\mathrm{FV}=\mathrm{PV}_{\mathrm{CF}}$ in
+  \texttt{\_pricing.py} (and Eq.~24), or make Eq.~19 gross. This raises every fair
+  value with a loss given default, and every downstream figure built on it, so it is
+  for the model owner and the MRC; the expected-loss outputs are unchanged.
+\item \textbf{The recovery.} Pay $\min(B_{i-1},R)$ in the month of default.
+\item \textbf{Documentation.} \S6.1 should quote 8--12\%; \S3.2.4 should be removed or
+  the income floor moved after it; \S3.8 and \S5.3 should describe risk-free
+  discounting; \S5.1 should name the package. \S3.9 classifies a loan as high-risk
+  by spread above 10\% and \S9.5 by expected loss above 5\%; \S9.9 calls the model
+  Tier~1, the inventory Tier~2.
+\end{enumerate}
+
+\mkmhistorypage{27-Oct-2026 & 0.1 & First issue & David K Kelly \\}
+
+\end{document}
