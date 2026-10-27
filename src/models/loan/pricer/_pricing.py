@@ -138,10 +138,12 @@ class _PricingMixin:
             principal_payment = monthly_payment - interest_payment
             outstanding_balance[i] = max(0, outstanding_balance[i-1] - principal_payment)
 
-            # Calculate Loss Given Default
+            # Loss Given Default on a default in month i: the balance owed when the
+            # month began, less what the property fetches. The recovery is then
+            # min(balance, recoverable value), never more than the property is worth.
             # Note: recovery value uses static property_value (no price dynamics modelled)
             recovery_value = (1 - recovery_haircut) * property_value
-            lgds[i] = max(0, outstanding_balance[i] - recovery_value)
+            lgds[i] = max(0, outstanding_balance[i-1] - recovery_value)
 
             # Calculate hazard rate (probability of default this period)
             hazard_rates[i] = 1 - np.exp(-credit_spreads[i] / 12)
@@ -159,11 +161,12 @@ class _PricingMixin:
             # Probability of default in this period
             default_prob = max(0, survival_probs[i] - survival_probs[period_idx])
 
-            # Expected cashflow: payment if survives + recovery if defaults
+            # Expected cashflow: payment if survives + recovery if defaults. The
+            # recovery is the balance less the loss, so this is already net of it.
             expected_cashflows[i] = (monthly_payment * survival_probs[period_idx] +
                                    (outstanding_balance[i] - lgds[period_idx]) * default_prob)
 
-            # Expected loss in this period
+            # Expected loss in this period (reported; already inside the cashflow)
             expected_losses[i] = lgds[period_idx] * default_prob
 
         # Calculate present values.
@@ -176,7 +179,9 @@ class _PricingMixin:
 
         pv_cashflows = np.sum(expected_cashflows * discount_factors)
         pv_losses = np.sum(expected_losses * discount_factors)
-        mortgage_value = pv_cashflows - pv_losses
+        # The expected cashflows carry the recovery net of the loss, so they are the
+        # value; subtracting pv_losses as well would count the loss twice.
+        mortgage_value = pv_cashflows
 
         if debug:
             logger.debug("Pricing Results:")

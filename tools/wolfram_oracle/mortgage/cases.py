@@ -17,15 +17,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""MP-001's pricing, from its document (``mortgage_pricer.pdf`` v1.1, s3), and the loans.
+"""MP-001's pricing, from its document (``mortgage_pricer_v1.3.pdf``, s3), and the loans.
 
-The reference implements Eqs. 1-24 at 50 digits. Beside the document's fair value
-(Eq. 24) it computes the *pathwise* value: the expectation, over the month of
-default, of the payments received before it and the recovery received in it. That
-is what the loan is worth to the lender under the document's own default model, and
-it carries no separate loss term, because the loss is already the shortfall of the
-recovery. Wolfram computes both independently, the pathwise one as an expectation
-over a geometric default time.
+The reference implements Eqs. 1-24 of v1.3 at 50 digits: the loss on a default in
+month i is taken on the balance owed when the month began, B_{i-1}, and the fair
+value is the PV of expected cashflows, which already carry the recovery net of that
+loss. Beside it, the *pathwise* value: the expectation, over the month of default,
+of the payments received before it and the recovery received in it. Wolfram
+computes both independently, the pathwise one as an expectation over a geometric
+default time. v1.1's fair value -- the loss deducted twice, on B_i -- is kept to
+measure the correction.
 """
 
 import mpmath as mp
@@ -106,16 +107,18 @@ def value(k):
     h = 1 - mp.exp(-s / 12)
     rec_value = (1 - mp.mpf(k["recovery_haircut"])) * mp.mpf(k["property_value"])
     d = mp.mpf(k["interest_rate"] if k["discount_rate"] is None else k["discount_rate"]) / 12
-    pv_cf = pv_el = excess = 0
+    pv_cf = pv_el = excess = v11 = sum_el = 0
     for i in range(1, n + 1):
         disc, pd = (1 + d) ** -i, (1 - h) ** (i - 1) * h
-        lgd = max(mp.mpf(0), b[i] - rec_value)
+        lgd = max(mp.mpf(0), b[i - 1] - rec_value)                       # Eq. 18
         pv_cf += (m * (1 - h) ** i + (b[i - 1] - lgd) * pd) * disc       # Eq. 19
         pv_el += lgd * pd * disc                                         # Eq. 20
-        excess += (b[i - 1] - lgd - min(b[i - 1], rec_value)) * pd * disc
-    return {"payment": m, "spread": s, "pv_cf": pv_cf, "pv_el": pv_el, "fv": pv_cf - pv_el,
-            "excess": excess, "sum_el": mp.fsum(max(mp.mpf(0), b[i] - rec_value) * (1 - h) ** (i - 1) * h
-                                                for i in range(1, n + 1))}
+        sum_el += lgd * pd
+        excess += max(mp.mpf(0), b[i - 1] - lgd - rec_value) * pd * disc
+        late = max(mp.mpf(0), b[i] - rec_value)                          # v1.1, Eqs. 18-24
+        v11 += (m * (1 - h) ** i + (b[i - 1] - 2 * late) * pd) * disc
+    return {"payment": m, "spread": s, "pv_cf": pv_cf, "pv_el": pv_el, "fv": pv_cf,
+            "excess": excess, "sum_el": sum_el, "v11": v11}
 
 
 _OUT = ("payment", "spread", "pv_cf", "pv_el", "fv")
@@ -130,7 +133,8 @@ def run(pricer):
         for k in loans():
             got, ref = lp.price_loan(**k), value(k)
             row = {"id": case_id(k), **k, "pathwise": mp.nstr(ref["pv_cf"], 30),
-                   "double_count": float(ref["pv_el"] / mp.mpf(k["loan_amount"])),
+                   "v11_fv": mp.nstr(ref["v11"], 30),
+                   "correction": float((ref["fv"] - ref["v11"]) / mp.mpf(k["loan_amount"])),
                    "excess_recovery": float(ref["excess"] / mp.mpf(k["loan_amount"])),
                    "el_over_par": float(ref["sum_el"] / mp.mpf(k["loan_amount"]))}
             for key in _OUT:
@@ -156,18 +160,18 @@ def _wl_case(k):
         f"s = Max[{wl_precise(FLOOR)}, Interpolation[{nodes}, InterpolationOrder -> 1][a] "
         f"(1 + ({k['current_term']} - {k['original_maturity']}/2)/100)] {wl_precise(rho)}; "
         f"h = 1 - Exp[-s/12]; rv = (1 - {wl_precise(k['recovery_haircut'])}) {v}; "
-        f"lgd = Table[Max[0, b[[i + 1]] - rv], {{i, n}}]; rec = Most[b] - lgd; "
+        f"lgd = Table[Max[0, b[[i]] - rv], {{i, n}}]; rec = Most[b] - lgd; "
         f"dsc = Table[(1 + {disc}/12)^-i, {{i, n}}]; ")
 
 
 def wl_items(rows, lookup):
-    """Per loan: the document's fair value (Eq. 24), and the pathwise value as an
+    """Per loan: the document's fair value (Eqs. 22, 24), and the pathwise value as an
     expectation over the default month, tau - 1 ~ Geometric(h)."""
     dg, items = ORACLE_WOLFRAM_DIGITS, []
     for row in rows:
         body = _wl_case(lookup[row["id"]])
         fv = ("sv = Table[(1 - h)^i, {i, 0, n}]; pd = Most[sv] - Rest[sv]; "
-              "out = Total[(m Rest[sv] + rec pd) dsc] - Total[lgd pd dsc]")
+              "out = Total[(m Rest[sv] + rec pd) dsc]")
         path = ("g = GeometricDistribution[h]; pay = Accumulate[m dsc]; "
                 "out = Total[Table[PDF[g, i - 1], {i, n}] (Prepend[Most[pay], 0] + rec dsc)] "
                 "+ (1 - CDF[g, n - 1]) Last[pay]")
