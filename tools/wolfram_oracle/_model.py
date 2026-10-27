@@ -39,14 +39,33 @@ import types
 from config import config
 
 
-def load_module(relpath):
-    """The module at ``relpath`` (from the project root), and nothing around it."""
-    path = config.get_project_root() / relpath
-    pkg_name = "_oracle_" + "_".join(path.parent.relative_to(config.get_project_root()).parts)
-    if pkg_name not in sys.modules:
-        pkg = types.ModuleType(pkg_name)
-        pkg.__path__ = [str(path.parent)]
-        sys.modules[pkg_name] = pkg
+def _stand_in(name, directory):
+    if name not in sys.modules:
+        pkg = types.ModuleType(name)
+        pkg.__path__ = [str(directory)]
+        sys.modules[name] = pkg
+    return name
+
+
+def load_module(relpath, package_root=None):
+    """The module at ``relpath`` (from the project root), and nothing around it.
+
+    With ``package_root`` (a directory above the file, e.g. the model's package),
+    every directory from there down to the file gets a stand-in package, so a
+    relative import of any depth (``from ..annualise import``) resolves to the real
+    sibling module -- still without running a real ``__init__``.
+    """
+    root = config.get_project_root()
+    path = root / relpath
+    if package_root is None:
+        pkg_name = _stand_in("_oracle_" + "_".join(path.parent.relative_to(root).parts),
+                             path.parent)
+    else:
+        base = root / package_root
+        pkg_name = _stand_in("_oracle_" + "_".join(base.relative_to(root).parts), base)
+        for part in path.parent.relative_to(base).parts:
+            base = base / part
+            pkg_name = _stand_in(f"{pkg_name}.{part}", base)
     spec = importlib.util.spec_from_file_location(f"{pkg_name}.{path.stem}", path)
     mod = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = mod

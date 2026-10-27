@@ -1,0 +1,181 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Event Frequency Model (MKM-EF-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of Annualisation, Tenor Probability, Compound Loss and Count Families}
+\newcommand{\docversion}{0.1}
+\newcommand{\docdate}{26-October-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{evidence_tables_macros}
+
+\begin{document}
+% Long code paths and identifiers cannot hyphenate; let the spacing stretch instead.
+\sloppy
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the Event Frequency Model (MKM-EF-001), which turns a
+gauge's event arrival rate $\lambda$ and its per-event flood probability $p$ into
+the annual flood probability every PRS is priced from. It asks whether the code
+computes what its model document (\texttt{event\_frequency\_plan.pdf}, v2.3) says,
+and whether what the document says holds.
+
+\paragraph{The code computes its documented formulae.} Over \bmCases{} cases ---
+arrival rates from 0.5 to 50 a year, per-event probabilities from $10^{-6}$ to 0.5,
+tenors of 1 to 10 years with a constant and a growing rate, three loss catalogues
+and seven count series --- every quantity agrees with a 50-digit implementation of
+the document's equations to better than $10^{-12}$ (Table~\ref{tab:bm-checks}):
+the annual probability and rate, the tenor probability, the compound-Poisson
+average annual loss and its standard error, the dispersion test and its
+$p$-values, and both families' log-likelihoods. \bmWolframConfirms{} Wolfram's
+own maximisation of the Negative Binomial likelihood finds nothing higher than
+the model's fit.
+
+\paragraph{Findings} (Table~\ref{tab:bm-claims}):
+\begin{enumerate}[leftmargin=*]
+\item \textbf{The production term structure understates multi-year risk.} The
+  hazard builder compounds the per-year \emph{probabilities} as if they were
+  intensities (\texttt{annual\_hazard\_by\_year} into GH-001's
+  \texttt{compute\_term\_structure}). The probability of at least one flood is
+  understated by \bmTermLow\% to \bmTermHigh\% across the grid, worst at one year
+  and high $\lambda p$, where it is $1-e^{-(1-e^{-\lambda p})}$ rather than
+  $1-e^{-\lambda p}$ (Table~\ref{tab:bm-term}). The convention is deliberate and
+  documented in the code, to reproduce the earlier term structure; the model's
+  own \texttt{term\_exceedance\_probability} is exact, and the sensitivity module
+  uses it, so the model reports two different tenor probabilities for one gauge.
+\item \textbf{Annualisation loses precision at small $\lambda p$.} The code
+  evaluates $1-\exp(-x)$, which cancels: the relative error reaches \bmPrecision{}
+  below $\lambda p=\bmPrecisionBelow$. Immaterial at the probabilities priced, and
+  removed exactly by $-\mathrm{expm1}(-x)$.
+\end{enumerate}
+The document's three numerical claims hold: the closed form of \S5.9 is an
+identity (Wolfram proves it symbolically), the gate statistic's mean $|z|$ is
+$\sqrt{2/\pi}=0.798$, and the sampling errors of \S7.2 scale as $1/\sqrt n$.
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test, at commit \bmCodeCommit{}\bmCodeDirty.
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle ef001}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+In \texttt{src/models/frequency}: \texttt{annual\_exceedance\_probability},
+\texttt{annual\_exceedance\_rate} and \texttt{annual\_hazard\_by\_year}
+(\texttt{annualise.py}); \texttt{term\_exceedance\_probability} and the rate
+processes (\texttt{rate\_process.py}); \texttt{analytic\_average\_annual\_loss} and
+\texttt{loss\_standard\_error} (\texttt{ylt/\_reconcile.py}); and the count
+families, \texttt{fit\_poisson}, \texttt{fit\_negbin} and \texttt{dispersion\_test}
+(\texttt{families/}). With them, \texttt{compute\_term\_structure} in
+\texttt{src/models/hazard/gev.py}, which the per-year hazards feed. Each file is
+loaded on its own and called as production calls it.
+
+\subsection{What is not}
+The Monte Carlo year simulation is checked by its own reconciliation gate, whose
+statistic is tested here; the simulation's draws are not. The calibration of
+$\lambda$ from gauge records, which the document's \S6 and \S8 identify as the
+model's open problem, is not a calculation an oracle can check. This is a
+benchmark of the implementation (validation question Q8), not independent
+validation (Q9).
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+With $N\sim\text{Poisson}(\lambda)$ events a year, each flooding independently with
+probability $p$, the document's \S5.9 gives
+\begin{equation}
+\mathbb{E}\bigl[(1-p)^N\bigr]=e^{-\lambda p},\qquad
+P(\text{at least one flood in a year})=1-e^{-\lambda p},
+\end{equation}
+and the aggregate rate $\lambda p$, which is never smaller. Over a tenor of $T$
+years with rates $\lambda_0,\dots,\lambda_{T-1}$ (constant, or growing
+geometrically as $\lambda_0(1+g)^y$), the exact tenor probability is
+$1-\exp\bigl(-p\sum_y\lambda_y\bigr)$.
+
+\paragraph{The convention.} The hazard builder instead takes each year's
+\emph{probability} $q_y=1-e^{-\lambda_y p}$ and compounds it as an intensity,
+$1-\exp\bigl(-\sum_y q_y\bigr)$. Since $q_y<\lambda_y p$, this always understates;
+the gap grows with $\lambda p$ and is largest relative to the answer at one year.
+
+\paragraph{Compound loss.} With event weights $w_k$ and losses $L_k$, the annual
+loss is compound Poisson, with mean $\lambda\sum_k w_kL_k$ and, over $n$ simulated
+years, standard error $\sqrt{\lambda\sum_k w_kL_k^2/n}$.
+
+\paragraph{Count families.} The dispersion statistic $(n-1)s^2/\bar x$ is
+$\chi^2_{n-1}$ under Poisson; the Negative Binomial is fitted with its mean at
+$\bar x$ and its dispersion $\alpha=1/r$ by bounded search, which is the joint
+maximum likelihood because the Negative Binomial's estimating equation for the mean
+is solved by $\bar x$ at every $r$.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+The equations above are evaluated with \texttt{mpmath} at 50 significant digits, from
+the document rather than the code. Wolfram evaluates them independently from each
+input's exact value at 60-digit precision: the compound loss through
+\texttt{CompoundPoissonDistribution} of an \texttt{EmpiricalDistribution} (its rate
+scaled by the weights' exact total, which \texttt{EmpiricalDistribution} would
+otherwise renormalise away), the $p$-values through \texttt{ChiSquareDistribution},
+and the Negative Binomial maximum by its own \texttt{FindMaximum} over both
+parameters, with the Poisson limit as the supremum for under-dispersed data. It
+proves the identity of \S5.9 with \texttt{Expectation} and \texttt{Simplify}.
+Annual probabilities below $\lambda p=\bmOperating$ are reported as a finding
+rather than judged against the $10^{-12}$ tolerance.
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{The model document's claims}
+\input{evidence_tables_claims}
+
+\noindent The \S7.2 errors imply a relative error $\sqrt{(1-q)/(nq)}$ with
+$q\approx\bmImpliedP$: the table quotes one subject's figures, not a bound.
+
+\subsection{The multi-year term structure}
+\input{evidence_tables_term}
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The code is shown to compute the
+  documented formulae; whether $\lambda$ is right for a gauge is the question the
+  document's own \S8 raises and leaves open.
+\item \textbf{Term structure.} Compounding $\lambda_y p$ rather than $q_y$ in the
+  hazard builder, or calling \texttt{term\_exceedance\_probability}, would make the
+  term structure exact and consistent with the sensitivity module. It changes
+  every multi-year price and is for the model owner and the MRC.
+\item \textbf{Precision.} Replace $1-\exp(-x)$ with $-\mathrm{expm1}(-x)$ in
+  \texttt{annualise.py} and \texttt{rate\_process.py}.
+\item \textbf{Inventory.} The model's record answers validation question 8
+  ``Not Applicable'' with a rationale saying it has not been benchmarked; this
+  document is that benchmark.
+\end{enumerate}
+
+\mkmhistorypage{26-Oct-2026 & 0.1 & First issue & David K Kelly \\}
+
+\end{document}
