@@ -19,6 +19,9 @@
 # SOFTWARE.
 """Tests for tools.wolfram_oracle.mortgage, the MP-001 benchmark.
 
+Benchmark v0.2: the pricer after its fair-value and recovery fixes, against model
+document v1.3.
+
 The reference is checked against figures it does not compute from -- a textbook
 annuity payment, and a pathwise value summed path by path rather than period by
 period -- and the model gate then runs the full grid, so a change to the pricer that
@@ -69,10 +72,10 @@ class TestReference:
             total = (1 - h) ** n * mp.fsum(m * (1 + d) ** -j for j in range(1, n + 1))
             for t in range(1, n + 1):
                 path = mp.fsum(m * (1 + d) ** -j for j in range(1, t))
-                path += (b[t - 1] - max(0, b[t] - rv)) * (1 + d) ** -t
+                path += min(b[t - 1], rv) * (1 + d) ** -t
                 total += (1 - h) ** (t - 1) * h * path
-            assert v["pv_cf"] == pytest.approx(total, rel=1e-30)
-            assert v["fv"] == pytest.approx(total - v["pv_el"], rel=1e-30)
+            assert v["fv"] == v["pv_cf"] == pytest.approx(total, rel=1e-30)
+            assert v["v11"] < v["fv"]
 
     def test_the_ltv_band_is_judged_on_the_double(self):
         k = _loan(loan_amount=0.95 * 300_000.0)
@@ -88,15 +91,11 @@ class TestModel:
 
 
 class TestClaims:
-    def test_the_double_count_and_the_documents_claims(self, rows):
-        dc, rec, t7, pay, zero, bound, par, disc = claims.assess(rows, PRICER)
-        assert not dc["met"] and dc["worst"] > 0.3 and dc["pathwise"] > dc["fv"]
-        assert rec["met"] is None and 0 < rec["worst"] < 0.02
-        assert t7["met"] and t7["lgd_free"]
-        assert not pay["met"] and pay["low"] > 0.08
-        assert not zero["met"] and zero["got"] > 0.35
-        assert bound["met"] and par["met"] and par["identity"] is None
-        assert disc["met"] is None
+    def test_document_v13_claims_hold(self, rows):
+        fv, rec, t7, pay, zero, bound, par = claims.assess(rows, PRICER)
+        assert all(c["met"] for c in (fv, rec, t7, pay, zero, bound, par))
+        assert fv["correction"] > 0.3 and fv["fv"] > fv["v11"]
+        assert rec["worst"] == 0 and t7["lgd_free"] and par["identity"] is None
 
     def test_wolfram_must_prove_the_par_identity(self, rows):
         assert not claims.assess(rows, PRICER, {"claim/par": "0"})[6]["met"]

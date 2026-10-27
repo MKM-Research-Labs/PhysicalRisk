@@ -19,9 +19,11 @@
 # SOFTWARE.
 """Wolfram oracle benchmark parameters for MKM-MP-001 (Mortgage Pricing Model).
 
-The loans a benchmark run prices, the claims in MP-001's model document
-(``mortgage_pricer.pdf`` v1.1) it tests, and where it files its evidence. Shared
-settings -- kernel, precision -- are in ``_wolfram_oracle``.
+The loans a benchmark run prices, the claims in MP-001's model document it tests,
+and where it files its evidence. Benchmark v0.1 tested v1.1 and found the fair value
+counting the loss twice and the recovery taken a month late; both were fixed in the
+pricer and the document corrected as v1.3 (``mortgage_pricer_v1.3.pdf``), which v0.2
+tests. Shared settings -- kernel, precision -- are in ``_wolfram_oracle``.
 """
 
 # The code under test, imported as production imports it (config puts src/ on the path).
@@ -67,10 +69,10 @@ ORACLE_MP_CLAIM_TABLE7 = (("Very Low", 3.25, 199_844.0), ("Low", 3.41, 199_838.0
                           ("Medium", 3.90, 199_820.0), ("High", 4.55, 199_797.0),
                           ("Very High", 5.68, 199_761.0))
 
-# The document's other claims, tested as stated:
-#   s6.1    a 100 bp rise in the rate raises the payment by 6-8% on a 25-year term;
-#   s3.2.4  zero or negative income gives a 15% spread;
-#   s3.2.2  the spread schedule is extrapolated beyond its nodes (s8.5: clamped).
-ORACLE_MP_CLAIM_RATE_STEP = (0.06, 0.08)
+# The document's other claims (v1.3), tested as stated:
+#   s6.1    a 100 bp rise in the rate raises the payment by 8-12% on a 25-year term;
+#   s3.2.4  missing (zero) income prices at the top of the spread schedule, 35%,
+#           scaled by the term, LTV and flood factors.
+ORACLE_MP_CLAIM_RATE_STEP = (0.08, 0.12)
 ORACLE_MP_CLAIM_RATE_GRID = (0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09)
-ORACLE_MP_CLAIM_ZERO_INCOME_SPREAD = 0.15
+ORACLE_MP_CLAIM_ZERO_INCOME_NODE = 0.35
