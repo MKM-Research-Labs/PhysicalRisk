@@ -120,7 +120,7 @@ def compute_term_structure(
         # passes fewer years than the tenor still gets a full, sane structure.
         cumulative += rates[year - 1] if year - 1 < len(rates) else rates[-1]
         survival_prob = math.exp(-cumulative)
-        prob_at_least_one = 1.0 - survival_prob
+        prob_at_least_one = -math.expm1(-cumulative)
 
         term_structure.append(TermStructurePoint(
             year=year,

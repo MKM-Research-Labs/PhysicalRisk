@@ -44,6 +44,7 @@ from models.frequency import (
     rate_process_for,
     term_exceedance_probability,
 )
+from models.hazard.gev import compute_term_structure
 
 _P = 0.05
 
@@ -148,10 +149,23 @@ class TestRateProcessFactory:
 
 class TestAnnualHazardByYear:
 
-    def test_a_constant_rate_gives_a_flat_series_equal_to_the_annual_hazard(self):
+    def test_a_constant_rate_gives_a_flat_series_of_the_intensity(self):
         hazards = annual_hazard_by_year(ConstantRate(4.5), 0.03, 5)
-        expected = annual_exceedance_probability(4.5, 0.03)
-        assert hazards == [pytest.approx(expected)] * 5
+        assert hazards == [pytest.approx(4.5 * 0.03)] * 5
+
+    @pytest.mark.parametrize("process", [ConstantRate(10.0), TrendRate(5.0, 0.05)])
+    def test_compounded_it_is_the_exact_tenor_probability(self, process):
+        # The term structure compounds these as intensities; with the annual
+        # probabilities it understated the tenor probability by up to 17%.
+        for p in (0.001, 0.05):
+            points = compute_term_structure(annual_hazard_by_year(process, p, 5), 5)
+            for t, point in enumerate(points, start=1):
+                assert point.prob_at_least_one == pytest.approx(
+                    term_exceedance_probability(process, p, t), rel=1e-14)
+
+    def test_the_annual_probability_keeps_its_precision_when_small(self):
+        assert annual_exceedance_probability(0.5, 1e-6) == pytest.approx(
+            4.999998750000208e-07, rel=1e-15, abs=0)
 
     def test_a_trend_gives_a_rising_series(self):
         hazards = annual_hazard_by_year(TrendRate(4.5, 0.05), 0.03, 5)

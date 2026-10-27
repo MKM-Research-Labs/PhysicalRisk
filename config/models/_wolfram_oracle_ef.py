@@ -21,8 +21,10 @@
 """Wolfram oracle benchmark parameters for MKM-EF-001 (Event Frequency Model).
 
 The cases a benchmark run checks EF-001's frequency maths against, the claims in
-its document of record (``docs/storm_freq/event_frequency_plan.pdf`` v2.3) it
-tests, and where it files its evidence.
+its document of record it tests, and where it files its evidence. Benchmark v0.1
+tested v2.3 and found the term structure compounding annual probabilities as
+intensities and 1 - exp(-x) losing precision; both were fixed and the document
+issued as v2.4 (``docs/storm_freq/event_frequency_plan.pdf``), which v0.2 tests.
 """
 
 # The code under test: pure-maths files, loaded under stand-in packages rooted here
@@ -71,8 +73,8 @@ ORACLE_EF_COUNT_SERIES = (
 
 # Model against reference.
 ORACLE_EF_REL_TOL = 1e-12          # closed forms
-# lambda p below which annualisation is outside the operating range: 1 - exp(-x)
-# loses about 1e-16/x relative there, and is reported rather than judged.
+# lambda p below which v2.3's 1 - exp(-x) lost precision (about 1e-16/x relative);
+# v2.4 evaluates -expm1(-x), and this range is now judged like any other.
 ORACLE_EF_OPERATING_MIN_X = 1e-4
 ORACLE_EF_PVALUE_TOL = 1e-10       # chi-square p-values (scipy's incomplete gamma)
 ORACLE_EF_LL_TOL = 1e-8            # NegBin search: log-likelihood short of the maximum
@@ -82,7 +84,7 @@ ORACLE_EF_LL_TOL = 1e-8            # NegBin search: log-likelihood short of the 
 #               form is the simulation's exact expectation; the aggregate view is lambda p;
 #   s5.9        the gate statistic is a z-score: mean |z| = sqrt(2/pi) = 0.798;
 #   s7.2        sampling error ~5%, ~1.6%, ~0.5%, ~0.16% at 1e3..1e6 years;
-#   annualise   per-year hazards follow "the annual probability used as the per-year
-#               hazard", not the exact 1 - exp(-p sum lambda) -- measured here.
+#   s5.10       the multi-year term structure is exactly 1 - exp(-p sum lambda_y)
+#               (v2.4; v2.3's code compounded the annual probabilities instead).
 ORACLE_EF_CLAIM_MEAN_ABS_Z = 0.798
 ORACLE_EF_CLAIM_SAMPLING = ((1_000, 0.05), (10_000, 0.016), (100_000, 0.005), (1_000_000, 0.0016))

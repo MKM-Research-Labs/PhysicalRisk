@@ -2,8 +2,8 @@
 
 \newcommand{\doctitle}{Event Frequency Layer}
 \newcommand{\docsubtitle}{Definition Document and Project Plan --- MKM-EF-001}
-\newcommand{\docversion}{2.3}
-\newcommand{\docdate}{24-July-2026}
+\newcommand{\docversion}{2.4}
+\newcommand{\docdate}{27-October-2026}
 \newcommand{\docauthor}{David K Kelly, Chief Science Officer}
 
 \input{../shared/mkm_header}
@@ -33,7 +33,7 @@
 \begin{tabular}{ll}
 \textbf{Document type} & Definition Document and Project Plan \\
 \textbf{Component}     & Event Frequency Model --- \texttt{MKM-EF-001} (new) \\
-\textbf{Version}       & 2.3 --- supersedes v1.0 of 22 July 2026 \\
+\textbf{Version}       & 2.4 --- supersedes v2.3 of 24 July 2026 \\
 \textbf{Status}        & Stages 1a/1b/1c, 3 and 4 implemented and wired to pricing; Stages 2 and 5 remain \\
 \textbf{Owner}         & CSO, MKM Research Labs \\
 \textbf{Proposed tier} & 1 (Maximum) \\
@@ -58,7 +58,33 @@ Section~\ref{sec:repro}.
 % ===========================================================================
 \section{What changed from version 1}
 
-\subsection{What version 2.3 changes}
+\subsection{What version 2.4 changes}
+
+\begin{longtable}{@{}p{0.06\textwidth}p{0.42\textwidth}p{0.44\textwidth}@{}}
+\toprule
+\textbf{\#} & \textbf{Change} & \textbf{Driver} \\
+\midrule
+\endhead
+C20 & \textbf{The multi-year term structure is exact}
+(Section~\ref{sec:termstructure}). Each year contributes its exceedance
+\emph{intensity} $\lambda_y p$, so a tenor of $T$ years carries
+$1-\exp(-p\sum_y\lambda_y)$ & It compounded each year's annual
+\emph{probability} $1-e^{-\lambda_y p}$ as though it were an intensity,
+understating the probability of a flood within the tenor by 0.1--17\%, worst at
+one year and high $\lambda p$. The term structure feeds the gauge PRS pricer \\
+\addlinespace
+C21 & \textbf{Annual probabilities are evaluated as $-\mathrm{expm1}(-\lambda p)$}
+& $1-\exp(-x)$ cancels at small $x$, losing about $10^{-16}/x$ of relative
+precision: $10^{-10}$ at $\lambda p=10^{-6}$ \\
+\addlinespace
+C22 & \textbf{Benchmarked against Wolfram} (Section~\ref{sec:closedform}) &
+\texttt{MKM-EF-001\_wolfram\_benchmark}: annualisation, the tenor probability,
+compound-Poisson loss and the count families against Wolfram Engine and a
+50-digit reference. Version~0.1 found C20 and C21 \\
+\bottomrule
+\end{longtable}
+
+\subsection{What version 2.3 changed}
 
 \begin{longtable}{@{}p{0.06\textwidth}p{0.42\textwidth}p{0.44\textwidth}@{}}
 \toprule
@@ -707,6 +733,10 @@ so $P(\text{at least one flood in a year}) = 1 - \exp(-\lambda p)$
 it is the simulation's expectation. The same argument gives the aggregate view
 directly as $\lambda p$.
 
+Wolfram Engine proves the identity symbolically, and with a 50-digit reference
+confirms the code computes it to better than $10^{-12}$
+(\texttt{MKM-EF-001\_wolfram\_benchmark}, filed on the model under Benchmark).
+
 That is precisely what makes it valuable as a check: any gap beyond sampling
 error means one of the two is wrong. It is wired in as a reconciliation gate,
 not as the production pricing path, because the simulation additionally yields
@@ -720,6 +750,24 @@ never bound at all. The statistic is verified to be a true $z$-score --- mean
 $|z|$ measures 0.811 and 0.797 at ten and a hundred thousand years against the
 theoretical $\sqrt{2/\pi} = 0.798$ --- and that calibration is itself a test, so
 the band cannot silently stop meaning what it says.
+
+\subsection{The multi-year term structure}
+\label{sec:termstructure}
+
+A PRS runs for several years, and the arrival rate may move across them: a
+\emph{rate process} gives $\lambda_y$ for contract year $y$, constant
+(\texttt{ConstantRate}) or growing geometrically (\texttt{TrendRate}). Exceedances
+in year $y$ are Poisson with intensity $\lambda_y p$, so survival over $t$ years is
+the product of the yearly survivals and
+\begin{equation}
+P(\text{at least one flood by year } t) = 1 - \exp\Bigl(-p\sum_{y=0}^{t-1}\lambda_y\Bigr).
+\end{equation}
+\texttt{annual\_hazard\_by\_year} supplies the intensities $\lambda_y p$ and
+\texttt{compute\_term\_structure} accumulates them, so every point of the term
+structure equals \texttt{term\_exceedance\_probability} for its tenor, and its
+expected flood count is $p\sum_y\lambda_y$. Each probability of the form
+$1-e^{-x}$ is evaluated as $-\mathrm{expm1}(-x)$, which keeps full precision when
+$x$ is small.
 
 \subsection{Wiring}
 
@@ -743,8 +791,9 @@ spread, gauge basis leg and return period become simulation-derived & Stage 4 \\
 
 \subsection{Extension points}
 
-Architected now, built later: $\lambda$ as a process rather than a constant (the
-interface takes an optional covariate or time argument); a per-peril $\lambda$
+$\lambda$ as a process rather than a constant is now built: constant and trending
+rate processes drive the multi-year term structure
+(Section~\ref{sec:termstructure}). Architected now, built later: a per-peril $\lambda$
 registry so wind, fire and seismic attach without restructuring; and, because
 the simulation scores a boolean flood outcome per event, replacing that boolean
 with a loss quantum turns the same machinery into a full year loss table without

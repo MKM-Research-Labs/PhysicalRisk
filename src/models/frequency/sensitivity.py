@@ -121,7 +121,7 @@ def distributional_sensitivity(
         relative to the Poisson.
     """
     mean = max(0.0, mean_count)
-    poisson = 1.0 - math.exp(-mean)
+    poisson = -math.expm1(-mean)
 
     rows = []
     for alpha in alphas:
