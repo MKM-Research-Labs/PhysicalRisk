@@ -26,6 +26,7 @@
     python -m tools.wolfram_oracle de001 [--out DIR] [--no-live] [--no-pdf]
     python -m tools.wolfram_oracle ef001 [--out DIR] [--no-live] [--no-pdf]
     python -m tools.wolfram_oracle mp001 [--out DIR] [--no-live] [--no-pdf]
+    python -m tools.wolfram_oracle seis001 [--out DIR] [--no-live] [--no-pdf]
     python -m tools.wolfram_oracle fire001 [--out DIR] [--no-live] [--no-pdf]
 
 With an activated Wolfram Engine and ``wolframclient`` installed, one run
@@ -46,6 +47,7 @@ BENCHMARKS = {
     "de001": "tools.wolfram_oracle.delta.run",
     "ef001": "tools.wolfram_oracle.frequency.run",
     "mp001": "tools.wolfram_oracle.mortgage.run",
+    "seis001": "tools.wolfram_oracle.seismic.run",
     "fire001": "tools.wolfram_oracle.fire.run",
 }
 
