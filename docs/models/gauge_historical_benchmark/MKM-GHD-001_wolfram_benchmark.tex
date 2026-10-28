@@ -1,0 +1,189 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Gauge Historical Daily Synthetic Generation Model (MKM-GHD-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark: the Series' Statistics Computed Exactly}
+\newcommand{\docversion}{0.1}
+\newcommand{\docdate}{28-October-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{evidence_tables_macros}
+% The shared history table sets every column to its natural width; wrap the description.
+\renewcommand{\mkmhistorypage}[1]{%
+    \section{Document History}
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{l|l|p{9cm}|l}
+            \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author} \\
+            \hline
+            #1
+        \end{tabular}
+    \end{table}
+}
+
+\begin{document}
+% Long code paths and identifiers cannot hyphenate; let the spacing stretch instead.
+\sloppy
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the Gauge Historical Daily Synthetic Generation Model
+(MKM-GHD-001), which generates a 50-year daily water-level history for each gauge
+from its flood thresholds, tidal regime and recorded count of severe exceedances.
+Those histories feed the gauge statistics and, through their monthly means, the
+stress pipeline. It asks whether the code generates what its model document
+(\texttt{gaugehd\_synthetic.pdf}, v1.0) says, and whether what the document says
+about the result holds.
+
+\paragraph{The code generates its documented process.} The model is random, so it is
+judged in distribution. For six gauges (each tidal regime, with no recorded severe
+exceedance and with eight), the expected number of days at or above each flood
+threshold, the mean level, and the January and July departures from it are computed
+exactly from the document's equations (1)--(14). Each is then compared with the mean
+over \bmReps{} generated series of \bmDays{} days. Every statistic agrees within
+sampling error, worst $|z|=\bmWorstZ$ (Tables~\ref{tab:bm-checks}
+and~\ref{tab:bm-gauges}). \bmWolframConfirms
+
+\paragraph{But several of the document's own statements about the output do not
+hold} (Table~\ref{tab:bm-claims}):
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Severe frequency is understated tenfold (\S4.5).}
+  \texttt{FrequencyExceedLevel3} counts severe exceedances over five years (Table~2),
+  but Eq.~(9) spreads that count over the whole 50-year run. A gauge with eight severe
+  exceedances in five years is given eight in fifty. This is the model's main control
+  on the upper tail (\S6.4).
+\item \textbf{Regeneration is not reproducible (\S5.4, \S7.3).} The seed is Python's
+  \texttt{hash()} of the gauge id, which is salted per process: the same id seeds
+  \bmSeedOne{} in one process and \bmSeedTwo{} in another. The series also ends on
+  the day it is run, so even a fixed seed gives a different calendar each day.
+\item \textbf{The flood-frequency diagnostic cannot pass (\S7.1(3)).} It expects about
+  $6\max(n_3,1)$ days above FloodAlert. The exact expectation is \bmAlertZero{} and
+  \bmAlertEight{} for $n_3=0$ and 8, because a flood lifts the AR(1) state and the
+  level stays above the alert for \bmPerEvent{} days on average (non-tidal). For the
+  same reason, \S8.4's single-day spikes are not what the model produces.
+\item \textbf{The lag-1 diagnostic cannot pass (\S7.1(1)).} The AR(1) noise has lag-1
+  autocorrelation 0.85, but the series is dominated by its seasonal cycle. Its lag-1
+  autocorrelation is \bmLagExact{} without floods, and \bmLagModel{} as generated.
+\item \textbf{The spring--neap cycle restarts each year (\S3.5).} Eq.~(6) takes the
+  phase from the day of the year, so it jumps \bmJump{} days each 1 January.
+\end{enumerate}
+The seasonal means (\S5.6), the lag-7 autocorrelations (\S6.1) and the mean levels
+(\S7.2) are as stated.
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test, at commit \bmCodeCommit{}\bmCodeDirty.
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle ghd001}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+\texttt{generate\_synthetic\_timeseries} in \texttt{src/models/statistics/synthetic.py},
+imported as production imports it and called with a gauge record as
+\texttt{src/port/src/gauge/gaugehd/synthetic.py} builds one, on the document's default
+thresholds (3, 4 and 5\,m) and a historical high of 5.5\,m.
+
+\subsection{What is not}
+The historical-high injection (\S3.8) and the 0.1\,m floor (\S3.9), which these gauges
+never reach. Also out of scope: the tidal classification by longitude (\S3.2), which
+is a lookup; the statistics module, which is the Timeseries Statistics Model's subject; and whether synthetic
+histories are a sound stand-in for observed ones (\S7.4). This is a benchmark of the
+implementation (validation question Q8), not independent validation (Q9).
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+Following the document, a day's level is
+$W_t=\mu_0+S_t+T_t+\varepsilon_t$ unless a flood is injected, with
+$\mu_0=h_{\mathrm{alert}}U(0.3,0.5)$, $S_t=A_s\cos(2\pi(d_t-15)/365)$,
+$T_t=A_\tau M_t V_t$ with $V_t\sim U(-1,1)$, and $\varepsilon_t$ an AR(1) with
+coefficient $\phi$ and marginal deviation $\sigma_w$. A severe flood occurs with daily
+probability $p=\max(n_3,1)/N$ and a minor one with probability $5p$. Each sets the
+level uniformly in its band, and resets $\varepsilon$ to $R=W_t-\mu_0$.
+
+\paragraph{The exact expectation.} If the last flood was $k$ days earlier, then
+$\varepsilon_t=\phi^kR+\sigma_w\sqrt{1-\phi^{2k}}\,Z$. So, given $\mu_0$, the day's
+level is normal about $\mu_0+S_t+\phi^kR+T_t$, with $R$ and $V_t$ uniform. The chance
+that it reaches a threshold $h$ is
+\begin{equation}
+P(W_t\ge h\mid k)=\mathbb{E}\Bigl[Q\Bigl(\tfrac{h-\mu_0-S_t-\phi^kR-A_\tau M_tV_t}
+{\sigma_w\sqrt{1-\phi^{2k}}}\Bigr)\Bigr],
+\end{equation}
+a normal tail $Q$ averaged over two uniforms. Integrating twice gives a closed form in
+$G(z)=\int_z^\infty Q$ and $H(z)=\int_z^\infty G$. The age $k$ is geometric, with the
+flood probabilities as its parameter, and the levels are rounded to the millimetre as
+reported. Summing over the run's calendar gives each expected count and the expected
+mean, January and July levels. The base level $\mu_0$ is then integrated by
+24-point Gauss--Legendre.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+Each gauge is generated \bmReps{} times, with seeds 1 to \bmReps{} passed explicitly,
+so that the run does not depend on the per-process hash. Each statistic's mean over
+the series is compared with its exact expectation in standard errors, and a check
+passes at $|z|\le4$. The six gauges share their seeds, and so their base-level draws,
+so their errors are correlated. That is why the mean level sits about one standard
+error low on all six at once. The reference is evaluated in double precision.
+Wolfram derives the double integral above symbolically with \texttt{Integrate}, from
+each input's exact value, and evaluates it to 30 digits at 18 points (three regimes,
+six days and ages), down to tails of $10^{-53}$. There it is compared with the
+reference's closed form.
+
+The claims are judged from the exact expectations, not from the samples, except for
+reproducibility, which hashes one gauge id in two fresh Python processes with
+different \texttt{PYTHONHASHSEED}s.
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{The gauges}
+\input{evidence_tables_gauges}
+
+\subsection{The model document's claims}
+\input{evidence_tables_claims}
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The code is shown to generate its documented
+  process. Whether that process resembles a Thames gauge is \S7.4's backtest, which
+  this does not perform.
+\item \textbf{Severe frequency.} Eq.~(9) should divide $n_3$ by the five years it
+  counts, not by $Y$; or \S4.5 and Table~2 should say what $n_3$ is meant to be. This
+  raises every gauge's flood rate tenfold, and with it the upper tail of every
+  generated history, so it is for the model owner and the MRC.
+\item \textbf{Reproducibility.} A stable seed (for example from \texttt{hashlib}), and
+  a fixed end date taken from the portfolio rather than the clock.
+\item \textbf{Diagnostics.} \S7.1(1) should test the AR(1) residual, not the series.
+  \S7.1(3) and \S8.4 should allow for the days a flood takes to decay. \S3.5 should
+  either take the phase from a running day count or say it restarts each year.
+\end{enumerate}
+
+\mkmhistorypage{28-Oct-2026 & 0.1 & First issue & David K Kelly \\}
+
+\end{document}
