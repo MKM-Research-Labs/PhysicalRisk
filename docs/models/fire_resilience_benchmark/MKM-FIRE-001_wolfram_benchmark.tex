@@ -1,0 +1,193 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Building Fire-Resilience Credit Model (MKM-FIRE-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark: the Credit Computed Exactly}
+\newcommand{\docversion}{0.1}
+\newcommand{\docdate}{27-October-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{evidence_tables_macros}
+% The shared history table sets every column to its natural width; wrap the description.
+\renewcommand{\mkmhistorypage}[1]{%
+    \section{Document History}
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{l|l|p{9cm}|l}
+            \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author} \\
+            \hline
+            #1
+        \end{tabular}
+    \end{table}
+}
+
+\begin{document}
+% Long code paths and identifiers cannot hyphenate; let the spacing stretch instead.
+\sloppy
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the Building Fire-Resilience Credit Model (MKM-FIRE-001),
+which prices a commercial asset's fire resilience as a containment rate, an annual
+loss frequency and a full-conflagration spread for the Commercial PRS Pricer. The
+model estimates all three by Monte Carlo. This benchmark computes them
+\emph{exactly}: the per-fire jitter makes the point-of-no-return step a random
+variable whose law is a product of lognormal tail probabilities, and given that step
+the containment chain is a matrix product, so each credit is a finite sum.
+
+\paragraph{The model is right, and its tables are honest.} Model C reproduces its
+documented formulae to \bmProfile{} over \bmAssets{} distinct assets. The code, run at
+the document's own draw count and seed, reproduces \bmReproduced{} of the
+\bmPrinted{} figures printed in its Tables 1--12, and every printed figure lies within
+\bmWorstZ{} standard errors of the exact credit (Table~\ref{tab:bm-cells}).
+\bmWolframConfirms
+
+\paragraph{Findings} (Table~\ref{tab:bm-claims}):
+\begin{enumerate}[leftmargin=*]
+\item \textbf{The production spread is a noisy draw.} Production runs \bmProductionN{}
+  draws, and the spread is the fraction of draws that reach the point of no return.
+  At the reach cliff the exact spread is \bmCliff\,bp; at \bmProductionN{} draws its
+  standard error is \bmCliffSE\,bp, yet the pricer quotes it to 0.1\,bp
+  (Table~\ref{tab:bm-production}). The exact credit takes about a tenth of a second
+  per asset, so it can replace the simulation for the spread.
+\item \textbf{The cliff is \bmCliff\,bp, not 203.} The printed 203 is a sampled estimate
+  of $10^4(1-e^{-\lambda})$; it is within sampling error, but it is not the value.
+\item \textbf{FIRE-L3, measured.} With no effective suppression the race is lost in
+  \bmRaceLost\% of fires, but the chain has already absorbed in all but
+  \bmRaceRecorded\%; the conflagration leg sees only those. The document's own
+  limitation is confirmed and now quantified.
+\item \textbf{The tall non-combustible residual does not exist.} \S8 and Table 12
+  expect single-digit bps ``in very tall non-combustible assets''. The exact residual
+  is \bmTall\,bp at 20 storeys, the same as at 12: above the reach, suppression is
+  unreachable at any height, and nothing else in the race depends on storeys.
+\item \textbf{Some of the printed variation is noise.} Tables 4, 5 and 9 print
+  containment rates from \bmNoiseLow\% to \bmNoiseHigh\% across conditions, types and
+  occupancies. Those inputs change only how often a fire starts, not how it ends: the
+  exact containment rate is \bmNoiseExact\% in every row. At 20{,}000 draws a cell
+  rests on a few hundred fires, and the differences are sampling error.
+\item \textbf{Two statements in the document differ from the code.} Suppression
+  becomes active at $\lceil\tau_{\mathrm{det}}+\tau_{\mathrm{supp}}\rceil$, not
+  $\lceil\tau_{\mathrm{supp}}\rceil$ (\S3.3); without detection in that sum the
+  detection level would do nothing at all. And every transition matrix carries an
+  $S_6\to S_7$ escalation row that the march never reads, because it stops at $S_6$
+  (\S3.5).
+\end{enumerate}
+The chain absorbs in \bmAbsorb{} steps on average and intensity climbs \bmGrowth{} a
+step at the baseline, as \S7.1 says; the non-combustible residual at 12 storeys is at
+most \bmResidual\,bp, sub-bp as Table 12 says; and Table 13 is reproduced from the
+documented formulae.
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test, at commit \bmCodeCommit{}\bmCodeDirty.
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle fire001}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+In \texttt{src/models/fire/}: Model C (\texttt{response\_effectiveness.py}), the
+intensity race of Model B (\texttt{intensity\_track.py}), the containment chain and
+the end-to-end \texttt{simulate\_asset\_fire} of Model D (\texttt{containment.py}),
+and the draw-level ignition of Model A (\texttt{initiation.py}), each cell built as
+the document's sensitivity generator built it.
+
+\subsection{What is not}
+Model A's modifier tables are taken as the configuration of record: the benchmark
+uses the code's $\lambda_i$ and checks what is done with it. The initiation class,
+which the document notes is cosmetic, does not enter the credit. Every parameter is
+an engineering-judgement seed (FIRE-L1); this benchmark shows the model computes
+what it documents, not that the seeds are right. It addresses validation question
+Q8, not independent validation (Q9).
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+\paragraph{The race.} Before suppression bites, intensity is $\min(t\,g',C')$, with
+$g'=g\,e^{\sigma_g Z_1}$ and $C'=I_{\max}e^{\sigma_c Z_3}$, and suppression bites at
+$\tau_{\mathrm{det}}+\tau'$, $\tau'=\tau_{\mathrm{supp}}e^{\sigma_\tau Z_2}$, the $Z_i$
+independent standard normals. The point of no return latches at the first $t$ with
+$t\,g'>I_{\mathrm{crit}}$, provided $C'>I_{\mathrm{crit}}$ and $t<\tau_{\mathrm{det}}+\tau'$
+(at $t=1$ for a combustible frame suppression cannot reach). So
+\begin{equation}
+P(K=t)=P\!\left(\tfrac{I_{\mathrm{crit}}}{t}<g'\le\tfrac{I_{\mathrm{crit}}}{t-1}\right)
+P\!\left(\tau'>t-\tau_{\mathrm{det}}\right)P\!\left(C'>I_{\mathrm{crit}}\right),
+\end{equation}
+each factor a lognormal tail.
+
+\paragraph{The chain.} With $M=wM_{AA}+(1-w)M_{\mathrm{weak}}$ before the latch and
+$M_{\mathrm{PNR}}$ from it, and the terminal states made absorbing,
+\begin{equation}
+\pi=\sum_{t=1}^{T}P(K=t)\;e_0M^{t-1}M_{\mathrm{PNR}}^{\,T-t+1}+P(K>T)\;e_0M^{T},
+\end{equation}
+with $T=200$ the step budget; a point of no return is recorded only if the chain is
+still transient after $t-1$ steps. The credit is the containment rate $\pi_{S_5}$,
+the loss frequency $q(\pi_{S_6}+\pi_{S_7})$ and the spread $10^4\,q\,P(\mathrm{PNR\ recorded})$,
+with $q=1-e^{-\lambda h}$ the probability a draw ignites.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+Model C and the two sums above are evaluated with \texttt{mpmath} at 50 digits, from
+the document rather than the code; lognormal tails are taken from \texttt{erfc}, so
+a $10^{-140}$ probability keeps its digits. Wolfram evaluates the same sums
+independently --- the race law from \texttt{Erfc} survival functions, the chain with
+\texttt{FoldList} and \texttt{MatrixPower} --- for each of the \bmAssets{} distinct
+assets behind the \bmCells{} printed cells. The model runs each cell at
+\bmNSim{} draws with seed \bmSeed, as the generator did, and each of its figures is
+judged in standard errors of the exact value; the containment rate's on the expected
+number of fires.
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{The model document's claims}
+\input{evidence_tables_claims}
+
+\subsection{The spread at the production draw count}
+\input{evidence_tables_production}
+
+\subsection{Every printed cell}
+\input{evidence_tables_cells}
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The credit is shown to be computed as
+  documented; every parameter remains an uncalibrated seed (FIRE-R1, R2).
+\item \textbf{Spread precision.} Compute the spread exactly, or raise the draw count
+  until its standard error is below the precision quoted; at \bmProductionN{} draws it
+  is a draw, not a price.
+\item \textbf{Documentation.} \S3.3 should put detection into the activation step;
+  \S3.5 should say the $S_6$ rows are unused, or the march should use them; Table 2
+  should quote the cliff as $10^4(1-e^{-\lambda})$; \S8's tall-residual sentence
+  should be removed. At a combustibility exactly on the threshold a frame is both
+  combustible and given the low fuel cap; no configured type sits there.
+\end{enumerate}
+
+\mkmhistorypage{27-Oct-2026 & 0.1 & First issue & David K Kelly \\}
+
+\end{document}
