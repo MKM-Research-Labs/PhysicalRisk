@@ -46,3 +46,5 @@ from config.models._wolfram_oracle_ef import *  # noqa: F401,F403
 from config.models._wolfram_oracle_mp import *  # noqa: F401,F403
 from config.models._wolfram_oracle_fire import *  # noqa: F401,F403
 from config.models._wolfram_oracle_fire_tables import *  # noqa: F401,F403
+from config.models._wolfram_oracle_seis import *  # noqa: F401,F403
+from config.models._wolfram_oracle_seis_tables import *  # noqa: F401,F403

@@ -1,0 +1,171 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Building Seismic-Resilience Credit Model (MKM-SEIS-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark: the Credit Computed Exactly}
+\newcommand{\docversion}{0.1}
+\newcommand{\docdate}{28-October-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{evidence_tables_macros}
+% The shared history table sets every column to its natural width; wrap the description.
+\renewcommand{\mkmhistorypage}[1]{%
+    \section{Document History}
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{l|l|p{9cm}|l}
+            \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author} \\
+            \hline
+            #1
+        \end{tabular}
+    \end{table}
+}
+
+\begin{document}
+% Long code paths and identifiers cannot hyphenate; let the spacing stretch instead.
+\sloppy
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the Building Seismic-Resilience Credit Model
+(MKM-SEIS-001), which prices a commercial asset's seismic resilience as a
+no-collapse rate, an annual loss frequency and a full-collapse (DS3) spread for the
+Commercial PRS Pricer. The model estimates all three by Monte Carlo. This benchmark
+computes them \emph{exactly}: with the source-to-site distance fixed, an event's
+damage state depends on its magnitude, the GMPE residual and one fragility uniform,
+and the last two integrate out in closed form, leaving one integral over the
+truncated Gutenberg--Richter law per damage state.
+
+\paragraph{The model is right, and its tables are honest.} Model C, the GMPE median
+and the occurrence rate match the reference to \bmCheckErr. The code, run at the
+document's own draw count and seed, reproduces \bmReproduced{} of the \bmPrinted{}
+figures printed in its Tables 3--10, and every printed figure lies within \bmWorstZ{}
+standard errors of the exact credit (Table~\ref{tab:bm-cells}). All six acceptance
+gates of Table~2 hold on the exact credit, without the 0.7\,bp tolerance the
+generator allows for noise. \bmWolframConfirms
+
+\paragraph{Findings} (Table~\ref{tab:bm-claims}):
+\begin{enumerate}[leftmargin=*]
+\item \textbf{The tables are too noisy to read cell by cell.} At \bmNSim{} draws one
+  collapse is 0.5\,bp, and a \bmStableExact\,bp spread carries a \bmStableSE\,bp standard
+  error (\bmStableRel\%) --- so \S9.6's ``stability is adequate at $n_{\mathrm{sim}}=20{,}000$''
+  does not hold. \bmReversals{} adjacent pairs in the tables run against the exact order,
+  among them Table~9's Very-high row, where B prints above NR: all are sampling
+  noise (Table~\ref{tab:bm-noise}).
+\item \textbf{The production spread is noisy too.} Production runs \bmProductionN{} draws;
+  the largest exact spread, \bmProdExact\,bp, then carries a \bmProdSE\,bp standard error.
+  The exact credit takes under a second per asset.
+\item \textbf{Table 18's ``Mean L'' are medians.} The loss of DS0--DS2 is a lognormal
+  with that \emph{median}, clipped (not truncated) at 1, so its mean is higher: DS2
+  averages \bmMeanTwo, not 0.35, before the post-earthquake-fire cascade adds more.
+\item \textbf{The GMPE is not specified.} \S3.3 and Appendix~B name a
+  Boore--Atkinson-style proxy; the coded form, with magnitude-dependent geometric
+  spreading, appears only in the code.
+\end{enumerate}
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test, at commit \bmCodeCommit{}\bmCodeDirty.
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle seis001}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+In \texttt{src/models/seismic/}: occurrence and the fault geometry (Model A), the GMPE
+(Model B), the BRI modifiers (Model C) and the damage, loss and cascade of Model D,
+end to end through \texttt{simulate\_asset\_seismic}, each cell built as the document's
+sensitivity generator built it: a 2\,km east--west fault with the asset due south of
+its midpoint.
+
+\subsection{What is not}
+Table~11 prices the Halong portfolio from catchment data not available to this run.
+Assets with a long fault and an off-centre position, where $R_{JB}$ varies with the
+rupture, are outside the generator's cases and this benchmark's. The functionality
+index and PML outputs do not enter the credit. Every parameter is an
+engineering-judgement seed (SEIS-L1). This addresses validation question Q8, not Q9.
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+With $M$ truncated Gutenberg--Richter on $[m_{\min},m_{\max}]$ with slope $b$, the coded
+GMPE median $\mu(M,R,V_{S30})$, the soft-soil factor $F_a$, residual sigma $\sigma$, and
+Model-C-adjusted medians $\theta_i$ with dispersion $\beta$, one uniform against the
+nested fragility curves gives
+\begin{equation}
+P(\mathrm{DS}\ge i\mid M)=\Phi\!\left(\frac{\ln\mu(M)+\ln F_a-\ln\theta_i}{\sqrt{\sigma^2+\beta^2}}\right),
+\qquad
+p_i=\int_{m_{\min}}^{m_{\max}}P(\mathrm{DS}\ge i\mid m)\,f_M(m)\,\mathrm{d}m .
+\end{equation}
+With $q=1-e^{-\lambda h}$ the probability a draw has an event, the spread is $10^4q\,p_3$
+and the no-collapse rate $1-p_3$. The loss of DS0--DS2 is $\min(\tilde m e^{sZ},1)$,
+whose mean is
+$\tilde m e^{s^2/2}\Phi(-\ln\tilde m/s-s)+\Phi(\ln\tilde m/s)$; the cascade replaces it
+with the larger of it and the fire loss, whose mean is
+$\int_0^1\bigl(1-F_S(x)F_F(x)\bigr)\mathrm{d}x$; the loss frequency is
+$q\sum_k P(\mathrm{DS}=k)\,E[L\mid k]$.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+The integrals are evaluated with \texttt{mpmath} at 50 digits, from the document and
+the configuration rather than the code; the GMPE takes the form the code documents,
+the document giving none. Wolfram evaluates the damage-state integrals independently
+with \texttt{NIntegrate}, for each of the \bmAssets{} distinct assets behind the
+\bmCells{} printed cells. The model runs each cell at \bmNSim{} draws with seed \bmSeed,
+as the generator did, and each figure is judged in standard errors of the exact
+value: the no-collapse rate's on the expected number of events, the loss frequency's
+from the exact second moment, and the median PGA's from the density at the median.
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{The model document's claims}
+\input{evidence_tables_claims}
+
+\subsection{How much the tables can say}
+\input{evidence_tables_noise}
+\input{evidence_tables_pga}
+
+\subsection{Every printed cell}
+\input{evidence_tables_cells}
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The credit is shown to be computed as
+  documented; the seeds remain uncalibrated (SEIS-R1, R2).
+\item \textbf{Precision.} Price the spread from the exact credit, or raise the draw
+  count until its standard error is below the precision quoted, and print the
+  sensitivity tables from the exact credit so their orderings mean something.
+\item \textbf{Documentation.} State the GMPE's functional form and coefficients
+  (\S3.3, Appendix~B); call the Table 18 figures medians of clipped lognormals, or
+  set them so the means are as stated; withdraw \S9.6's stability claim.
+\end{enumerate}
+
+\mkmhistorypage{28-Oct-2026 & 0.1 & First issue & David K Kelly \\}
+
+\end{document}
