@@ -2,8 +2,8 @@
 
 \newcommand{\doctitle}{Stress Testing}
 \newcommand{\docsubtitle}{User Guide --- CDS-in-Stress, Flood Classifiers \& Portfolio Scenarios}
-\newcommand{\docversion}{1.0}
-\newcommand{\docdate}{10-April-2026}
+\newcommand{\docversion}{1.1}
+\newcommand{\docdate}{29-October-2026}
 \newcommand{\docauthor}{MKM Research Labs}
 
 \input{../shared/mkm_header}
@@ -309,6 +309,221 @@ Classifiers should be retrained when:
 
 
 % =========================================================================
+\section{Model Selection: Challenger Comparison}
+\label{sec:challenger}
+% =========================================================================
+
+\subsection{Open Question}
+
+\begin{quote}
+\emph{Should an alternative classifier, such as a Random Forest, be
+considered in place of the GBM?  What evidence shows that the GBM is
+the most accurate and most stable choice for $P(\text{flood})$?}
+\end{quote}
+
+\noindent The GBM was selected on the basis of in-sample AUC.  That is
+not sufficient evidence for model selection: no challenger has been
+fitted on the same data, and the AUC is measured on a split that
+overstates out-of-sample performance (Section~\ref{sec:leakage}).  This
+section sets out the comparison that would settle the question.  The
+protocol is written so that the GBM \emph{can fail}: if a challenger
+wins under the pre-agreed decision rule, the challenger is adopted.
+
+\subsection{Why Random Forest Is the Natural Challenger}
+
+Both models are tree ensembles on the same four features, so they
+differ only in how the ensemble is built:
+
+\begin{center}
+\begin{tabular}{p{3.2cm}p{5.2cm}p{5.2cm}}
+\toprule
+& \textbf{GBM (champion)} & \textbf{Random Forest (challenger)} \\
+\midrule
+Ensemble     & Sequential, each tree fits the residual of the last
+             & Independent deep trees on bootstrap samples, averaged \\
+Error reduced & Mainly bias & Mainly variance \\
+Tuning       & Sensitive (learning rate, depth, trees)
+             & Robust to defaults \\
+Probabilities & Optimises log loss directly; usually well calibrated
+             & Averaged votes; pulled away from 0 and 1, often needs
+               recalibration \\
+Seed sensitivity & Low--moderate (\texttt{subsample=0.8})
+             & Low with many trees \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Because the classifier output is used directly as a price
+($C_h = N \times p_h \times d$), calibration matters more than
+ranking.  This is the main reason to expect the GBM to win, but it has
+to be shown, not assumed.
+
+\subsection{Candidate Set}
+
+\begin{enumerate}
+  \item \textbf{GBM} --- production configuration
+        (\texttt{n\_estimators=300}, \texttt{max\_depth=3},
+        \texttt{learning\_rate=0.05}, \texttt{subsample=0.8},
+        \texttt{min\_samples\_leaf=50}).
+  \item \textbf{GBM, tuned} --- the same model given the same tuning
+        budget as the challengers.  If it beats the production GBM,
+        the production settings, not the model family, need changing.
+  \item \textbf{Random Forest} --- \texttt{n\_estimators=500},
+        \texttt{max\_features=2}, \texttt{min\_samples\_leaf} tuned.
+  \item \textbf{Random Forest, calibrated} --- the same, wrapped in
+        isotonic or Platt calibration fitted on an inner fold.  This
+        stops RF losing only because of calibration that a
+        one-line fix would remove.
+  \item \textbf{Logistic regression} on the four features --- a
+        transparent baseline.
+  \item \textbf{Flood polynomial} --- the production fallback, as the
+        floor every model must beat.
+\end{enumerate}
+
+\noindent Every tree model gets the same tuning budget (for example
+30 random-search trials) inside the training folds, so the GBM does
+not win only because it has been tuned more.
+
+\subsection{Prerequisite: Remove Storm Leakage}
+\label{sec:leakage}
+
+Each storm contributes 168 hourly rows, and the label
+(\emph{future maximum level} $\geq w_{\text{severe}}$) is shared by
+adjacent hours.  The current trainer uses a row-level stratified
+\texttt{train\_test\_split}, so hours from the same storm appear in
+both training and test sets.  The reported AUC therefore measures
+interpolation within storms already seen, not prediction on new
+storms.  This leakage favours deep, low-bias learners and so would
+flatter the Random Forest more than the GBM.
+
+\noindent Before any comparison:
+\begin{itemize}
+  \item Carry a \texttt{storm\_id} with every training vector.
+  \item Split by storm using \texttt{GroupKFold} (5 folds), so every
+        storm is entirely in train or entirely in test.
+  \item Add near-miss synthetic vectors to the \emph{training} folds
+        only; score on real storm vectors only.
+\end{itemize}
+
+\subsection{Accuracy Metrics}
+
+Scored on held-out storms, per gauge and pooled:
+\begin{description}[leftmargin=2em]
+  \item[Primary] Brier score and log loss --- proper scoring rules
+        that reward correct probabilities, not just correct ranking.
+  \item[Calibration] Reliability diagram, expected calibration error,
+        calibration slope and intercept.
+  \item[Discrimination] AUC (secondary, kept for continuity with
+        the existing thresholds).
+  \item[Business] Stress P\&L error on held-out storms: the hourly
+        $\sum_h N p_h d$ path compared against the realised
+        knock-out outcome of that storm.
+\end{description}
+
+\subsection{Stability Tests}
+
+``Most stable'' is tested in five ways.  Each produces a number per
+model and per gauge.
+
+\begin{enumerate}
+  \item \textbf{Seed stability.}  Retrain each model with 20 random
+        seeds on the same data.  Measure the standard deviation of
+        $p$ on a fixed grid (the probability surface of
+        Section~4) and of peak stress P\&L for a reference storm set.
+  \item \textbf{Data stability.}  Retrain on 50 bootstrap resamples
+        \emph{of storms} (not of rows).  Report the spread of $p$ on
+        the fixed grid and the spread of the held-out Brier score.
+  \item \textbf{Catalogue stability.}  Train on one generation of the
+        storm catalogue and score on a regenerated catalogue
+        (a new seed or new storm-control parameters).  This is the
+        retraining trigger in practice, so it is the most
+        decision-relevant stability test.  The benchmark tool does not
+        regenerate the catalogue itself: run it once on each catalogue
+        generation and compare the two result files.
+  \item \textbf{Shape stability.}  $P(\text{flood})$ should not fall
+        as the water level rises.  Count monotonicity violations in
+        \texttt{log\_h\_s} across the grid, and measure how rough the
+        finite-difference sensitivity $\partial p / \partial w$ is.
+        Step-like surfaces give noisy stress Greeks.
+  \item \textbf{Cross-gauge consistency.}  The distribution of
+        per-gauge metrics: a model that is excellent on most gauges
+        but fails badly on a few is less stable than one that is
+        uniformly good.
+\end{enumerate}
+
+\subsection{Statistical Comparison}
+
+\begin{itemize}
+  \item Per gauge: paired difference in Brier score (GBM minus
+        challenger) on the same held-out storms, with a 95\%
+        confidence interval from a storm-level bootstrap.
+  \item Across gauges: Wilcoxon signed-rank test on the per-gauge
+        Brier differences.
+  \item Stability metrics: report ratios (challenger dispersion /
+        GBM dispersion) with bootstrap intervals.
+\end{itemize}
+
+\subsection{Decision Rule}
+
+Agreed before the results are seen.  The GBM is retained if all of
+the following hold:
+\begin{enumerate}
+  \item Its pooled Brier score is no worse than the best challenger's
+        by more than a set tolerance (for example 2\%), and the
+        Wilcoxon test does not show the challenger significantly
+        better.
+  \item Its seed, bootstrap and catalogue dispersion are no greater
+        than the challenger's (within 0.002 in probability s.d.).
+  \item It has no more monotonicity violations than the challenger
+        (within 0.5 percentage points of the violation rate).
+\end{enumerate}
+
+\noindent If a challenger is better on accuracy but worse on
+stability (or the reverse), the trade-off is recorded and the choice
+is escalated for model-risk sign-off rather than decided by the
+model owner.  If the best challenger wins on all three, it replaces
+the GBM.  With fewer than six gauges the Wilcoxon test has no power, so
+``significantly better'' then means every gauge's storm-bootstrap
+interval favours the challenger.
+
+\subsection{Running the Benchmark}
+
+The comparison is implemented in the benchmark tool:
+\begin{description}[leftmargin=2em]
+  \item[Code] \texttt{tools/flood\_classifier\_challenger/}
+  \item[Settings] \texttt{config/models/\_flood\_challenger.py}
+\end{description}
+\noindent It builds each gauge's training set with the production
+vector builder, so it scores exactly the features and labels
+production trains on:
+
+\begin{verbatim}
+python -m tools.flood_classifier_challenger \
+    --gauges all
+python -m tools.flood_classifier_challenger \
+    --gauges G1,G2 --seeds 20 --bootstraps 50
+python -m tools.flood_classifier_challenger \
+    --synthetic 3     # no storm data needed
+\end{verbatim}
+
+\noindent Defaults are 1{,}000 storms per gauge, 5 storm folds,
+6 tuning trials, 10 seeds and 20 storm bootstraps; a sign-off run
+uses 20 seeds and 50 bootstraps as above.  Fits run in parallel on
+every core.  The run writes \texttt{challenger/challenger\_results.json}
+(every metric, the tuned parameters per fold and the probability
+surfaces) and the table below.
+
+\subsection{Results}
+
+\IfFileExists{challenger/challenger_results.tex}{%
+  \input{challenger/challenger_results.tex}%
+}{%
+\noindent The comparison has not yet been run on the storm catalogue.
+Until it is, the choice of GBM rests on modelling judgement and
+in-sample AUC, and should be recorded as such.}
+
+
+% =========================================================================
 \section{Parameter Reference}
 \label{ch:reference}
 % =========================================================================
@@ -353,6 +568,7 @@ Classifiers should be retrained when:
 \textbf{Version} & \textbf{Date} & \textbf{Author} & \textbf{Description} \\
 \midrule
 1.0 & 10-Apr-2026 & MKM Research Labs & Initial release \\
+1.1 & 29-Oct-2026 & MKM Research Labs & Added GBM challenger comparison \\
 \bottomrule
 \end{tabular}
 

@@ -33,6 +33,16 @@ from sklearn.metrics import (
 
 logger = logging.getLogger(__name__)
 
+# Production GBM configuration (also the champion in the challenger benchmark,
+# tools/flood_classifier_challenger).
+GBM_PARAMS = {
+    'n_estimators': 300,
+    'max_depth': 3,
+    'learning_rate': 0.05,
+    'subsample': 0.8,
+    'min_samples_leaf': 50,
+}
+
 
 class FloodClassifierTrainer:
     """Train per-gauge flood probability classifiers."""
@@ -74,14 +84,7 @@ class FloodClassifierTrainer:
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=test_size, random_state=42, stratify=y)
 
-        model = GradientBoostingClassifier(
-            n_estimators=300,
-            max_depth=3,
-            learning_rate=0.05,
-            subsample=0.8,
-            min_samples_leaf=50,
-            random_state=42,
-        )
+        model = GradientBoostingClassifier(**GBM_PARAMS, random_state=42)
         model.fit(X_train, y_train)
 
         # Predictions

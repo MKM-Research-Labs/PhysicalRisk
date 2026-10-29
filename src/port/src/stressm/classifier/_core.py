@@ -24,6 +24,10 @@ v2.0 — Near-miss augmentation.  The previous classifier jumped from ~5% to ~95
 instantly because the training set lacked storms that APPROACH severe without
 breaching it.  Now we synthesise near-miss hydrographs (peak 80–99% of severe)
 that all carry label=0, giving the GBM gradient data in the transition zone.
+
+v2.1 — Storm groups.  Every vector now carries the index of the storm it came
+from (``groups``), so held-out scoring can split by storm rather than by row.
+Near-miss hydrographs get negative group ids.  Training output is unchanged.
 """
 
 import math
@@ -40,6 +44,146 @@ from config.port import (
 )
 
 from ._nearmiss import _generate_nearmiss_vectors
+
+
+def hydrograph_vectors(levels, ref: float) -> list:
+    """Feature vectors for one 168-hour hydrograph, labelled against ``ref``.
+
+    Each row is ``[log(h/ref), log((t+1)/168), Δlog(h/ref), Δ²log(h/ref), flag]``
+    where ``flag`` is 1 if the level reaches ``ref`` at or after hour t.  A
+    non-positive ``ref`` uses the raw level and labels every hour 0.
+    """
+    if ref > 0:
+        log_hs = [math.log(max(lv / ref, _LOG_EPS)) for lv in levels]
+    else:
+        log_hs = [math.log(max(lv, _LOG_EPS)) for lv in levels]
+
+    rows = []
+    for h in range(_NUM_HOURS):
+        log_t = math.log((h + 1) / _LOG_END)
+        delta      = log_hs[h] - log_hs[h - 1] if h > 0 else 0.0
+        prev_delta = log_hs[h - 1] - log_hs[h - 2] if h > 1 else 0.0
+        delta2     = delta - prev_delta
+
+        future_max = max(levels[h:])
+        flood_flag = 1 if (ref > 0 and future_max >= ref) else 0
+
+        rows.append([
+            round(log_hs[h], 6),
+            round(log_t, 6),
+            round(delta, 6),
+            round(delta2, 6),
+            flood_flag,
+        ])
+    return rows
+
+
+def _nearmiss_groups(n_vectors: int) -> list:
+    """Group ids -1, -2, ... for consecutive 168-hour near-miss hydrographs."""
+    return [-1 - i // _NUM_HOURS for i in range(n_vectors)]
+
+
+def build_gauge_training_set(
+    sequences: list,
+    gauge: dict,
+    spatial_model,
+    target_spatial_index: int,
+    rng,
+) -> dict:
+    """Build the labelled training vectors for one gauge.
+
+    Labels against ``severe_warning``; if no storm reaches it, relabels against
+    ``flood_alert``.  Near-miss hydrographs are appended after the real storms.
+
+    Returns:
+        Dict with ``vector`` (rows as in :func:`hydrograph_vectors`), ``groups``
+        (storm index per row, negative for near-miss), ``n_real`` (rows from
+        real storms, which come first), ``label_level`` and ``label_name``.
+    """
+    from port.src.storm_multi.models.sequence_response import (
+        SequenceGaugeParams, compute_sequence_gauge_response, _make_precip_series,
+    )
+
+    gid = gauge["gauge_id"]
+    severe_l = gauge["severe_warning"]
+    alert_l  = gauge["flood_alert"]
+    warning_l = gauge["flood_warning"]
+
+    gp = SequenceGaugeParams(
+        gauge_id=gid,
+        base_level=gauge["base_level"],
+        flood_alert=alert_l,
+        flood_warning=warning_l,
+        severe_warning=severe_l,
+    )
+
+    def _real_vectors(ref):
+        vectors, groups = [], []
+        for i, seq in enumerate(sequences):
+            catchment_precip = _make_precip_series(seq)
+            gauge_precip_all = spatial_model.apply_to_sequence(seq, catchment_precip, rng=rng)
+            levels = compute_sequence_gauge_response(
+                seq, gp, precip_series=gauge_precip_all[target_spatial_index]
+            )
+            rows = hydrograph_vectors(levels, ref)
+            vectors.extend(rows)
+            groups.extend([i] * len(rows))
+        return vectors, groups
+
+    t0 = time.time()
+    vectors, groups = _real_vectors(severe_l)
+    flood_positive = sum(v[4] for v in vectors)
+
+    total_v = len(vectors)
+    flood_rate = flood_positive / total_v if total_v > 0 else 0
+    print(f"  Real vectors: {total_v:,}  |  flood-positive: {flood_positive:,} "
+          f"({flood_rate:.1%})  [{time.time()-t0:.1f}s]", flush=True)
+
+    if flood_positive > 0:
+        label_level = severe_l
+        label_name = "severe_warning"
+        n_real = len(vectors)
+        # Near-miss augmentation: add synthetic hydrographs peaking at 80–99% of
+        # severe.  These all carry label=0 and give the GBM gradient data in the
+        # transition zone so P(flood) rises smoothly rather than jumping 5%→95%.
+        if severe_l > 0:
+            nm_rng = np.random.RandomState(rng.randint(0, 2**31))
+            nearmiss = _generate_nearmiss_vectors(severe_l, gauge["base_level"], nm_rng)
+            vectors.extend(nearmiss)
+            groups.extend(_nearmiss_groups(len(nearmiss)))
+            print(f"  Near-miss augmentation: +{len(nearmiss):,} sub-severe vectors "
+                  f"({_NEARMISS_COUNT} hydrographs × {_NUM_HOURS}h)  "
+                  f"→  total {len(vectors):,}", flush=True)
+    else:
+        # No severe events: fall back to flood_alert as the label threshold
+        label_level = alert_l
+        label_name = "flood_alert"
+        print(f"  No severe events — relabelling against flood_alert ({alert_l:.2f} m)",
+              flush=True)
+        vectors, groups = _real_vectors(label_level)
+        flood_positive = sum(v[4] for v in vectors)
+        n_real = len(vectors)
+        total_v = len(vectors)
+        flood_rate = flood_positive / total_v if total_v > 0 else 0
+        print(f"  Relabelled vectors: {total_v:,}  |  flood-positive: {flood_positive:,} "
+              f"({flood_rate:.1%})", flush=True)
+
+        # Near-miss augmentation against alert level
+        if flood_positive > 0:
+            nm_rng = np.random.RandomState(rng.randint(0, 2**31))
+            nearmiss = _generate_nearmiss_vectors(alert_l, gauge["base_level"], nm_rng)
+            vectors.extend(nearmiss)
+            groups.extend(_nearmiss_groups(len(nearmiss)))
+            print(f"  Near-miss (alert): +{len(nearmiss):,} sub-alert vectors "
+                  f"→ total {len(vectors):,}", flush=True)
+
+    return {
+        "vector":      vectors,
+        "groups":      groups,
+        "n_real":      n_real,
+        "label_level": label_level,
+        "label_name":  label_name,
+    }
 
 
 def train_gauge_stressm_classifier(
@@ -73,136 +217,26 @@ def train_gauge_stressm_classifier(
     Returns:
         Result dict from FloodClassifierTrainer.train_gauge().
     """
-    from port.src.storm_multi.models.sequence_response import (
-        SequenceGaugeParams, compute_sequence_gauge_response, _make_precip_series,
-    )
     from models.stress.flood_classifier import FloodClassifierTrainer
 
     gid = gauge["gauge_id"]
-    severe_l = gauge["severe_warning"]
-    alert_l  = gauge["flood_alert"]
-    warning_l = gauge["flood_warning"]
-
-    gp = SequenceGaugeParams(
-        gauge_id=gid,
-        base_level=gauge["base_level"],
-        flood_alert=alert_l,
-        flood_warning=warning_l,
-        severe_warning=severe_l,
-    )
-
     stressm_dir = classifiers_dir if classifiers_dir else output_dir / "stressm"
     stressm_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\n  Training multi-storm GBM classifier for {gid}...", flush=True)
-    t0 = time.time()
-
-    vectors = []
-    flood_positive = 0
-
-    for seq in sequences:
-        catchment_precip = _make_precip_series(seq)
-        gauge_precip_all = spatial_model.apply_to_sequence(seq, catchment_precip, rng=rng)
-        levels = compute_sequence_gauge_response(
-            seq, gp, precip_series=gauge_precip_all[target_spatial_index]
-        )
-
-        if severe_l > 0:
-            log_hs = [math.log(max(lv / severe_l, _LOG_EPS)) for lv in levels]
-        else:
-            log_hs = [math.log(max(lv, _LOG_EPS)) for lv in levels]
-
-        for h in range(_NUM_HOURS):
-            log_t = math.log((h + 1) / _LOG_END)
-            delta      = log_hs[h] - log_hs[h - 1] if h > 0 else 0.0
-            prev_delta = log_hs[h - 1] - log_hs[h - 2] if h > 1 else 0.0
-            delta2     = delta - prev_delta
-
-            future_max = max(levels[h:]) if h < _NUM_HOURS else levels[h]
-            flood_flag = 1 if (severe_l > 0 and future_max >= severe_l) else 0
-            if flood_flag:
-                flood_positive += 1
-
-            vectors.append([
-                round(log_hs[h], 6),
-                round(log_t, 6),
-                round(delta, 6),
-                round(delta2, 6),
-                flood_flag,
-            ])
-
-    total_v = len(vectors)
-    flood_rate = flood_positive / total_v if total_v > 0 else 0
-    print(f"  Real vectors: {total_v:,}  |  flood-positive: {flood_positive:,} "
-          f"({flood_rate:.1%})  [{time.time()-t0:.1f}s]", flush=True)
-
-    # Near-miss augmentation: add synthetic hydrographs peaking at 80–99% of
-    # severe.  These all carry label=0 and give the GBM gradient data in the
-    # transition zone so P(flood) rises smoothly rather than jumping 5%→95%.
-    if severe_l > 0 and flood_positive > 0:
-        nm_rng = np.random.RandomState(rng.randint(0, 2**31))
-        nearmiss = _generate_nearmiss_vectors(severe_l, gauge["base_level"], nm_rng)
-        vectors.extend(nearmiss)
-        nm_count = len(nearmiss)
-        total_v = len(vectors)
-        print(f"  Near-miss augmentation: +{nm_count:,} sub-severe vectors "
-              f"({_NEARMISS_COUNT} hydrographs × {_NUM_HOURS}h)  "
-              f"→  total {total_v:,}", flush=True)
-
-    # If no severe events, fall back to flood_alert as the label threshold
-    if flood_positive == 0:
-        label_level = alert_l
-        label_name = "flood_alert"
-        print(f"  No severe events — relabelling against flood_alert ({alert_l:.2f} m)",
-              flush=True)
-        vectors = []
-        flood_positive = 0
-        for seq in sequences:
-            catchment_precip = _make_precip_series(seq)
-            gauge_precip_all = spatial_model.apply_to_sequence(seq, catchment_precip, rng=rng)
-            levels = compute_sequence_gauge_response(
-                seq, gp, precip_series=gauge_precip_all[target_spatial_index]
-            )
-            ref = label_level
-            log_hs = [math.log(max(lv / ref, _LOG_EPS)) for lv in levels]
-            for h in range(_NUM_HOURS):
-                log_t = math.log((h + 1) / _LOG_END)
-                delta      = log_hs[h] - log_hs[h - 1] if h > 0 else 0.0
-                prev_delta = log_hs[h - 1] - log_hs[h - 2] if h > 1 else 0.0
-                delta2     = delta - prev_delta
-                future_max = max(levels[h:]) if h < _NUM_HOURS else levels[h]
-                flood_flag = 1 if future_max >= ref else 0
-                if flood_flag:
-                    flood_positive += 1
-                vectors.append([
-                    round(log_hs[h], 6), round(log_t, 6),
-                    round(delta, 6), round(delta2, 6), flood_flag,
-                ])
-        total_v = len(vectors)
-        flood_rate = flood_positive / total_v if total_v > 0 else 0
-        print(f"  Relabelled vectors: {total_v:,}  |  flood-positive: {flood_positive:,} "
-              f"({flood_rate:.1%})", flush=True)
-
-        # Near-miss augmentation against alert level
-        if flood_positive > 0:
-            nm_rng = np.random.RandomState(rng.randint(0, 2**31))
-            nearmiss = _generate_nearmiss_vectors(alert_l, gauge["base_level"], nm_rng)
-            vectors.extend(nearmiss)
-            print(f"  Near-miss (alert): +{len(nearmiss):,} sub-alert vectors "
-                  f"→ total {len(vectors):,}", flush=True)
-    else:
-        label_level = severe_l
-        label_name = "severe_warning"
+    training = build_gauge_training_set(
+        sequences, gauge, spatial_model, target_spatial_index, rng)
 
     trainer = FloodClassifierTrainer(Path("_unused"), stressm_dir)
     gauge_data = {
         "gauge_id":      gid,
-        "alert_level":   alert_l,
-        "warning_level": warning_l,
-        "severe_level":  label_level,
-        "vector":        vectors,
+        "alert_level":   gauge["flood_alert"],
+        "warning_level": gauge["flood_warning"],
+        "severe_level":  training["label_level"],
+        "vector":        training["vector"],
+        "groups":        training["groups"],
     }
     result = trainer.train_gauge(gid, gauge_data)
-    result["label_threshold"] = label_name
-    result["label_level_m"] = label_level
+    result["label_threshold"] = training["label_name"]
+    result["label_level_m"] = training["label_level"]
     return result
