@@ -517,6 +517,18 @@ surfaces) and the table below.
 
 \IfFileExists{challenger/challenger_results.tex}{%
   \input{challenger/challenger_results.tex}%
+
+\medskip\noindent\textbf{Reading these results.}  This run is
+illustrative, not sign-off evidence: it uses the first six gauges of
+the 18 in the test portfolio, at 500 storms each and the default
+seed and bootstrap counts.  The tuned GBM's zero seed s.d.\ does not
+show better stability: tuning chose \texttt{subsample} $= 1$ for the
+fold used in the stability test on all six gauges, so the fit has no
+randomness for the seed to act on.  Its bootstrap s.d., which
+measures sensitivity to the storms sampled, is the higher of the
+GBM variants and above the Random Forest's.  Tuned parameters also
+differ between folds, so its accuracy is not that of one fixed
+setting.%
 }{%
 \noindent The comparison has not yet been run on the storm catalogue.
 Until it is, the choice of GBM rests on modelling judgement and
