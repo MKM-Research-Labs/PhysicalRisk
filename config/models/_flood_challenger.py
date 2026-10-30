@@ -20,13 +20,13 @@
 
 """Flood-classifier challenger benchmark parameters (GBM vs Random Forest).
 
-The protocol is set out in the Stress Testing guide, section "Model Selection:
-Challenger Comparison" (docs/models/stress_testing/stress_testing_guide.tex).
+The protocol is set out in the flood classifier documentation, section "Model
+Selection: Challenger Comparison" (docs/models/flood_classifier/flood_classifier.tex).
 The tool is tools/flood_classifier_challenger.  Defaults are sized so one gauge
 runs in minutes; a full sign-off run raises the seed and bootstrap counts.
 """
 
-CHALLENGER_OUT_DIR = "docs/models/stress_testing/challenger"
+CHALLENGER_OUT_DIR = "docs/models/flood_classifier/challenger"
 CHALLENGER_RESULTS_JSON = "challenger_results.json"
 CHALLENGER_RESULTS_TEX = "challenger_results.tex"
 
