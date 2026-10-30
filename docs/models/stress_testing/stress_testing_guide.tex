@@ -2,8 +2,8 @@
 
 \newcommand{\doctitle}{Stress Testing}
 \newcommand{\docsubtitle}{User Guide --- CDS-in-Stress, Flood Classifiers \& Portfolio Scenarios}
-\newcommand{\docversion}{1.1}
-\newcommand{\docdate}{29-October-2026}
+\newcommand{\docversion}{1.2}
+\newcommand{\docdate}{30-October-2026}
 \newcommand{\docauthor}{MKM Research Labs}
 
 \input{../shared/mkm_header}
@@ -323,8 +323,8 @@ the most accurate and most stable choice for $P(\text{flood})$?}
 
 \noindent The GBM was selected on the basis of in-sample AUC.  That is
 not sufficient evidence for model selection: no challenger has been
-fitted on the same data, and the AUC is measured on a split that
-overstates out-of-sample performance (Section~\ref{sec:leakage}).  This
+fitted on the same data, and the AUC was measured on a split that
+overstated out-of-sample performance (Section~\ref{sec:leakage}).  This
 section sets out the comparison that would settle the question.  The
 protocol is written so that the GBM \emph{can fail}: if a challenger
 wins under the pre-agreed decision rule, the challenger is adopted.
@@ -389,14 +389,27 @@ not win only because it has been tuned more.
 
 Each storm contributes 168 hourly rows, and the label
 (\emph{future maximum level} $\geq w_{\text{severe}}$) is shared by
-adjacent hours.  The current trainer uses a row-level stratified
-\texttt{train\_test\_split}, so hours from the same storm appear in
-both training and test sets.  The reported AUC therefore measures
-interpolation within storms already seen, not prediction on new
-storms.  This leakage favours deep, low-bias learners and so would
-flatter the Random Forest more than the GBM.
+adjacent hours.  Up to version 1.1 the trainer used a row-level
+stratified \texttt{train\_test\_split}, so hours from the same storm
+appeared in both training and test sets, and near-miss rows were
+scored too.  The reported AUC therefore measured interpolation within
+storms already seen, not prediction on new storms.  This leakage
+favours deep, low-bias learners and so would flatter the Random
+Forest more than the GBM.
 
-\noindent Before any comparison:
+\noindent The production trainer now holds out 20\% of storms,
+stratified on whether the storm floods, keeps near-miss rows in
+training and records \texttt{split} in its result.  If no such split
+is possible (for example, only one storm floods) it falls back to the
+row-level split and records \texttt{split} $=$ \texttt{row}.
+Classifiers and metrics trained before this change keep the old
+split until they are retrained, when the fitted models also change.
+On one test-portfolio gauge the new split moved Brier from 0.0213 to
+0.0258 and AUC from 0.988 to 0.990.  AUC can hold up because the easy
+gains from leakage are offset by no longer scoring near-miss rows, so
+Brier and log loss are the better guide to the change.
+
+\noindent For the comparison itself:
 \begin{itemize}
   \item Carry a \texttt{storm\_id} with every training vector.
   \item Split by storm using \texttt{GroupKFold} (5 folds), so every
@@ -581,6 +594,7 @@ in-sample AUC, and should be recorded as such.}
 \midrule
 1.0 & 10-Apr-2026 & MKM Research Labs & Initial release \\
 1.1 & 29-Oct-2026 & MKM Research Labs & Added GBM challenger comparison \\
+1.2 & 30-Oct-2026 & MKM Research Labs & Trainer holds out whole storms \\
 \bottomrule
 \end{tabular}
 
