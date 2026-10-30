@@ -21,8 +21,11 @@
 """Run the benchmark over a set of gauges and write the results."""
 
 import datetime as _dt
+import os
 import time
 from pathlib import Path
+
+import joblib
 
 from config.models import (
     CHALLENGER_BOOTSTRAPS,
@@ -53,18 +56,34 @@ def run_benchmark(gauges="all", max_gauges=None, synthetic=0,
     ``synthetic=n`` runs on n synthetic gauges instead of the storm catalogue.
     ``n_jobs`` processes run the fits (1 runs them in this process).
     Returns the results dict (with private per-row arrays).
+
+    Each scored gauge is checkpointed under ``<out_dir>/checkpoints``; a rerun
+    with the same settings and data source reuses it instead of refitting.
     """
     t0 = time.time()
     if synthetic:
         sets, source = synthetic_catalogue(synthetic, n_storms, seed), "synthetic"
     else:
-        sets, source = load_catalogue(gauges, n_storms, seed, max_gauges), "catalogue"
+        sets, source = load_catalogue(gauges, n_storms, seed, max_gauges), _catalogue_label()
+    settings = {"source": source, "n_storms": n_storms, "folds": folds,
+                "tune_trials": tune_trials, "seeds": seeds,
+                "bootstraps": bootstraps, "seed": seed}
+    ckpt_dir = Path(out_dir) / "checkpoints" if out_dir else None
 
     results = []
     for gs in sets:
         log(f"  {gs.gauge_id}: {len(set(gs.groups[:gs.n_real])):,} storms, "
             f"{gs.n_real:,} rows, flood rate {gs.y[:gs.n_real].mean():.1%}")
-        results.append(evaluate_gauge(gs, folds, tune_trials, seeds, bootstraps, seed, log, n_jobs))
+        ckpt = ckpt_dir / f"{gs.gauge_id}.joblib" if ckpt_dir else None
+        if ckpt and ckpt.exists() and joblib.load(ckpt)["settings"] == settings:
+            results.append(joblib.load(ckpt)["result"])
+            log("    reused checkpoint")
+            continue
+        result = evaluate_gauge(gs, folds, tune_trials, seeds, bootstraps, seed, log, n_jobs)
+        if ckpt:
+            ckpt_dir.mkdir(parents=True, exist_ok=True)
+            joblib.dump({"settings": settings, "result": result}, ckpt)
+        results.append(result)
 
     scored = [g for g in results if g["status"] == "scored"]
     if not scored:
@@ -76,7 +95,7 @@ def run_benchmark(gauges="all", max_gauges=None, synthetic=0,
             "source": source,
             "n_gauges_scored": len(scored),
             "n_gauges_skipped": len(results) - len(scored),
-            "n_storms": n_storms, "folds": folds, "tune_trials": tune_trials,
+            "n_storms": max(g["n_storms"] for g in scored), "folds": folds, "tune_trials": tune_trials,
             "seeds": seeds, "bootstraps": bootstraps, "seed": seed, "n_jobs": n_jobs,
             "seconds": round(time.time() - t0, 1),
         },
@@ -90,3 +109,12 @@ def run_benchmark(gauges="all", max_gauges=None, synthetic=0,
         write_tex(out, out_dir / CHALLENGER_RESULTS_TEX)
         log(f"  wrote {out_dir / CHALLENGER_RESULTS_JSON} and {CHALLENGER_RESULTS_TEX}")
     return out
+
+
+def _catalogue_label():
+    """The active catchment, marked when the input dir is overridden (for
+    example the test portfolio on the local disk)."""
+    import database
+    label = f"catalogue {database.active_catchment()}"
+    override = os.getenv("MKM_CATCHMENT_INPUT_OVERRIDE")
+    return f"{label} from {Path(override).parents[1].name}" if override else label
