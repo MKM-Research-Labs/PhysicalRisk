@@ -264,17 +264,18 @@ with boundary conditions $\Delta\ell(0) = \Delta^2\ell(0) = 0$.
 % 4. HYPERPARAMETERS
 % ===================================================================
 \section{Hyperparameters}
+\label{sec:hyperparameters}
 
 \begin{center}
 \begin{tabular}{lrl}
 \toprule
 \textbf{Parameter} & \textbf{Value} & \textbf{Rationale} \\
 \midrule
-\texttt{n\_estimators} & 200 & Sufficient for convergence without overfitting \\
-\texttt{max\_depth} & 4 & Captures water-level $\times$ hour interaction \\
-\texttt{learning\_rate} & 0.1 & Standard shrinkage for 200 rounds \\
+\texttt{n\_estimators} & 300 & Sufficient for convergence without overfitting \\
+\texttt{max\_depth} & 3 & Captures water-level $\times$ hour interaction \\
+\texttt{learning\_rate} & 0.05 & Shrinkage paired with 300 rounds \\
 \texttt{subsample} & 0.8 & Row sampling to reduce variance \\
-\texttt{min\_samples\_leaf} & 20 & Prevents small-node overfitting \\
+\texttt{min\_samples\_leaf} & 50 & Prevents small-node overfitting \\
 \texttt{random\_state} & 42 & Reproducibility \\
 \texttt{test\_size} & 0.2 & 80/20 train-test split \\
 \bottomrule
@@ -517,13 +518,16 @@ Current unit test evidence is filed with the model record in ModelRisk (Test Res
 % ===================================================================
 \mkmsensitivity
 
-Sensitivity of the classifier's AUC to key hyperparameters is analysed by varying
-each parameter independently while holding others at production defaults.
+Sensitivity of the classifier's AUC to key hyperparameters was analysed by varying
+each parameter independently around a baseline of 200 trees, depth 4 and learning
+rate 0.1.  This is not the production configuration in Section~\ref{sec:hyperparameters}:
+the analysis has not been rerun at production settings, because its generator has
+been retired, so the findings and tables below are historical.
 
 Key findings:
 \begin{itemize}[nosep]
     \item \texttt{n\_estimators}: AUC stabilises above 100 rounds; diminishing
-          returns beyond 200.
+          returns beyond 200 (at depth 4 and learning rate 0.1).
     \item \texttt{max\_depth}: Optimal at 4; deeper trees overfit the noise.
     \item \texttt{learning\_rate}: Sweet spot at 0.1; aggressive rates ($>$0.2)
           increase variance.
@@ -824,7 +828,8 @@ in-sample AUC, and should be recorded as such.}
     integrated into unified stressm pipeline with seasonal baselines from
     gaugehd monthly means \\
 2.2 & 30-Oct-2026 & Added challenger comparison (GBM against Random Forest and
-    others); trainer now holds out whole storms \\
+    others); trainer now holds out whole storms; hyperparameter table corrected
+    to match the code \\
 \bottomrule
 \end{tabular}
 \end{center}
