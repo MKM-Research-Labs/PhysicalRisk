@@ -22,6 +22,7 @@
 
 import logging
 from pathlib import Path
+from typing import Optional
 
 import joblib
 import numpy as np
@@ -32,6 +33,38 @@ from sklearn.metrics import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Production GBM configuration (also the champion in the challenger benchmark,
+# tools/flood_classifier_challenger).
+GBM_PARAMS = {
+    'n_estimators': 300,
+    'max_depth': 3,
+    'learning_rate': 0.05,
+    'subsample': 0.8,
+    'min_samples_leaf': 50,
+}
+
+
+def _storm_test_mask(groups: np.ndarray, y: np.ndarray,
+                     test_size: float) -> Optional[np.ndarray]:
+    """Boolean mask of test rows, holding out whole storms.
+
+    ``groups`` is the storm index per row; negative ids are near-miss
+    hydrographs, which stay in training.  Storms are stratified on whether they
+    flood.  Returns None if the split leaves either side with a single class.
+    """
+    real = groups >= 0
+    storms = np.unique(groups[real])
+    if len(storms) < 2:
+        return None
+    flooded = np.isin(storms, groups[real & (y == 1)])
+    stratify = flooded if min(flooded.sum(), (~flooded).sum()) >= 2 else None
+    _, test_storms = train_test_split(
+        storms, test_size=test_size, random_state=42, stratify=stratify)
+    mask = np.isin(groups, test_storms)
+    if len(set(y[mask])) < 2 or len(set(y[~mask])) < 2:
+        return None
+    return mask
 
 
 class FloodClassifierTrainer:
@@ -45,6 +78,11 @@ class FloodClassifierTrainer:
     def train_gauge(self, gauge_id: str, gauge_data: dict,
                     test_size: float = 0.2) -> dict:
         """Train a GBM classifier for one gauge.
+
+        Metrics are scored on held-out storms when ``gauge_data`` carries
+        ``groups`` (storm index per row).  Without them, or if a storm split
+        would leave a single class, it falls back to a row-level split, which
+        overstates performance; ``split`` in the result records which was used.
 
         Returns dict with model path, metrics, and metadata.
         """
@@ -71,17 +109,21 @@ class FloodClassifierTrainer:
                 'n_negative': n_neg,
             }
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, random_state=42, stratify=y)
+        groups = gauge_data.get('groups')
+        test_mask = (_storm_test_mask(np.array(groups), y, test_size)
+                     if groups is not None else None)
+        if test_mask is not None:
+            split = 'storm'
+            X_train, X_test = X[~test_mask], X[test_mask]
+            y_train, y_test = y[~test_mask], y[test_mask]
+        else:
+            split = 'row'
+            logger.warning("%s: no storm split available, using a row-level "
+                           "split (metrics are optimistic)", gauge_id)
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=test_size, random_state=42, stratify=y)
 
-        model = GradientBoostingClassifier(
-            n_estimators=300,
-            max_depth=3,
-            learning_rate=0.05,
-            subsample=0.8,
-            min_samples_leaf=50,
-            random_state=42,
-        )
+        model = GradientBoostingClassifier(**GBM_PARAMS, random_state=42)
         model.fit(X_train, y_train)
 
         # Predictions
@@ -116,6 +158,7 @@ class FloodClassifierTrainer:
             'n_negative': n_neg,
             'flood_rate': round(n_pos / len(y), 4),
             'test_size': len(y_test),
+            'split': split,
             'metrics': {
                 'accuracy': round(acc, 4),
                 'auc_roc': round(auc, 4),

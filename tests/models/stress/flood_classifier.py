@@ -86,6 +86,26 @@ def _make_single_class_vectors() -> dict:
     }
 
 
+def _make_storm_gauge(n_storms: int, n_nearmiss: int, n_flooded: int = None,
+                      rows: int = 10) -> dict:
+    """Gauge data with ``groups``: half the storms flood unless ``n_flooded``
+    is given, in the first half of their rows.  Near-miss storms get negative ids.
+    """
+    rng = np.random.default_rng(7)
+    n_flooded = n_storms // 2 if n_flooded is None else n_flooded
+    vector, groups = [], []
+    for i in range(n_storms):
+        for h in range(rows):
+            flag = 1 if i < n_flooded and h < rows // 2 else 0
+            vector.append([0.3 * flag - 0.5 + rng.normal(0, 0.1), -h / rows, 0.0, 0.0, flag])
+            groups.append(i)
+    for i in range(n_nearmiss):
+        for h in range(rows):
+            vector.append([-0.2 + rng.normal(0, 0.05), -h / rows, 0.0, 0.0, 0])
+            groups.append(-1 - i)
+    return {"alert_level": 4.0, "severe_level": 5.0, "vector": vector, "groups": groups}
+
+
 @pytest.fixture
 def vectors_file(tmp_path) -> Path:
     p = tmp_path / "stress_vectors.json"
@@ -164,6 +184,39 @@ class TestFloodClassifierTrainer:
         result = trainer.train_gauge("GAUGE-BAD", data["gauges"]["GAUGE-BAD"])
         assert result["status"] == "skipped"
         assert result["reason"] == "single_class"
+
+    def test_without_groups_uses_row_split(self, tmp_path, vectors_file):
+        from models.stress.flood_classifier import FloodClassifierTrainer
+        trainer = FloodClassifierTrainer(vectors_file, tmp_path / "models")
+        data = json.loads(vectors_file.read_text())
+        result = trainer.train_gauge("GAUGE-001", data["gauges"]["GAUGE-001"])
+        assert result["split"] == "row"
+
+    def test_with_groups_scores_held_out_storms_only(self, tmp_path):
+        from models.stress.flood_classifier import FloodClassifierTrainer
+        gauge_data = _make_storm_gauge(n_storms=50, n_nearmiss=10)
+        trainer = FloodClassifierTrainer(tmp_path, tmp_path / "models")
+        result = trainer.train_gauge("GAUGE-001", gauge_data)
+        assert result["split"] == "storm"
+        # 20% of 50 real storms at 10 rows each; no near-miss rows in the test set.
+        assert result["test_size"] == 100
+
+    def test_storm_mask_keeps_storms_whole_and_nearmiss_in_training(self):
+        from models.stress.flood_classifier._trainer import _storm_test_mask
+        gauge_data = _make_storm_gauge(n_storms=50, n_nearmiss=10)
+        groups = np.array(gauge_data["groups"])
+        y = np.array([v[4] for v in gauge_data["vector"]])
+        mask = _storm_test_mask(groups, y, 0.2)
+        assert not set(groups[mask]) & set(groups[~mask])
+        assert (groups[mask] >= 0).all()
+
+    def test_one_flooded_storm_falls_back_to_row_split(self, tmp_path):
+        from models.stress.flood_classifier import FloodClassifierTrainer
+        gauge_data = _make_storm_gauge(n_storms=50, n_nearmiss=0, n_flooded=1)
+        trainer = FloodClassifierTrainer(tmp_path, tmp_path / "models")
+        result = trainer.train_gauge("GAUGE-001", gauge_data)
+        assert result["status"] == "trained"
+        assert result["split"] == "row"
 
 
 
