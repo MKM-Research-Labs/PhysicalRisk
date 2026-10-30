@@ -23,7 +23,7 @@
 Scores the production GBM against a tuned GBM, a Random Forest, an
 isotonic-calibrated Random Forest, logistic regression and the flood polynomial
 on held-out storms, then runs the stability tests and decision rule set out in
-the Stress Testing guide ("Model Selection: Challenger Comparison").
+the flood classifier documentation ("Model Selection: Challenger Comparison").
 
     python -m tools.flood_classifier_challenger --gauges all
     python -m tools.flood_classifier_challenger --synthetic 3   # no data needed
