@@ -21,7 +21,6 @@
             window._tdPreBlotter      = null;
             window._tdPreMarket       = null;
             window._tdPreGauges       = null;
-            window._tdPreStressStorms = null;
             window._tdPrePortStorms   = null;
             window._tdPreEodHistory   = null;
             window._tdPreYieldCurve   = null;
@@ -97,11 +96,10 @@
                 ['_tdPreBlotter',      'Blotter trades',       '/api/v1/trading/blotter'],
                 ['_tdPreMarket',       'Hazard curves',        '/api/v1/trading/market-state'],
                 ['_tdPreGauges',       'Gauge locations',      '/api/v1/gauges'],
-                ['_tdPreStressStorms', 'Stress scenarios',     '/api/v1/trading/stress/storms'],
                 ['_tdPrePortStorms',   'Portfolio storms',     '/api/v1/trading/stress/portfolio-storms'],
                 ['_tdPreEodHistory',   'EOD history',          '/api/v1/trading/eod/history'],
                 ['_tdPreYieldCurve',   'Yield curve',          '/api/v1/trading/yield-curve'],
-                ['_preStorms',         'Storm scenarios',      '/api/v1/propertyts/storms'],
+                ['_preStorms',         'Storm alerts',         '/api/v1/propertyts/storms'],
                 ['_prePropertyTS',     'Property flood TS',    '/api/v1/propertyts/summary'],
                 ['_preGaugeHist',      'Gauge history',        '/api/v1/gauges/history/summary'],
                 ['_preMortgages',      'Mortgages',            '/api/v1/rloans'],
@@ -117,11 +115,10 @@
                 if (key === '_tdPreBlotter'      && data.trades)       return data.trades.length + ' trades';
                 if (key === '_tdPreMarket'        && data.gauges)       return Object.keys(data.gauges).length + ' gauges';
                 if (key === '_tdPreGauges'        && data.gauges)       return data.gauges.length + ' gauges';
-                if (key === '_tdPreStressStorms'  && data.storms)       return data.storms.length + ' scenarios';
-                if (key === '_tdPrePortStorms'    && data.storms)       return data.storms.length + ' storms';
+                if (key === '_tdPrePortStorms'    && data.storms)       return (data.total_scenarios || data.storms.length).toLocaleString() + ' storms';
                 if (key === '_tdPreEodHistory'    && data.history)      return data.history.length + ' snapshots';
                 if (key === '_tdPreYieldCurve'    && data.yield_curve)  return Object.keys(data.yield_curve).length + ' tenors';
-                if (key === '_preStorms'          && data.storms)       return data.storms.length + ' storms';
+                if (key === '_preStorms'          && data.storms)       return (data.total_storms || data.storms.length).toLocaleString() + ' alerts';
                 if (key === '_prePropertyTS'      && data.data && data.data.summary) return data.data.summary.properties_with_floods + ' flooded';
                 if (key === '_preGaugeHist'       && data.count != null) return data.count + ' gauges';
                 if (key === '_preMortgages'       && data.mortgages)     return data.mortgages.length + ' mortgages';

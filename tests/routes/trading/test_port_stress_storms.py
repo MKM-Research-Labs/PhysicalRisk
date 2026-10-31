@@ -21,6 +21,7 @@
 """Tests for portfolio storm list, sorting, name display and intensity tie-breaker."""
 
 import json
+from unittest.mock import patch
 
 import pytest
 
@@ -51,6 +52,15 @@ class TestGetPortfolioStorms:
         assert 'total_storms' in data
         assert isinstance(data['total_storms'], int)
         assert data['total_storms'] >= data['count']
+
+    def test_response_includes_total_scenarios(self, port_stress_client, port_stress_env):
+        """total_scenarios is the simulated total, never below the alert subset."""
+        with patch('routes.trading.port_stress._routes.database.get_sequence_summary',
+                   return_value={'num_sequences': 10000}):
+            resp = port_stress_client.get('/api/v1/trading/stress/portfolio-storms')
+        data = json.loads(resp.data)
+        assert data['total_scenarios'] == 10000
+        assert data['total_scenarios'] >= data['total_storms']
 
     def test_portfolio_storms_has_required_fields(self, port_stress_client, port_stress_env):
         """Each storm has storm_id, name, intensity_category, gauges_severe,

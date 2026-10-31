@@ -30,7 +30,6 @@ Datasets preloaded (stored on window._td* variables):
   _tdPreBlotter      — /api/v1/trading/blotter
   _tdPreMarket       — /api/v1/trading/market-state
   _tdPreGauges       — /api/v1/gauges
-  _tdPreStressStorms — /api/v1/trading/stress/storms
   _tdPrePortStorms   — /api/v1/trading/stress/portfolio-storms
   _tdPreEodHistory   — /api/v1/trading/eod/history
   _tdPreYieldCurve   — /api/v1/trading/yield-curve

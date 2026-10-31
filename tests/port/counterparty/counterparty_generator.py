@@ -175,6 +175,14 @@ class TestGeneratedStructure:
             if platform.get("PartyType") == "Bank":
                 assert platform["CSAAgreement"] is True
 
+    def test_csa_requires_netting(self, gen):
+        """XVA rejects credit support without close-out netting."""
+        for _ in range(20):
+            for ctpy in gen.generate(count=22)["data"]:
+                platform = ctpy["CounterpartySet"]["_platform"]
+                if platform["CSAAgreement"]:
+                    assert platform["NettingAgreement"] is True
+
     def test_unique_party_ids(self, gen):
         # 1 REIT + 5 externals = 6 unique IDs
         result = gen.generate(count=5)

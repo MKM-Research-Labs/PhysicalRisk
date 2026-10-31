@@ -20,11 +20,15 @@
 
 """Tests for models.typhoon.pipeline.aggregation."""
 
+import numpy as np
 import pytest
 
 from config.typhoon import PropertyPoint
 from models.typhoon.data_structures import WindFieldOutput
-from models.typhoon.pipeline.aggregation import aggregate_property_winds
+from models.typhoon.pipeline.aggregation import (
+    aggregate_property_winds,
+    summarise_property_winds,
+)
 
 
 def _wf_output(peak: float, point_id: str = "P1", duration_above=None):
@@ -70,3 +74,26 @@ class TestAggregatePropertyWinds:
         s = aggregate_property_winds(prop, [r1, r2], thresholds_ms=[17.5])
         assert s.threshold_exceedance[17.5] == 0.5
         assert s.mean_duration_above_ms[17.5] == pytest.approx(1.5)
+
+
+class TestSummarisePropertyWinds:
+
+    def test_matches_aggregating_full_realizations(self):
+        prop = PropertyPoint(property_id="P1", longitude=5.0, latitude=5.0)
+        realizations = [
+            _wf_output(peak, duration_above=dur)
+            for peak, dur in [(10.0, {}), (20.0, {25.0: 0.0}), (30.0, {25.0: 3.0}), (40.0, {25.0: 5.0})]
+        ]
+        expected = aggregate_property_winds(prop, realizations, [25.0, 33.0])
+        actual = summarise_property_winds(
+            prop,
+            peaks=np.array([10.0, 20.0, 30.0, 40.0]),
+            durations={25.0: np.array([0.0, 0.0, 3.0, 5.0]), 33.0: np.zeros(4)},
+        )
+        assert actual == expected
+
+    def test_empty_keeps_threshold_keys(self):
+        prop = PropertyPoint(property_id="P1", longitude=5.0, latitude=5.0)
+        s = summarise_property_winds(prop, peaks=np.empty(0), durations={25.0: np.empty(0)})
+        assert s.n_realizations == 0
+        assert s.threshold_exceedance == {25.0: 0.0}

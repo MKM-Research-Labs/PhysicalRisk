@@ -168,11 +168,14 @@ class _RecordBuilderMixin:
         else:
             rating_pool = _RATINGS[3:]  # AA- down to BBB-
 
-        # CSA: banks/insurers/reinsurers always have one; others sometimes
+        # Banks/insurers/reinsurers always have netting and a CSA; others
+        # sometimes. A CSA relies on close-out netting, so it needs netting.
         if ctpy_type in ("Bank", "Insurer", "Reinsurer"):
+            has_netting = True
             has_csa = True
         else:
-            has_csa = random.choice([True, True, False])
+            has_netting = random.choice([True, False])
+            has_csa = has_netting and random.choice([True, True, False])
 
         email_domain = short_name.replace(' ', '').replace('&', '').lower()
         email = f"{first_name.lower()}.{last_name.lower()}@{email_domain}.co.uk"
@@ -266,7 +269,7 @@ class _RecordBuilderMixin:
                     "MaxNotional": random.choice([10, 25, 50, 100]) * 1_000_000,
                     "ISDAMasterAgreement": True,
                     "CSAAgreement": has_csa,
-                    "NettingAgreement": True if ctpy_type in ("Bank", "Insurer", "Reinsurer") else random.choice([True, False]),
+                    "NettingAgreement": has_netting,
                     "PreferredCurrency": config.CURRENCY,
                 },
             }

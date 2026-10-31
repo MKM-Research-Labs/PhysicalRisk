@@ -92,7 +92,7 @@ def iife_node_check(js: str, label: str) -> None:
 
 
 STARTUP_CACHE_VARS = [
-    '_tdPreBlotter', '_tdPreMarket', '_tdPreGauges', '_tdPreStressStorms',
+    '_tdPreBlotter', '_tdPreMarket', '_tdPreGauges',
     '_tdPrePortStorms', '_tdPreEodHistory', '_tdPreYieldCurve',
     '_preStorms',
     '_tdPreloadDone',
