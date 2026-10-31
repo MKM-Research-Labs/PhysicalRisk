@@ -26,6 +26,8 @@ per-mode floor-shift mapping (floor vs BRI vs unsupported field), and the
 (unsupported field, zero storms, missing timeseries file, compound events).
 """
 
+import math
+
 
 def _ts(events, **extra):
     return {"flood_events": events, **extra}
@@ -152,3 +154,18 @@ def test_recompute_decomposition_commercial(recompute_mod, seam):
         asset="commercial", catchment="thames", before_decomp={}, num_storms=200)
     # 1 severe / 200 storms * 10000 = 50.0 bps
     assert out["property_spread_bps"] == 50.0
+
+
+def test_spread_is_annualised_through_the_event_frame(recompute_mod, monkeypatch):
+    """A catchment with an event frame prices as the batch does, not count / storms."""
+    class Frame:
+        def conditional_probability(self, ids):
+            self.ids = list(ids)
+            return len(self.ids) / 4
+
+    frame = Frame()
+    monkeypatch.setattr(recompute_mod, "_event_frame", lambda c: (frame, 0.5))
+    bps = recompute_mod._spread_bps(
+        [{"storm_id": "S1"}, {"storm_id": "S2"}], "thames", num_storms=4)
+    assert frame.ids == ["S1", "S2"]
+    assert bps == round((1 - math.exp(-0.25)) * 10000, 2)

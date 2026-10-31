@@ -33,8 +33,10 @@ stored water levels:
 The threshold is read back from the data itself (``attenuated_wse_m − depth`` on
 any flooded event — constant per file, validated to 0.0000 spread), so we never
 reconstruct it from metadata (which is wrong for the SHD mode). Counting uses the
-shared ``is_prs_flood`` and the spread is the same ``count / num_storms × 10000``
-the batch uses, so the pricing stays single-source.
+shared ``is_prs_flood`` and the flooded storms go through the same event frame and
+annualisation as the batch (MKM-EF-001), so the pricing stays single-source. A
+catchment with no storm sequences falls back to ``count / num_storms × 10000``,
+exactly as the batch does.
 
 Returns ``None`` (→ caller falls back to the scoped-subprocess oracle) for edits
 or data this shortcut cannot reproduce exactly: ground-level edits (mode-specific
@@ -43,8 +45,12 @@ geometry) and compound/pulse events (stored peak WSE is lossy when not flooded).
 
 from __future__ import annotations
 
+from functools import lru_cache
+
 import database
 from models.floodrisk.depth_damage import bri_floor_uplift, is_prs_flood
+from models.frequency import annual_exceedance_probability
+from port.src.property.hc.loader import LoaderMixin
 
 # The four decomposition modes (normal / synthetic-elevation / synthetic-distance
 # / BRI-adjusted-floor) and the per-asset timeseries directory each lives in.
@@ -92,17 +98,37 @@ def _threshold(ts: dict) -> float:
     return ts.get("elevation_m", 0.0) + ts.get("floor_level_m", 0.0)
 
 
-def severe_count(ts: dict, delta_m: float) -> int:
-    """Severe-flood count after shifting the flood threshold by ``delta_m``."""
+def severe_events(ts: dict, delta_m: float) -> list:
+    """Severe-flood events after shifting the flood threshold by ``delta_m``."""
     threshold = _threshold(ts) + delta_m
-    n = 0
+    hits = []
     for e in ts.get("flood_events", []):
         new_depth = max(0.0, e["attenuated_wse_m"] - threshold)
         # Use the shared predicate so the trigger rule stays single-source.
         if is_prs_flood({"flooded": new_depth > 0,
                          "exceeded_severe": e.get("exceeded_severe", False)}):
-            n += 1
-    return n
+            hits.append(e)
+    return hits
+
+
+def severe_count(ts: dict, delta_m: float) -> int:
+    """Severe-flood count after shifting the flood threshold by ``delta_m``."""
+    return len(severe_events(ts, delta_m))
+
+
+@lru_cache(maxsize=4)
+def _event_frame(catchment: str):
+    """``(frame, lambda_per_year)`` for a catchment, built once per process."""
+    return LoaderMixin()._load_event_frame(catchment)
+
+
+def _spread_bps(events: list, catchment: str, num_storms: int) -> float:
+    """Annualised spread for flooded ``events``, as the batch pricer computes it."""
+    frame, lambda_per_year = _event_frame(catchment)
+    if frame is not None and lambda_per_year > 0:
+        p_event = frame.conditional_probability(e.get("storm_id") for e in events)
+        return round(annual_exceedance_probability(lambda_per_year, p_event) * 10000, 2)
+    return round((len(events) / num_storms) * 10000, 2)
 
 
 def mode_deltas(field: str, old, new):
@@ -144,6 +170,5 @@ def recompute_decomposition(prop_id: str, field: str, old, new, *,
             continue
         if _has_compound(ts):
             return None                      # lossy for compound events → oracle
-        count = severe_count(ts, delta)
-        after[DECOMP_KEY[mode]] = round((count / num_storms) * 10000, 2)
+        after[DECOMP_KEY[mode]] = _spread_bps(severe_events(ts, delta), catchment, num_storms)
     return after
