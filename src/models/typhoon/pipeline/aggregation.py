@@ -25,7 +25,7 @@ WindFieldOutput per property. aggregate_property_winds rolls a list of
 those outputs into a PropertyPeakWindSummary with empirical statistics.
 """
 
-from typing import Iterable, List
+from typing import Dict, Iterable, List
 
 import numpy as np
 
@@ -34,7 +34,7 @@ from models.typhoon.data_structures import WindFieldOutput
 from models.typhoon.pipeline.results import PropertyPeakWindSummary
 
 
-__all__ = ["aggregate_property_winds"]
+__all__ = ["aggregate_property_winds", "summarise_property_winds"]
 
 
 def aggregate_property_winds(
@@ -54,7 +54,38 @@ def aggregate_property_winds(
         sustained wind, threshold-exceedance probabilities, and mean duration
         above each threshold.
     """
-    if not realizations:
+    thresholds = [float(t) for t in thresholds_ms]
+    return summarise_property_winds(
+        property_point=property_point,
+        peaks=np.array([r.peak_sustained_ms for r in realizations], dtype=float),
+        durations={
+            t: np.array([r.duration_above_ms.get(t, 0.0) for r in realizations], dtype=float)
+            for t in thresholds
+        },
+    )
+
+
+def summarise_property_winds(
+    property_point: PropertyPoint,
+    peaks: np.ndarray,
+    durations: Dict[float, np.ndarray],
+) -> PropertyPeakWindSummary:
+    """Summarise per-realization peaks and durations for one property.
+
+    Takes plain arrays so a long ensemble need not keep every realization's
+    wind time series in memory (10,000 events x 100 particles would need
+    hundreds of GB).
+
+    Args:
+        property_point: identifier and coords of the property
+        peaks: peak sustained wind (m/s), one value per realization
+        durations: {threshold_ms: hours above threshold, one per realization}
+
+    Returns:
+        PropertyPeakWindSummary, as described in aggregate_property_winds.
+    """
+    n = len(peaks)
+    if n == 0:
         return PropertyPeakWindSummary(
             property_id=property_point.property_id,
             longitude=property_point.longitude,
@@ -65,30 +96,15 @@ def aggregate_property_winds(
             peak_sustained_p50=0.0,
             peak_sustained_p95=0.0,
             peak_sustained_p99=0.0,
-            threshold_exceedance={float(t): 0.0 for t in thresholds_ms},
-            mean_duration_above_ms={float(t): 0.0 for t in thresholds_ms},
+            threshold_exceedance={t: 0.0 for t in durations},
+            mean_duration_above_ms={t: 0.0 for t in durations},
         )
 
-    peaks = np.array([r.peak_sustained_ms for r in realizations], dtype=float)
-    n = len(peaks)
-
-    threshold_exceedance = {}
-    mean_duration_above_ms = {}
-    for t_raw in thresholds_ms:
-        t = float(t_raw)
-        # Probability any realization exceeded the threshold somewhere in the
-        # time series: the WindFieldOutput already records duration_above_ms,
-        # which is > 0 iff the threshold was breached.
-        exceed_count = sum(1 for r in realizations if r.duration_above_ms.get(t, 0.0) > 0.0)
-        threshold_exceedance[t] = exceed_count / n
-
-        # Mean hours above the threshold, averaged across realizations
-        # (zeros for realizations that never breached).
-        durations = np.array(
-            [r.duration_above_ms.get(t, 0.0) for r in realizations],
-            dtype=float,
-        )
-        mean_duration_above_ms[t] = float(durations.mean())
+    # A realization exceeded a threshold iff its duration above it is > 0.
+    threshold_exceedance = {t: int((d > 0.0).sum()) / n for t, d in durations.items()}
+    # Mean hours above the threshold, averaged across realizations (zeros for
+    # realizations that never breached).
+    mean_duration_above_ms = {t: float(d.mean()) for t, d in durations.items()}
 
     return PropertyPeakWindSummary(
         property_id=property_point.property_id,

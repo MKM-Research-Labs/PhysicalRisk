@@ -27,9 +27,8 @@ from typing import Dict, List, Optional
 import numpy as np
 
 from config.typhoon import CatchmentTyphoonConfig
-from models.typhoon.data_structures import WindFieldOutput
 from models.typhoon.genesis import coupled_genesis_wind
-from models.typhoon.pipeline.aggregation import aggregate_property_winds
+from models.typhoon.pipeline.aggregation import summarise_property_winds
 from models.typhoon.pipeline.event import (
     pick_representative_index,
     pick_representative_trajectory,
@@ -41,6 +40,11 @@ from models.typhoon.pipeline.results import (
 )
 
 from ._io import write_event_trajectory, write_event_windts
+
+
+def _joined(per_event: List[np.ndarray]) -> np.ndarray:
+    """Concatenate per-event arrays; empty when no event contributed."""
+    return np.concatenate(per_event) if per_event else np.empty(0)
 
 
 def simulate_typhoon_events(
@@ -133,9 +137,14 @@ def simulate_typhoon_events(
             return event_ids[idx]
         return f"EVT-{idx:04d}"
 
-    # Accumulator: property_id -> list of WindFieldOutput across all events.
-    by_property: Dict[str, List[WindFieldOutput]] = {
+    # Accumulators, one array per event: only the peak and the threshold
+    # durations reach the summary, so the wind time series are not retained.
+    thresholds = [float(t) for t in config.output_thresholds_ms]
+    peaks_by_property: Dict[str, List[np.ndarray]] = {
         p.property_id: [] for p in config.property_points
+    }
+    durations_by_property: Dict[str, Dict[float, List[np.ndarray]]] = {
+        p.property_id: {t: [] for t in thresholds} for p in config.property_points
     }
 
     if events_output_dir is not None:
@@ -147,7 +156,7 @@ def simulate_typhoon_events(
 
     # Running interim-result accumulators (cheap scalars updated per event)
     # so the progress line can report partial results without rescanning the
-    # full by_property accumulator.
+    # full accumulators.
     run_peak_max = 0.0      # largest per-event peak sustained wind so far
     run_peak_sum = 0.0      # sum of per-event peaks (for a running mean)
     run_peak_n = 0          # number of events contributing a peak
@@ -191,7 +200,11 @@ def simulate_typhoon_events(
             genesis_scenario=genesis_scenario,
         )
         for pid, outputs in event_result.by_property.items():
-            by_property[pid].extend(outputs)
+            peaks_by_property[pid].append(
+                np.array([o.peak_sustained_ms for o in outputs], dtype=float))
+            for t in thresholds:
+                durations_by_property[pid][t].append(np.array(
+                    [o.duration_above_ms.get(t, 0.0) for o in outputs], dtype=float))
 
         # Interim result: peak sustained wind reached anywhere in this event
         # (max across its particles and property points). Cheap — operates on
@@ -268,10 +281,11 @@ def simulate_typhoon_events(
 
     summaries: List[PropertyPeakWindSummary] = []
     for prop in config.property_points:
-        summaries.append(aggregate_property_winds(
+        pid = prop.property_id
+        summaries.append(summarise_property_winds(
             property_point=prop,
-            realizations=by_property[prop.property_id],
-            thresholds_ms=config.output_thresholds_ms,
+            peaks=_joined(peaks_by_property[pid]),
+            durations={t: _joined(durations_by_property[pid][t]) for t in thresholds},
         ))
 
     metadata = {
