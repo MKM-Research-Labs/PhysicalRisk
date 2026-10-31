@@ -22,7 +22,6 @@
                 ['_tdPreBlotter',      'Blotter trades',         '/api/v1/trading/blotter'],
                 ['_tdPreMarket',       'Market state',           '/api/v1/trading/market-state'],
                 ['_tdPreGauges',       'Gauge locations',        '/api/v1/gauges'],
-                ['_tdPreStressStorms', 'Stress scenarios',       '/api/v1/trading/stress/storms'],
                 ['_tdPrePortStorms',   'Portfolio storms',       '/api/v1/trading/stress/portfolio-storms'],
                 ['_tdPreEodHistory',   'EOD history',            '/api/v1/trading/eod/history'],
                 ['_tdPreYieldCurve',   'Yield curve',            '/api/v1/trading/yield-curve']
@@ -144,10 +143,8 @@
                 function _detail(key, data) {
                     if (key === '_tdPreBlotter' && data && data.trades)
                         return data.trades.length + ' trades';
-                    if (key === '_tdPreStressStorms' && data && data.storms)
-                        return data.storms.length + ' scenarios';
                     if (key === '_tdPrePortStorms' && data && data.storms)
-                        return data.storms.length + ' storms';
+                        return (data.total_scenarios || data.storms.length).toLocaleString() + ' storms';
                     if (key === '_tdPreGauges' && data && data.gauges)
                         return data.gauges.length + ' gauges';
                     return null;

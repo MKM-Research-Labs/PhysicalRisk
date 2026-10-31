@@ -64,9 +64,6 @@ class TestStartupPreloaderCacheVars:
     def test_declares_td_pre_gauges(self):
         assert 'window._tdPreGauges' in _src('src/visual/interactivity/startup.py')
 
-    def test_declares_td_pre_stress_storms(self):
-        assert 'window._tdPreStressStorms' in _src('src/visual/interactivity/startup.py')
-
     def test_declares_td_pre_port_storms(self):
         assert 'window._tdPrePortStorms' in _src('src/visual/interactivity/startup.py')
 
@@ -103,13 +100,12 @@ class TestStartupPreloaderBehaviour:
         """Sets window._tdPreloadDone so any IIFE can read it via global scope."""
         assert 'window._tdPreloadDone = true' in _src('src/visual/interactivity/startup.py')
 
-    def test_all_eleven_endpoints_present(self):
+    def test_all_ten_endpoints_present(self):
         js = _src('src/visual/interactivity/startup.py')
         endpoints = [
             '/api/v1/trading/blotter',
             '/api/v1/trading/market-state',
             '/api/v1/gauges',
-            '/api/v1/trading/stress/storms',
             '/api/v1/trading/stress/portfolio-storms',
             '/api/v1/trading/eod/history',
             '/api/v1/trading/yield-curve',

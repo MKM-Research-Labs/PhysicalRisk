@@ -89,11 +89,15 @@ def get_portfolio_storms():
         ))
 
         all_storms = data.get('storms', [])
+        # storms lists the alert-breaching subset; total_scenarios is every
+        # simulated sequence, alert-breaching or not.
+        summary = database.get_sequence_summary(config.catchment_id) or {}
         return jsonify({
             'status': 'success',
             'storms': storms,
             'count': len(storms),
             'total_storms': len(all_storms),
+            'total_scenarios': summary.get('num_sequences', len(all_storms)),
         })
 
     except Exception as e:

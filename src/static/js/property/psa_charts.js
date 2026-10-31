@@ -92,7 +92,7 @@
                 var ratio = gaugeFloods > 0 ? (propFloods / gaugeFloods * 100).toFixed(1) : '0.0';
 
                 document.getElementById('prop-dist-stats').innerHTML = [
-                    '<span>Events: <b>' + depths.length + '</b></span>',
+                    '<span>Storm alerts: <b>' + (summary.floods_at_nearest_gauge || 0).toLocaleString() + '</b></span>',
                     '<span>Mean depth: <b>' + meanDepth.toFixed(2) + 'm</b></span>',
                     '<span>Max depth: <b>' + maxDepth.toFixed(2) + 'm</b></span>',
                     '<span>Max damage: <b>' + ((summary.max_damage_ratio || 0) * 100).toFixed(1) + '%</b></span>',

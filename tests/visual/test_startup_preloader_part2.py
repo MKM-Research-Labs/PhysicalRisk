@@ -179,15 +179,10 @@ class TestStartupDetailStats:
         assert "key === '_tdPreGauges'" in src
         assert "data.gauges.length + ' gauges'" in src
 
-    def test_stress_storms_stat_uses_storms_length(self):
-        src = self._src()
-        assert "key === '_tdPreStressStorms'" in src
-        assert "data.storms.length + ' scenarios'" in src
-
     def test_port_storms_stat_uses_storms_length(self):
         src = self._src()
         assert "key === '_tdPrePortStorms'" in src
-        assert "data.storms.length + ' storms'" in src
+        assert "data.total_scenarios || data.storms.length" in src
 
     def test_eod_history_stat_uses_history_length(self):
         src = self._src()
@@ -203,7 +198,7 @@ class TestStartupDetailStats:
     def test_pre_storms_stat_uses_storms_length(self):
         src = self._src()
         assert "key === '_preStorms'" in src
-        assert "data.storms.length + ' storms'" in src
+        assert "data.total_storms || data.storms.length" in src
 
     def test_property_ts_stat_uses_total_properties(self):
         src = self._src()
@@ -226,7 +221,7 @@ class TestStartupDetailStats:
         src = self._src()
         keys = [
             '_tdPreBlotter', '_tdPreMarket', '_tdPreGauges',
-            '_tdPreStressStorms', '_tdPrePortStorms', '_tdPreEodHistory',
+            '_tdPrePortStorms', '_tdPreEodHistory',
             '_tdPreYieldCurve', '_preStorms',
             '_prePropertyTS', '_preGaugeHist',
             '_preMortgages',
