@@ -59,6 +59,9 @@ from tests.e2e._helpers import (
     td_open_trading_desk,
 )
 
+CATCHMENT = os.environ.get("MKM_CATCHMENT", "halong")
+INPUT_DIR = Path(os.environ.get("MKM_DATA_ROOT", ROOT / "data")) / "input" / CATCHMENT
+
 # ---------------------------------------------------------------------------
 # Guard mutable data files against E2E mutation
 # ---------------------------------------------------------------------------
@@ -127,7 +130,7 @@ def _isolated_catchment_dir(tmp_path_factory):
     (``gauge_data``, ``property_data``, ``first_traded_gauge_id``, etc.)
     continue to work unchanged because the tmp dir is a full copy.
     """
-    real = ROOT / "data" / "input" / "halong"
+    real = INPUT_DIR
     real_resolved = os.path.realpath(real)
 
     tmp_root = None
@@ -141,9 +144,12 @@ def _isolated_catchment_dir(tmp_path_factory):
     # internal disk = cross-volume). Falls back to a deep copy if that fails.
     try:
         vol_root = _volume_mount_root(real_resolved)
-        _sweep_stale_clones(vol_root)
-        clone_root = tempfile.mkdtemp(prefix=".e2e_catch_", dir=vol_root)
-        clone_thames = os.path.join(clone_root, "halong")
+        # The mount root is read-only for users on the internal disk, so clone
+        # beside the catchment there.
+        clone_dir = vol_root if os.access(vol_root, os.W_OK) else os.path.dirname(real_resolved)
+        _sweep_stale_clones(clone_dir)
+        clone_root = tempfile.mkdtemp(prefix=".e2e_catch_", dir=clone_dir)
+        clone_thames = os.path.join(clone_root, CATCHMENT)
         subprocess.run(["cp", "-c", "-R", real_resolved, clone_thames],
                        check=True, capture_output=True)
         tmp_root = clone_root
@@ -154,7 +160,7 @@ def _isolated_catchment_dir(tmp_path_factory):
         # Portable fallback: deep copy into tmp_path_factory (non-APFS /
         # cross-volume setups, e.g. CI on a single ext4 disk).
         tmp_root = str(tmp_path_factory.mktemp("e2e_catchment"))
-        tmp_thames = Path(tmp_root) / "halong"
+        tmp_thames = Path(tmp_root) / CATCHMENT
         shutil.copytree(real, tmp_thames)
 
     # Scrub any user override that may live in the real file so the e2e
@@ -253,7 +259,7 @@ def server_port(_isolated_catchment_dir, _e2e_admin_password):
         # Pin the catchment so the server resolver doesn't fall through to
         # an interactive `input()` prompt (no TTY in the subprocess).
         # MKM_CATCHMENT_INPUT_OVERRIDE points at the tmp dir copied above.
-        "MKM_CATCHMENT": "halong",
+        "MKM_CATCHMENT": CATCHMENT,
         "MKM_CATCHMENT_INPUT_OVERRIDE": str(_isolated_catchment_dir),
         "MKM_ADMIN_FILE_PATH": str(_e2e_admin_password),
     })
@@ -394,7 +400,7 @@ def map_page(_browser_page):
 @pytest.fixture(scope="session")
 def gauge_data():
     """Load gauge.json for test assertions."""
-    path = ROOT / "data" / "input" / "halong" / "gauge.json"
+    path = INPUT_DIR / "gauge.json"
     if not path.exists():
         pytest.skip("gauge.json not found — run `python phys.py port` first")
     with open(path) as f:
@@ -404,7 +410,7 @@ def gauge_data():
 @pytest.fixture(scope="session")
 def property_data():
     """Load property.json for test assertions."""
-    path = ROOT / "data" / "input" / "halong" / "property.json"
+    path = INPUT_DIR / "property.json"
     if not path.exists():
         pytest.skip("property.json not found — run `python phys.py port` first")
     with open(path) as f:
@@ -483,7 +489,7 @@ def first_commercial_peril_id():
     intersect its commercial hazard curves (e.g. fire/seismic generated for a
     since-regenerated commercial portfolio) — the rows cannot render there.
     """
-    base = ROOT / "data" / "input" / "halong"
+    base = INPUT_DIR
     fire_path = base / "fire" / "fire.json"
     seismic_path = base / "seismic" / "seismic.json"
     hc_path = base / "commercialhc.json"
