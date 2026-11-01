@@ -168,7 +168,7 @@ class TestRiverPolylineCacheHit:
         polyline_data = [[51.45, -0.50], [51.46, -0.30], [51.47, -0.10]]
 
         # Mock Path.exists to return True, and open to return our polyline JSON
-        with patch.object(geom_mod.Path, 'exists', return_value=True):
+        with patch('pathlib.Path.exists', return_value=True):
             with patch('builtins.open', mock_open(read_data=json.dumps(polyline_data))):
                 result = geom_mod._load_river_polyline()
 

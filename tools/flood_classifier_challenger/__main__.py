@@ -25,6 +25,7 @@ from pathlib import Path
 
 from tools.flood_classifier_challenger import run_benchmark
 
+from config import config
 from config.models import (
     CHALLENGER_BOOTSTRAPS,
     CHALLENGER_FOLDS,
@@ -35,8 +36,6 @@ from config.models import (
     CHALLENGER_SEEDS,
     CHALLENGER_TUNE_TRIALS,
 )
-
-_ROOT = Path(__file__).resolve().parents[2]
 
 
 def main(argv=None):
@@ -54,7 +53,7 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=CHALLENGER_SEED)
     ap.add_argument("--jobs", type=int, default=CHALLENGER_N_JOBS,
                     help="parallel fit processes (-1: every core)")
-    ap.add_argument("--out", default=str(_ROOT / CHALLENGER_OUT_DIR))
+    ap.add_argument("--out", default=str(Path(config.project_root) / CHALLENGER_OUT_DIR))
     a = ap.parse_args(argv)
 
     gauges = "all" if a.gauges == "all" else [g.strip() for g in a.gauges.split(",")]
