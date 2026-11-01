@@ -510,6 +510,8 @@ def test_import_catchment_dual_read_parity(repo, tmp_path):
 
 
 def test_ping_false_when_unreachable(repo, monkeypatch):
-    monkeypatch.setenv("MKM_DATABASE_URL", "postgresql+psycopg2://x:y@127.0.0.1:1/nope")
-    reset_engine()
-    assert repo.ping() is False
+    with monkeypatch.context() as patched:
+        patched.setenv("MKM_DATABASE_URL", "postgresql+psycopg2://x:y@127.0.0.1:1/nope")
+        reset_engine()
+        assert repo.ping() is False
+    reset_engine()  # the repo fixture tears down through the real engine
