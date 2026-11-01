@@ -28,7 +28,6 @@ asset-independent: the client supplies every pricing input and POSTs to
 
 import pytest
 
-
 # ===========================================================================
 # POST /api/v1/loan-pricer  (standalone — no asset id)
 # ===========================================================================
@@ -134,7 +133,7 @@ class TestStandaloneLoanPricerRoute:
         """The flood spread must come from the analytical PRS pricer, not a
         flat lookup: it equals compute_prs_spread() for the category's annual
         hazard at the loan tenor, on the risk-free curve."""
-        from config.loan import flood_annual_hazard, PRS_FLOOD_RECOVERY
+        from config.loan import PRS_FLOOD_RECOVERY, flood_annual_hazard
         from models.hazard.prs_analytical import compute_prs_spread
 
         client, _ = prop_client

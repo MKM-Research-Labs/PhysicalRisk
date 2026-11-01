@@ -21,12 +21,12 @@
 """Tests for mortgage_random — text, field, and QCC generators."""
 
 import pytest
+
 from port.rand.thames.mortgage.mortgage_random import (
-    generate_text_value,
     generate_field_value,
+    generate_text_value,
     quality_consistency_check,
 )
-
 
 # =============================================================================
 # generate_text_value

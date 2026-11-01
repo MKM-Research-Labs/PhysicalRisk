@@ -20,9 +20,8 @@
 
 """Flood Animation — mini-map, data loading, frame rendering."""
 
-from visual.interactivity._jsbundle import js_static, with_map_tiles
-
 from config.format import storm_option_js as _storm_opt
+from visual.interactivity._jsbundle import js_static, with_map_tiles
 
 
 def get_js():

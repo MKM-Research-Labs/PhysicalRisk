@@ -23,13 +23,12 @@
 import numpy as np
 import pytest
 
+from port.src.storm_multi.generators.batch_generator import generate_event_set
+from port.src.storm_multi.models.spatial_correlation import SpatialCorrelationModel
 from port.src.stressm import (
     generate_stressm,
     train_gauge_stressm_classifier,
 )
-from port.src.storm_multi.generators.batch_generator import generate_event_set
-from port.src.storm_multi.models.spatial_correlation import SpatialCorrelationModel
-
 
 # ---------------------------------------------------------------------------
 # Lines 557-671: train_gauge_stressm_classifier

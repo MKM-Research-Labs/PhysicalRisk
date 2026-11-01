@@ -28,12 +28,11 @@ backward-compat convenience function calculate_combined_risk.
 import pytest
 
 from visual.utils.risk_assessors import (
+    calculate_combined_risk,
+    get_ltv_color,
     get_risk_color,
     get_risk_icon,
-    get_ltv_color,
-    calculate_combined_risk,
 )
-
 
 # ===========================================================================
 # get_risk_color

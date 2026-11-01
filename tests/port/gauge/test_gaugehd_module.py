@@ -21,10 +21,10 @@
 """Tests for module-level functions: load_gauge_portfolio, generate_all, process_nrfa_directory."""
 
 import pytest
+from db_helpers import active_test_backend, tmp_catchment
 
 import database
-from db_helpers import active_test_backend, tmp_catchment
-from tests.port.gauge.conftest import write_nrfa_csv, SAMPLE_GAUGE_ENTRY
+from tests.port.gauge.conftest import SAMPLE_GAUGE_ENTRY, write_nrfa_csv
 
 
 @pytest.fixture(autouse=True)

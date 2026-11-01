@@ -30,9 +30,6 @@ are passed through ``window.__GAUGEHA_CONFIG``.
 """
 
 import json
-from typing import Any, Dict
-
-import folium
 
 from visual.interactivity._jsbundle import js_static
 from visual.interactivity.panel_mixin import FoliumPanelMixin

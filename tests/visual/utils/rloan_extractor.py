@@ -28,10 +28,9 @@ build_rloan_lookup, _normalize_rloan_list.
 import pytest
 
 from visual.utils.data_extractors.rloan_extractor import (
-    extract_rloan_info,
     build_rloan_lookup,
+    extract_rloan_info,
 )
-
 
 # ===========================================================================
 # extract_rloan_info

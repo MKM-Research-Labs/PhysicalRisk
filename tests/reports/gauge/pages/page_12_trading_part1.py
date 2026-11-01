@@ -29,8 +29,7 @@ import json
 import pytest
 from reportlab.platypus import Paragraph, Spacer, Table
 
-from .conftest import make_page, make_gauge, make_trade
-
+from .conftest import make_gauge, make_page, make_trade
 
 # ===========================================================================
 # generate_elements

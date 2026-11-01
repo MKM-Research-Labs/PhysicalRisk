@@ -30,7 +30,6 @@ from pathlib import Path
 
 import pytest
 
-
 # ===========================================================================
 # Fixtures
 # ===========================================================================
@@ -177,6 +176,7 @@ class TestServeVisualizationSuccess:
         """Lines 50-57: mock TCEventVisualization to return existing file."""
         import sys
         from unittest.mock import MagicMock
+
         from config import config
 
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
@@ -244,6 +244,7 @@ class TestServeVisualizationSuccess:
     def test_viz_import_error_returns_503(self, tmp_path, monkeypatch):
         """Lines 59-65: ImportError → 503."""
         import sys
+
         from config import config
 
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)

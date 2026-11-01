@@ -23,7 +23,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from reportlab.lib import colors
 
@@ -31,12 +31,12 @@ from reports.shared import BaseReportGenerator
 
 from .pages import (
     AccessibilityPage,
+    CLoanOverviewPage,
     CommercialAttributesPage,
     ConstructionPage,
     EnergyPage,
     HeaderPage,
     HistoryPage,
-    CLoanOverviewPage,
     LocationPage,
     ProtectionPage,
     RiskAssessmentPage,

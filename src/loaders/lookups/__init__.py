@@ -24,15 +24,15 @@ from .builders import (
     _classify_property_risk,
     build_all_lookups,
     build_gauge_flood_info,
-    build_rloan_lookup,
     build_property_flood_info,
+    build_rloan_lookup,
 )
 from .id_utils import (
     analyze_id_relationships,
     extract_gauge_ids,
+    extract_property_ids,
     extract_rloan_ids,
     extract_rloan_property_ids,
-    extract_property_ids,
 )
 
 __all__ = [
@@ -45,4 +45,5 @@ __all__ = [
     'extract_rloan_property_ids',
     'extract_gauge_ids',
     'analyze_id_relationships',
+    "_classify_property_risk",
 ]

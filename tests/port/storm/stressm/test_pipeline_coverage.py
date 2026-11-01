@@ -25,12 +25,11 @@ and classifier failure in portfolio mode (lines 147, 216, 257-260,
 
 import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from port.src.stressm import generate_stressm, GAUGE_SUMMARY_DIR
-
+from port.src.stressm import GAUGE_SUMMARY_DIR, generate_stressm
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -59,8 +58,9 @@ def pipeline_env(tmp_path):
     (run inside ``generate_stressm`` via ``populate_gaugets``) reads the gauge
     portfolio through the seam and writes the keyed timeseries back through it
     (files under ``<dir>/gaugets/`` on the file backend, rows under pg)."""
-    import database
     from db_helpers import tmp_catchment
+
+    import database
     gauges = [
         _make_nested_gauge("GAUGE-p001", 51.46, -0.30, 3.5, 4.6, 5.5),
         _make_nested_gauge("GAUGE-p002", 51.47, -0.20, 4.0, 5.2, 6.1),
@@ -275,8 +275,9 @@ class TestMissingGaugePortfolio:
     """
 
     def test_an_empty_portfolio_returns_a_summary_without_gauges(self, tmp_path):
-        import database
         from db_helpers import tmp_catchment
+
+        import database
 
         with tmp_catchment(tmp_path, catchment="thames"):
             database.save_gauges("thames", {"flood_gauges": []})
@@ -294,8 +295,9 @@ class TestMissingGaugePortfolio:
         assert summary.get('sequences_generated', summary.get('count', 0)) >= 0
 
     def test_the_skip_is_logged_rather_than_silent(self, tmp_path, caplog):
-        import database
         from db_helpers import tmp_catchment
+
+        import database
 
         with tmp_catchment(tmp_path, catchment="thames"):
             database.save_gauges("thames", {"flood_gauges": []})

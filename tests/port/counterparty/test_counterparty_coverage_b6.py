@@ -28,9 +28,9 @@ Targets missing lines:
 import logging
 
 import pytest
+from db_helpers import tmp_catchment
 
 from port.src.counterparty import CounterpartyPortfolioGenerator
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)

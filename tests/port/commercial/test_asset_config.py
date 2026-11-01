@@ -23,9 +23,9 @@
 import pytest
 
 from port.utils.asset_config import (
-    AssetTypeConfig,
     COMMERCIAL_CONFIG,
     RESIDENTIAL_CONFIG,
+    AssetTypeConfig,
 )
 
 

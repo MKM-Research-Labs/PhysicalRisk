@@ -25,9 +25,8 @@ Tab 1: Hydrograph with water level, property elevation,
 floor threshold, gauge elevations, and flood fill shading.
 """
 
-from visual.interactivity._jsbundle import js_static
-
 from config.format import storm_option_js
+from visual.interactivity._jsbundle import js_static
 
 
 def get_js() -> str:

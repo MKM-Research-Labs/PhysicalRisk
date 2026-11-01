@@ -26,7 +26,6 @@ sequence, how many storms, and the correlated intensity relationship
 between successive storms in a sequence.
 """
 
-from typing import List, Tuple
 
 import numpy as np
 
@@ -37,6 +36,7 @@ from config.port import (
     INTENSITY_VARIATION,
     SEQUENCE_PROBABILITY,
 )
+
 from ..core.data_structures import SequenceType
 
 # SEQUENCE_PROBABILITY, DEFAULT_TYPE_WEIGHTS, INTENSITY_VARIATION,

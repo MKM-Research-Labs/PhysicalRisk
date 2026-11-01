@@ -23,9 +23,9 @@
 
 from typing import Dict, List, Tuple
 
-# Single authoritative definition lives in config (parameter governance).
 from config.bri import DEFAULT_MISSING_COMPLIANCE
 
+# Single authoritative definition lives in config (parameter governance).
 
 # Spec base weights — 13 measures, sum to 100.
 FLOOD_SPEC_BASE_WEIGHTS: Dict[str, int] = {
@@ -151,3 +151,7 @@ REGIME_FROM_FLOOD_RISK_TYPE: Dict[str, str] = {
 DEFAULT_REGIME = "fluvial"
 
 # DEFAULT_MISSING_COMPLIANCE now imported from config.bri (see top of file).
+
+__all__ = [
+    "DEFAULT_MISSING_COMPLIANCE",
+]

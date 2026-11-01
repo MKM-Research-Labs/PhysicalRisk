@@ -28,7 +28,6 @@ asset-independent: the client supplies every pricing input and POSTs to
 
 import pytest
 
-
 # ===========================================================================
 # _coerce_number helper
 # ===========================================================================

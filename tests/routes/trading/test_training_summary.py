@@ -31,7 +31,6 @@ import pytest
 
 from ._data import GAUGE_WESTMINSTER, SAMPLE_GAUGE_JSON
 
-
 # Gauge JSON in the Header.GaugeID format that training.py's parser expects.
 _TRAINING_GAUGE_JSON = {
     "flood_gauges": [

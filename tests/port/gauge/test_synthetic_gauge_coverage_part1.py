@@ -28,7 +28,6 @@ import math
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Helpers (same CDM builders as test_synthetic_gauge.py)
 # ---------------------------------------------------------------------------
@@ -159,8 +158,9 @@ class TestRiverPolylineCacheHit:
 
     def test_load_river_polyline_from_cache_file(self, synth_env, monkeypatch, tmp_path):
         """Lines 39-40 of geometry.py: cache file exists → loaded and returned."""
+        from unittest.mock import mock_open, patch
+
         import port.src.gauge.synthetic.geometry as geom_mod
-        from unittest.mock import patch, mock_open
 
         # Reset cache
         geom_mod._RIVER_POLYLINE_CACHE = None
@@ -210,6 +210,7 @@ class TestInsufficientGaugePoints:
     def test_empty_gauge_points_returns_zero(self, synth_env, monkeypatch):
         """generate() returns count=0 when GAUGE_POINTS has < 2 entries."""
         from unittest.mock import MagicMock
+
         from config import config as cfg
 
         mock_params = MagicMock()
@@ -224,6 +225,7 @@ class TestInsufficientGaugePoints:
     def test_none_gauge_points_returns_zero(self, synth_env, monkeypatch):
         """generate() returns count=0 when GAUGE_POINTS is None."""
         from unittest.mock import MagicMock
+
         from config import config as cfg
 
         mock_params = MagicMock()

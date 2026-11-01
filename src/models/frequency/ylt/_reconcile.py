@@ -52,7 +52,6 @@ import numpy as np
 from config.frequency import SimulationConfig
 
 from ..annualise import annual_exceedance_probability
-
 from ..datastructures import LossSimulation, YearSimulation
 
 

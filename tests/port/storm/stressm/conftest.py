@@ -21,10 +21,10 @@
 """Shared fixtures and helpers for stressm package tests."""
 
 import json
+
 import pytest
 
 from port.src.stressm import generate_stressm
-
 
 # ---------------------------------------------------------------------------
 # Synthetic gauge data helpers
@@ -96,8 +96,9 @@ def _bind_stressm_backend(gauge_dir):
     resolves to ``gauge_dir/gauge.json`` (idempotent re-write), and under pg the
     autouse purge emptied the catchment, so the seed (rolled back with the test) is
     the portfolio the pipeline reads."""
-    import database
     from db_helpers import tmp_catchment
+
+    import database
     with tmp_catchment(gauge_dir, catchment="thames"):
         database.save_gauges("thames", _SYNTHETIC_GAUGE_JSON)
         yield

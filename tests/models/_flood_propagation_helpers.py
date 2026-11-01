@@ -25,8 +25,8 @@ Shared helpers for flood propagation sensitivity tests.
 from models.floodrisk.velocity import (
     build_property_hydrograph,
     compute_retention,
-    compute_travel_time,
     compute_slope,
+    compute_travel_time,
 )
 
 

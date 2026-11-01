@@ -28,7 +28,6 @@ as current evidence.
 import os
 
 import pytest
-
 from app.commands.test.artefacts import (
     _describe_age,
     artefact_manifest,

@@ -29,6 +29,7 @@ import re
 from collections import Counter
 
 import pytest
+from db_helpers import active_test_backend, tmp_catchment
 
 import database
 from config import config
@@ -37,7 +38,6 @@ from port.src.commercial import (
     CommercialPortfolioGenerator,
     generate_commercials,
 )
-from db_helpers import active_test_backend, tmp_catchment
 
 
 @pytest.fixture(autouse=True)

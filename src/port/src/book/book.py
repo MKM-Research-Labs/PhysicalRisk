@@ -207,7 +207,7 @@ def print_book_summary(trades: List[Dict], currency: Optional[str] = None) -> No
         total_npv += npv
 
     print(f'\n{"=" * 60}')
-    print(f'  Market-Making Book Summary')
+    print('  Market-Making Book Summary')
     print(f'{"=" * 60}')
     print(f'  Total trades:     {len(trades)}')
     print(f'  Payer (short):    {payer_count} trades, '

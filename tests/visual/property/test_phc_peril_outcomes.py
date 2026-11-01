@@ -29,8 +29,8 @@ they guard the markers downstream charts depend on without a browser.
 import pytest
 
 from visual.interactivity.property import (
-    phc_peril_outcomes,
     phc_basis_property,
+    phc_peril_outcomes,
     phc_term,
 )
 from visual.interactivity.property.propertyhc import PropertyHazardCurvePanel

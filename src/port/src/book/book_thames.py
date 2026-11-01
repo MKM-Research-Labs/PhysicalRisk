@@ -37,8 +37,6 @@ from typing import Dict, List, Optional
 import database
 
 from .book_common import (
-    DEFAULT_YIELD_CURVE,
-    RECOVERY,
     _load_counterparties,
     _price_and_save_trade,
 )

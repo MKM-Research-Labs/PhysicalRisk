@@ -25,7 +25,6 @@ import pytest
 
 from models.floodrisk.hydrograph import build_compound_property_hydrograph
 
-
 # ---------------------------------------------------------------------------
 # build_compound_property_hydrograph (orchestrator)
 # ---------------------------------------------------------------------------

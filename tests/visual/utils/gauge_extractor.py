@@ -27,10 +27,9 @@ Covers: extract_gauge_info and extract_flood_risk_data.
 import pytest
 
 from visual.utils.data_extractors.gauge_extractor import (
-    extract_gauge_info,
     extract_flood_risk_data,
+    extract_gauge_info,
 )
-
 
 # ===========================================================================
 # extract_gauge_info

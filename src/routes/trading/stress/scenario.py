@@ -20,23 +20,22 @@
 
 """Stress scenario endpoint — hourly revaluation for a storm at a gauge."""
 
-import math
 import logging
+import math
 
 from flask import jsonify, request
 
 import database
 from config import config
+from models.stress.flood_poly import p_flood_poly
+
 from .. import trading_bp
 from .._helpers import _get_engines, _load_open_trades
 from ._helpers import (
     STORM_HOURS,
-    _load_stress_storms,
     _load_stress_storm,
     build_scaled_hydrograph,
 )
-
-from models.stress.flood_poly import p_flood_poly
 
 logger = logging.getLogger(__name__)
 

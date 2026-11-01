@@ -54,7 +54,6 @@ from typing import Optional, Sequence, Tuple
 
 import numpy as np
 
-from ..core.data_structures import StormSequence
 from config.port import (
     SPATIAL_CORR_BASE_RANGE_KM,
     SPATIAL_CORR_NUGGET,
@@ -62,6 +61,7 @@ from config.port import (
     SPATIAL_CORR_SIGMA_LOGNORMAL,
 )
 
+from ..core.data_structures import StormSequence
 from . import _spatial_math
 
 logger = logging.getLogger(__name__)
@@ -124,7 +124,7 @@ class SpatialCorrelationModel:
         self.gauge_locations = np.array(gauge_locations, dtype=float)  # (n, 2): [lat, lon]
         self.n_gauges = len(self.gauge_locations)
         self.dist_matrix = self._build_distance_matrix()
-        self._cholesky_cache: Dict[float, np.ndarray] = {}
+        self._cholesky_cache: dict[float, np.ndarray] = {}
 
     # ------------------------------------------------------------------
     # Distance matrix

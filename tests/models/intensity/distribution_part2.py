@@ -28,7 +28,6 @@ import pytest
 from models.intensity.distribution import IntensityDistribution
 from models.intensity.parameters import DistributionParameters
 
-
 # ===========================================================================
 # Return period intensities
 # ===========================================================================

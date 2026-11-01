@@ -24,7 +24,7 @@ import json
 
 import pytest
 
-from database.documents import read_json_document, iter_document_names
+from database.documents import iter_document_names, read_json_document
 
 
 def test_read_present(tmp_path):

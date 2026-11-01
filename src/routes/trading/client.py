@@ -27,6 +27,7 @@ from flask import jsonify
 
 import database
 from config import config
+
 from . import trading_bp
 
 logger = logging.getLogger(__name__)

@@ -39,16 +39,16 @@ from datetime import datetime, timedelta
 from typing import Any, Dict
 
 from .gauge_field_generators import (  # noqa: F401
-    GAUGE_TYPES,
-    GAUGE_OWNERS,
-    UK_DECISION_BODIES,
     DATA_CURATORS,
+    GAUGE_OWNERS,
+    GAUGE_TYPES,
     MANUFACTURERS,
-    generate_text_value,
+    UK_DECISION_BODIES,
+    generate_date_value,
     generate_decimal_value,
     generate_integer_value,
-    generate_date_value,
     generate_menu_value,
+    generate_text_value,
 )
 
 # Note: Catchment-specific data (AREAS, etc.) should be passed via metadata

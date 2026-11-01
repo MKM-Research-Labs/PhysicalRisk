@@ -25,11 +25,14 @@ BRI score fields onto a property record."""
 import random
 from typing import Any, Dict, Optional
 
+from .flood_compliance import _apply_soft_caps, _get, compute_compliance
 from .flood_constants import (
-    FLOOD_SPEC_BASE_WEIGHTS, FLOOD_SPEC_REGIME_MULTIPLIERS,
-    FLOOD_SPEC_ALPHA_BY_REGIME, REGIME_FROM_FLOOD_RISK_TYPE, DEFAULT_REGIME,
+    DEFAULT_REGIME,
+    FLOOD_SPEC_ALPHA_BY_REGIME,
+    FLOOD_SPEC_BASE_WEIGHTS,
+    FLOOD_SPEC_REGIME_MULTIPLIERS,
+    REGIME_FROM_FLOOD_RISK_TYPE,
 )
-from .flood_compliance import compute_compliance, _apply_soft_caps, _get
 
 
 def compute_flood_resilience_score(

@@ -33,7 +33,6 @@ from port.src.storm_multi.models.sequence_response import (
     compute_sequence_gauge_response,
 )
 
-
 # ---------------------------------------------------------------------------
 # compute_sequence_gauge_response — main function
 # ---------------------------------------------------------------------------

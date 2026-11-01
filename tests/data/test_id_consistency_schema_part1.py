@@ -28,11 +28,10 @@ import pytest
 from tests.data._id_consistency_helpers import (
     INPUT_DIR,
     _load_gauge_ids,
-    _load_property_ids,
     _load_mortgage_ids,
     _load_mortgage_property_ids,
+    _load_property_ids,
 )
-
 
 # ---------------------------------------------------------------------------
 # Module-level data loaders (run once, cached)

@@ -44,7 +44,6 @@ from config.damage import (
     COMMERCIAL_WIND_MINOR_KPH,
 )
 
-
 # -- Thresholds (constants per the SE-Asia commercial prototype set) -------
 
 # Wind (cyclone) — Grade A = major, Grade B = minor (damage onset).

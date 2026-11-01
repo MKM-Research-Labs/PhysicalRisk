@@ -26,8 +26,8 @@ from tests.loaders.conftest import gauge_json, property_json, write_json
 class TestLoaderRegistryLoaders:
 
     def test_get_gauge_loader(self, tmp_path):
-        from loaders.loader_registry import LoaderRegistry
         from loaders.gauge_loader import GaugeLoader
+        from loaders.loader_registry import LoaderRegistry
         assert isinstance(LoaderRegistry(data_dir=tmp_path).get_gauge_loader(), GaugeLoader)
 
     def test_get_property_loader(self, tmp_path):

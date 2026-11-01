@@ -28,7 +28,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from reports.utils.open_pdf import open_pdf_file
 

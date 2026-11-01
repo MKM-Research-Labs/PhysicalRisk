@@ -38,7 +38,6 @@ from port.src.property.propertyhc import (
 
 from .conftest import write_gauge_hc
 
-
 # ===========================================================================
 # _get_gauge_severe_count
 # ===========================================================================

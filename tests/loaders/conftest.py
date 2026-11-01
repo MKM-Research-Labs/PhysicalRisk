@@ -24,9 +24,9 @@ import json
 from pathlib import Path
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)

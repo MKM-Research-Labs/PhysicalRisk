@@ -26,7 +26,6 @@ loading, snapping, and linear interpolation.
 import json
 import logging
 import math
-from pathlib import Path
 from typing import List, Optional, Tuple
 
 from config import config

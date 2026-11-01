@@ -28,7 +28,6 @@ import pytest
 
 from tests.port.hazard.conftest import _make_gauge_json, _make_storms_json
 
-
 # ===========================================================================
 # load_storms
 # ===========================================================================

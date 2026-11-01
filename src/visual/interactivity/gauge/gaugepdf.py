@@ -29,8 +29,8 @@ from typing import Any, Dict
 
 import folium
 
-from visual.utils.pdf_viewer import pdf_viewer_js
 from config.theme import colour
+from visual.utils.pdf_viewer import pdf_viewer_js
 
 
 class GaugePDFPanel:

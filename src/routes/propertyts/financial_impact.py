@@ -40,9 +40,9 @@ from .blueprint import propertyts_bp
 from .financial_loaders import (
     _build_property_entry,
     _check_options_and_dir,
-    _load_rloan_lookup,
     _load_prop_values,
     _load_property_details,
+    _load_rloan_lookup,
     _portfolio_totals,
 )
 from .financial_prs import _enrich_with_prs

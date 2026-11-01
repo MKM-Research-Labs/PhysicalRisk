@@ -37,7 +37,6 @@ and storm-list / portfolio-impact loaders (which reads the
 
 
 from config.format import storm_option_js as _storm_opt
-
 from visual.interactivity._jsbundle import js_static
 
 from . import (

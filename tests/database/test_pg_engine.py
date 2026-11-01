@@ -27,11 +27,11 @@ arrive with PostgresRepository (WP1.6) against the native dev Postgres.
 """
 
 import pytest
+from db_helpers import active_test_backend
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
 from database._pg import Base, Catchment, get_engine, get_session, reset_engine
-from db_helpers import active_test_backend
 
 
 @pytest.fixture(autouse=True)

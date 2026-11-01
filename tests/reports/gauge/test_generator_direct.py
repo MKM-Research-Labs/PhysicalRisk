@@ -25,10 +25,9 @@ Covers: page listing, validation, filename generation, auto-select,
 element generation, report generation methods, and _find_gauge_by_id utility.
 """
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 _GAUGE_DATA = {
     "FloodGauge": {

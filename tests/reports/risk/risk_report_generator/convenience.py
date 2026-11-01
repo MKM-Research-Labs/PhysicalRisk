@@ -25,6 +25,7 @@ from typing import Any, Dict
 from unittest.mock import patch
 
 import pytest
+
 from .conftest import _make_generator
 
 

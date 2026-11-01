@@ -27,8 +27,10 @@ from unittest.mock import patch
 import pytest
 
 from ._data import (
-    GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH,
     ALL_TEST_GAUGE_IDS,
+    GAUGE_CHELSEA,
+    GAUGE_LAMBETH,
+    GAUGE_WESTMINSTER,
 )
 
 
@@ -49,8 +51,9 @@ class TestTimingsHelpers:
         assert _load_timings(catchment) == {"runs": []}
 
     def test_load_timings_valid(self, tmp_path):
-        import database
         from db_helpers import tmp_catchment
+
+        import database
         from config import config
         from routes.trading.classifiers import _load_timings
         data = {"runs": [{"num_gauges": 5, "elapsed_seconds": 100}]}
@@ -69,8 +72,9 @@ class TestTimingsHelpers:
         assert result == {"runs": []}
 
     def test_save_timings_truncates_to_20(self, tmp_path):
-        import database
         from db_helpers import tmp_catchment
+
+        import database
         from config import config
         from routes.trading.classifiers import _save_timings
         timings = {"runs": [{"i": i} for i in range(30)]}

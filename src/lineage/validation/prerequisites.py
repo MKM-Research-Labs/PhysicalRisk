@@ -53,6 +53,7 @@ def resolve_prerequisites(
         Empty list if everything is fresh.
     """
     from graphlib import TopologicalSorter
+
     import lineage.validation as _val
 
     DEPENDENCY_GRAPH = _val.DEPENDENCY_GRAPH

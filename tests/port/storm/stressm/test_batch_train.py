@@ -27,12 +27,12 @@ including error handling, incremental summary updates, and memory cleanup.
 
 import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)

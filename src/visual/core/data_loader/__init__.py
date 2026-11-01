@@ -24,6 +24,6 @@ Data loading coordinator for the visualization system.
 Thin wrapper around the loaders package for visualization-specific needs.
 """
 
-from ._core import DataLoader, LoadedData, DataValidationResult
+from ._core import DataLoader, DataValidationResult, LoadedData
 
 __all__ = ["DataLoader", "LoadedData", "DataValidationResult"]

@@ -36,7 +36,6 @@ from models.typhoon.genesis._samplers import (
     sample_scenario_family,
 )
 
-
 # ===========================================================================
 # Top-level genesis samplers
 # ===========================================================================

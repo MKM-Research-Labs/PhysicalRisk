@@ -21,9 +21,9 @@
 """Tests for the trading desk market state manager."""
 
 import pytest
+from db_helpers import active_test_backend, seed_gauge_hazard_curves, tmp_catchment
 
 import database
-from db_helpers import seed_gauge_hazard_curves, active_test_backend, tmp_catchment
 from models.trading.market_state import MarketStateManager
 
 

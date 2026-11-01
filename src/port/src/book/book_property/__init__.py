@@ -20,12 +20,12 @@
 
 """Book generator — property PRS client book."""
 
-from ._select import (
-    _select_properties,
-    _match_tenor_idx,
-    _lookup_property_metadata,
-)
 from ._core import generate_property_book
+from ._select import (
+    _lookup_property_metadata,
+    _match_tenor_idx,
+    _select_properties,
+)
 
 __all__ = [
     "generate_property_book",

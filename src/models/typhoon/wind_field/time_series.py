@@ -42,7 +42,6 @@ from config.typhoon import LandMask, PropertyPoint, WindFieldParams
 from models.typhoon.data_structures import TyphoonTrajectory, WindFieldOutput
 from models.typhoon.wind_field.point import evaluate_point_with_geometry
 
-
 __all__ = ["evaluate_time_series", "duration_above_threshold"]
 
 

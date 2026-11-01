@@ -36,7 +36,6 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # 1. src/models/intensity/__main__.py (lines 21-23)
 #    Runs `from .cli import main; main()` — test via subprocess

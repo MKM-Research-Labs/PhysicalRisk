@@ -28,7 +28,6 @@ the convenience function generate_property_report (report types, auto_open).
 
 from unittest.mock import MagicMock, patch
 
-
 # ===========================================================================
 # Shared test data
 # ===========================================================================

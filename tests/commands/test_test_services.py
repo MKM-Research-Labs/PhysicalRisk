@@ -25,10 +25,9 @@ decisions rather than whether Postgres happens to be up on this machine.
 """
 
 import pytest
-
-import database
 from app.commands.test import services
 
+import database
 from config.database import (
     MINIO_START_HINT,
     NO_SERVICE_OVERRIDE_ENV,

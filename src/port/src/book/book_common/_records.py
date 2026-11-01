@@ -26,8 +26,8 @@ from typing import Dict, List, Optional
 
 import database
 from config import config
-from models.schedule.maturity import compute_maturity_date
 from config.port import PRS_SETTLEMENT_DAYS
+from models.schedule.maturity import compute_maturity_date
 from port.cdm.prs import PhysicalRiskSwapCDM
 from port.src.counterparty._credit_support import netting_set_id
 

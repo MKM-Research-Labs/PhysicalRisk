@@ -26,6 +26,7 @@ from typing import Any, Dict, Optional
 import folium
 
 from config.visual import GAUGE_FLOOD_HIGH, GAUGE_FLOOD_MEDIUM
+
 from ...utils import ColorSchemes, DataFormatter
 
 logger = logging.getLogger(__name__)

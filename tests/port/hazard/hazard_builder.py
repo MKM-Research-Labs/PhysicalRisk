@@ -22,8 +22,8 @@
 Unit tests for hazard curve builder: GEVFitter, GaugeResponseModel, HazardCurveBuilder.
 """
 
-import pytest
 import numpy as np
+import pytest
 from scipy import stats
 
 from models.hazard import (

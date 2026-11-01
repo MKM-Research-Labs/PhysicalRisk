@@ -21,9 +21,9 @@
 """Tests for generate_hazard_curve_history_file — part 1."""
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 from port.src.historical_eod import generate_hazard_curve_history_file
 
 

@@ -22,9 +22,8 @@
 Tests for MapBuilder.create_map and create_map_from_bounds from visual.core.map_builder.
 """
 
-import pytest
 import folium
-
+import pytest
 
 # ===========================================================================
 # MapBuilder.create_map

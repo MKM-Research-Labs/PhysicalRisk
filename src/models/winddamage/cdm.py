@@ -35,7 +35,6 @@ CDM paths used:
 
 from typing import Optional, Tuple
 
-
 __all__ = [
     "extract_property_id",
     "extract_wind_threshold_mps",

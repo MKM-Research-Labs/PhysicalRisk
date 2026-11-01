@@ -31,13 +31,11 @@ from pathlib import Path
 import pytest
 
 from tests._dataset import full_dataset_only
-
 from tests.data._id_consistency_helpers import (
-    ROOT,
     INPUT_DIR,
     OUTPUT_DIR,
+    ROOT,
 )
-
 
 # =========================================================================
 # Storm ID consistency (stress_storms <-> propertyts <-> gaugets)

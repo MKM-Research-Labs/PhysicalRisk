@@ -25,7 +25,7 @@ from typing import Dict
 
 import QuantLib as ql
 
-from .curves import create_survival_curve_from_hazard, create_flat_hazard_curve
+from .curves import create_flat_hazard_curve, create_survival_curve_from_hazard
 
 logger = logging.getLogger(__name__)
 

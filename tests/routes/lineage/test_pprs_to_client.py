@@ -30,7 +30,6 @@ Uses monkeypatch + tmp_path to isolate from production data.
 
 import pytest
 
-
 SAMPLE_PPRS_TRADE = {
     'PhysicalSwap': {
         'Header': {

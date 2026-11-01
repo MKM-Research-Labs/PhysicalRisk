@@ -30,7 +30,6 @@ import json
 import logging
 import math
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 
@@ -110,6 +109,7 @@ def save_spatial_correlation_config(
         SPATIAL_CORR_MODEL_TYPE,
         SPATIAL_CORR_NUM_GAUGES,
     )
+
     from .spatial_correlation import SpatialCorrelationParams
 
     p = params or SpatialCorrelationParams()

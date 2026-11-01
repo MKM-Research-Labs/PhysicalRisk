@@ -30,7 +30,6 @@ import pytest
 
 from models.stormgauge.data_structures import DecayKernel, TrackPoint
 
-
 # ===========================================================================
 # Haversine distance
 # ===========================================================================

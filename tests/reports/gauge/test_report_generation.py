@@ -24,8 +24,7 @@ Tests for reports.gauge.generate_gauge_report — the __init__.py convenience fu
 Covers: report type dispatch, auto_open behaviour, return values.
 """
 
-from unittest.mock import patch, MagicMock
-
+from unittest.mock import MagicMock, patch
 
 # ===========================================================================
 # Helpers

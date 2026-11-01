@@ -19,12 +19,12 @@
 # SOFTWARE.
 
 from .data_structures import (  # noqa: F401
+    SEQUENCE_GAP_TYPE,
+    SEQUENCE_TYPE_STORM_COUNTS,
     GapType,
     SequenceStorm,
     SequenceType,
     StormSequence,
-    SEQUENCE_GAP_TYPE,
-    SEQUENCE_TYPE_STORM_COUNTS,
     make_sequence_id,
     make_storm_id,
 )

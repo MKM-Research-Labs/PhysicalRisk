@@ -35,10 +35,10 @@ Usage:
     python3 -m models.prs.prshc.cli --hazard-file input/thames/hazard_curves.json
 """
 
-from .curves import create_survival_curve_from_hazard, create_flat_hazard_curve
-from .pricer import price_prs
-from .io import load_hazard_curves, print_pricing_results
 from .cli import main
+from .curves import create_flat_hazard_curve, create_survival_curve_from_hazard
+from .io import load_hazard_curves, print_pricing_results
+from .pricer import price_prs
 
 __all__ = [
     'create_survival_curve_from_hazard',

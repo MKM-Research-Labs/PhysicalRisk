@@ -22,11 +22,10 @@
 Tests for PropertyLayer.__init__, configure, and get_property_statistics.
 """
 
-import pytest
 import folium
+import pytest
 
 from visual.layer.property_layer.layer import PropertyLayer
-
 
 # ===========================================================================
 # Helpers

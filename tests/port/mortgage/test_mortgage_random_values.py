@@ -21,12 +21,12 @@
 """Tests for port.rand.thames.mortgage_random — menu, boolean, decimal value generators."""
 
 import pytest
+
 from port.rand.thames.mortgage.mortgage_random import (
-    generate_menu_value,
     generate_boolean_value,
     generate_decimal_value,
+    generate_menu_value,
 )
-
 
 # =============================================================================
 # generate_menu_value

@@ -21,10 +21,11 @@
 """Tests for generate_trade_pnl_history_file()."""
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
-from .conftest import generate_trade_pnl_history_file, _write_eod_with_positions
+
+from .conftest import _write_eod_with_positions, generate_trade_pnl_history_file
 
 
 @pytest.fixture(autouse=True)

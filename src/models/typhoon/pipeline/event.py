@@ -32,7 +32,6 @@ from models.typhoon.particle_filter import ParticleFilter
 from models.typhoon.plausibility import make_particle_plausibility
 from models.typhoon.wind_field import WindField
 
-
 __all__ = [
     "EventResult",
     "simulate_one_event",

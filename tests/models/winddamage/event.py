@@ -32,7 +32,6 @@ from models.winddamage.event import (
 )
 from models.winddamage.extraction import EventWindts
 
-
 # -- Fixtures (synthetic, no I/O dependence) --------------------------------
 
 

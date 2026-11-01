@@ -27,7 +27,6 @@ from tests.commands.data_lineage_helpers import (
     SAMPLE_LINEAGE_RESULTS_STALE,
 )
 
-
 # ---------------------------------------------------------------------------
 # Failed check structured breakdown
 # ---------------------------------------------------------------------------

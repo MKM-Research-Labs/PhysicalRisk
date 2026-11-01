@@ -121,6 +121,7 @@ class TestTradingDeskPanelJS:
     def test_add_to_map(self):
         """Panel should add to a Folium map without error."""
         import folium
+
         from visual.interactivity.trading.tradingdesk import TradingDeskPanel
 
         panel = TradingDeskPanel()

@@ -37,7 +37,6 @@ from port.src.storm_multi.models.spatial_correlation import (
 
 from .conftest import SYNTHETIC_LOCATIONS
 
-
 # ---------------------------------------------------------------------------
 # Correlation matrix
 # ---------------------------------------------------------------------------

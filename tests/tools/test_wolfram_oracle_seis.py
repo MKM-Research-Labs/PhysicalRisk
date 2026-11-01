@@ -30,11 +30,11 @@ import re
 
 import mpmath as mp
 import pytest
-
-from config.models import ORACLE_SEIS_BASELINE, ORACLE_SEIS_KM_PER_DEG, ORACLE_SEIS_REL_TOL, ORACLE_SEIS_Z_LIMIT
 from tools.wolfram_oracle import __main__ as cli
 from tools.wolfram_oracle._wl import save_wolfram
 from tools.wolfram_oracle.seismic import cases, claims, exact
+
+from config.models import ORACLE_SEIS_BASELINE, ORACLE_SEIS_KM_PER_DEG, ORACLE_SEIS_REL_TOL, ORACLE_SEIS_Z_LIMIT
 
 
 @pytest.fixture(scope="module")
@@ -51,7 +51,8 @@ class TestReference:
     def test_clipped_mean_by_quadrature(self):
         with mp.workdps(40):
             med, s = mp.mpf("0.35"), mp.mpf("0.4")
-            pdf = lambda x: mp.npdf(mp.log(x), mp.log(med), s) / x
+            def pdf(x):
+                return mp.npdf(mp.log(x), mp.log(med), s) / x
             direct = mp.quad(lambda x: x * pdf(x), [0, 1]) + mp.quad(pdf, [1, mp.inf])
             assert exact.clipped_mean(med, s) == pytest.approx(direct, rel=1e-25)
 

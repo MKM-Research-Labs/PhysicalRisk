@@ -22,11 +22,10 @@
 Tests for GaugeLayer.add_to_map and _add_gauge_marker.
 """
 
-import pytest
 import folium
+import pytest
 
 from visual.layer.gauge_layer import GaugeLayer
-
 
 # ===========================================================================
 # Helpers

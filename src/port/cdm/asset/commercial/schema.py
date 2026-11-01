@@ -39,7 +39,6 @@ from ..resilience import (
     RISK_ASSESSMENT_SCHEMA,
 )
 
-
 # Default elevation when GroundLevelMeters is absent.
 DEFAULT_ELEVATION: float = 12.0
 

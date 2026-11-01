@@ -30,10 +30,9 @@ import pytest
 from tests.data._id_consistency_helpers import (
     INPUT_DIR,
     _load_gauge_ids,
-    _load_trade_ids,
     _load_market_state_gauge_ids,
+    _load_trade_ids,
 )
-
 
 BLOTTER_DIR = INPUT_DIR / "blotter"
 EOD_DIR = BLOTTER_DIR / "eod"

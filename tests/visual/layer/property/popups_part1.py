@@ -28,8 +28,7 @@ import pytest
 
 from visual.layer.property_layer.layer import PropertyLayer
 
-from .conftest import make_property_info, make_mortgage_info
-
+from .conftest import make_mortgage_info, make_property_info
 
 # ===========================================================================
 # _create_property_popup

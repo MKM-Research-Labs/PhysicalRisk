@@ -109,7 +109,7 @@ class FieldValidator:
             return (True, "") if isinstance(value, (int, float)) else (False, f"Expected number, got {type(value).__name__}")
         elif cdm_type == "integer":
             if isinstance(value, bool):
-                return False, f"Expected integer, got bool"
+                return False, "Expected integer, got bool"
             if isinstance(value, int):
                 return True, ""
             if isinstance(value, float) and value.is_integer():

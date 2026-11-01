@@ -52,8 +52,8 @@ import database
 from config import config
 from port.cdm import ResidentialAssetCDM
 
-from .locations import LocationsMixin
 from .builder import BuilderMixin
+from .locations import LocationsMixin
 
 logger = logging.getLogger(__name__)
 

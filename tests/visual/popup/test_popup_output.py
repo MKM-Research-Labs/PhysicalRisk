@@ -28,7 +28,6 @@ Tests for PopupBuilder output methods and integration:
 
 import folium
 
-
 # ===========================================================================
 # create_colored_text
 # ===========================================================================

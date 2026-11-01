@@ -27,7 +27,6 @@ flow_cumecs branch), calculate_level_statistics, calculate_flow_statistics.
 
 import pytest
 
-
 # ===========================================================================
 # Helpers
 # ===========================================================================

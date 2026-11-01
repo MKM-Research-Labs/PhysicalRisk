@@ -30,7 +30,6 @@ import pytest
 from loaders.storm_loader import StormLoader
 from tests.loaders.conftest import write_storms
 
-
 # ===========================================================================
 # get_major_hurricanes
 # ===========================================================================

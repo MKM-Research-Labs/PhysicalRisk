@@ -35,10 +35,14 @@ import pytest
 from port.rand.halong.commercial import bri_codes
 from port.rand.halong.commercial.commercial_random import (
     generate_commercial_metadata as halong_metadata,
+)
+from port.rand.halong.commercial.commercial_random import (
     generate_field_value as halong_field,
 )
 from port.rand.thames.commercial.commercial_random import (
     generate_commercial_metadata as thames_metadata,
+)
+from port.rand.thames.commercial.commercial_random import (
     generate_field_value as thames_field,
 )
 
@@ -174,7 +178,8 @@ class TestThamesEmpty:
 
     def test_thresholds_null(self):
         md = thames_metadata(6, _LOCATION)
-        get = lambda f: thames_field(f, {}, 6, md)
+        def get(f):
+            return thames_field(f, {}, 6, md)
         for field in (
             "WindThresholdMajorMps", "WindThresholdMinorMps",
             "WaterThresholdMajorM", "WaterThresholdMinorM",
@@ -184,13 +189,15 @@ class TestThamesEmpty:
 
     def test_ratings_null(self):
         md = thames_metadata(6, _LOCATION)
-        get = lambda f: thames_field(f, {}, 6, md)
+        def get(f):
+            return thames_field(f, {}, 6, md)
         assert get("BRIWaterRating") is None
         assert get("BRIFlashRating") is None
 
     def test_industry_groups_empty(self):
         md = thames_metadata(6, _LOCATION)
-        get = lambda f: thames_field(f, {}, 6, md)
+        def get(f):
+            return thames_field(f, {}, 6, md)
         for field in ("WindCodes", "WaterCodes", "FlashCodes",
                       "FireCodes", "SeismicCodes"):
             assert get(field) == [], f"Thames must leave {field} as []"

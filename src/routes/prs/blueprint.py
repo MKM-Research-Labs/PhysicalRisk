@@ -36,8 +36,8 @@ logger = logging.getLogger(__name__)
 import database
 from config import config
 from config.auth import CREATE, FUNC_TRADE_PRS
-from models.schedule.maturity import compute_maturity_date
 from config.port import PRS_SETTLEMENT_DAYS
+from models.schedule.maturity import compute_maturity_date
 from port.cdm.prs import PhysicalRiskSwapCDM
 from port.src.counterparty._credit_support import netting_set_id
 

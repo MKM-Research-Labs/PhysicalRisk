@@ -20,20 +20,15 @@
 
 """Particle filter weighting and resampling."""
 
-from datetime import datetime
 from typing import Callable, List, Optional
 
 import numpy as np
 
-from config.typhoon import CatchmentTyphoonConfig, ScenarioFamily
+from config.typhoon import ScenarioFamily
 from models.typhoon.data_structures import (
     TyphoonParticle,
     TyphoonState,
-    TyphoonTrajectory,
 )
-from models.typhoon.genesis import sample_genesis, sample_scenario_family
-from models.typhoon.transitions import step
-
 from models.typhoon.particle_filter._resample import systematic_resample
 
 

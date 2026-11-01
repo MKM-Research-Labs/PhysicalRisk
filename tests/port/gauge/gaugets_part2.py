@@ -30,7 +30,6 @@ import pytest
 
 import database
 
-
 # ===========================================================================
 # Convenience function  (lines 236-237)
 # ===========================================================================
@@ -40,6 +39,7 @@ class TestGenerateGaugetsConvenience:
     def test_generate_gaugets_calls_generator(self, tmp_path):
         """Lines 236-237: generate_gaugets() instantiates generator and calls generate()."""
         from unittest.mock import MagicMock, patch
+
         from port.src.gauge.gaugets import generate_gaugets
 
         mock_gen = MagicMock()
@@ -62,14 +62,16 @@ class TestGaugetsDateTimeEncoder:
 
     def test_encodes_datetime(self):
         """Line 72: datetime -> isoformat string."""
-        from port.src.gauge.gaugets import DateTimeEncoder
         from datetime import datetime
+
+        from port.src.gauge.gaugets import DateTimeEncoder
         result = json.dumps({"d": datetime(2026, 1, 1)}, cls=DateTimeEncoder)
         assert "2026-01-01" in result
 
     def test_encodes_numpy_integer(self):
         """Lines 73-74: np.integer -> int."""
         import numpy as np
+
         from port.src.gauge.gaugets import DateTimeEncoder
         result = json.dumps({"n": np.int64(42)}, cls=DateTimeEncoder)
         assert "42" in result
@@ -77,6 +79,7 @@ class TestGaugetsDateTimeEncoder:
     def test_encodes_numpy_float32(self):
         """Lines 75-76: np.float32 is np.floating but not Python float -> default() called."""
         import numpy as np
+
         from port.src.gauge.gaugets import DateTimeEncoder
         result = json.dumps({"f": np.float32(2.5)}, cls=DateTimeEncoder)
         assert "2.5" in result
@@ -84,6 +87,7 @@ class TestGaugetsDateTimeEncoder:
     def test_encodes_numpy_ndarray(self):
         """Lines 77-78: np.ndarray -> list via tolist()."""
         import numpy as np
+
         from port.src.gauge.gaugets import DateTimeEncoder
         result = json.dumps({"a": np.array([1.0, 2.0])}, cls=DateTimeEncoder)
         assert "1.0" in result
@@ -108,6 +112,7 @@ class TestGaugetsMain:
         receives the per-gauge timeseries writes through ``database``.
         """
         import runpy
+
         from db_helpers import active_test_backend, tmp_catchment
 
         gauge_portfolio = {

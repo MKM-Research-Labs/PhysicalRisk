@@ -47,7 +47,6 @@ from models.winddamage.vulnerability import (
     persistence_factor,
 )
 
-
 __all__ = ["build_event_damage", "run_event", "run_event_directory"]
 
 

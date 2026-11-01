@@ -27,12 +27,12 @@ import json
 import logging
 from typing import Any, Dict, List
 
-from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table
 
-from .gauge_page_00_base import GaugeBasePage
 from config.theme import colour
+
+from .gauge_page_00_base import GaugeBasePage
 
 logger = logging.getLogger(__name__)
 

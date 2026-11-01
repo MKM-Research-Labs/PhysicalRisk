@@ -26,7 +26,6 @@ import json
 
 import pytest
 
-
 # ===========================================================================
 # Coverage expansion: validation errors (L133), close-out (L144-151),
 # list trades exception (L201-202)
@@ -48,8 +47,9 @@ class TestCommitValidationErrors:
         monkeypatch.setattr(PhysicalRiskSwapCDM, "validate",
                             lambda self, rec: ["Missing required field: SwapID"])
 
-        from server import create_app
         from fixtures_admin import AuthenticatedTestClient
+
+        from server import create_app
         app = create_app()
         app.config["TESTING"] = True
         app.test_client_class = AuthenticatedTestClient
@@ -74,8 +74,9 @@ class TestCommitCloseOut:
     """Lines 144-151: close_out_of triggers PnLEngine.close_trade and re-save."""
 
     def test_close_out_path_exercised(self, tmp_path, monkeypatch):
-        from config import config
         from unittest.mock import MagicMock, patch
+
+        from config import config
 
         prs_dir = tmp_path / "prs"
         prs_dir.mkdir(parents=True)
@@ -90,8 +91,9 @@ class TestCommitCloseOut:
         # Mock PnLEngine to avoid needing actual trade files
         mock_pnl_engine = MagicMock()
         with patch("models.trading.pnl_engine.PnLEngine", return_value=mock_pnl_engine):
-            from server import create_app
             from fixtures_admin import AuthenticatedTestClient
+
+            from server import create_app
             app = create_app()
             app.config["TESTING"] = True
             app.test_client_class = AuthenticatedTestClient
@@ -135,8 +137,9 @@ class TestListTradesException:
         monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
         monkeypatch.setattr(config, "_catchment_id", "thames")
 
-        from server import create_app
         from fixtures_admin import AuthenticatedTestClient
+
+        from server import create_app
         app = create_app()
         app.config["TESTING"] = True
         app.test_client_class = AuthenticatedTestClient

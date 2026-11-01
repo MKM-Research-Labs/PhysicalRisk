@@ -31,7 +31,6 @@ from models.hazard.prs_analytical import (
     interpolate_yield_rate,
 )
 
-
 # ===========================================================================
 # interpolate_yield_rate — edge cases
 # ===========================================================================

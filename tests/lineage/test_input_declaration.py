@@ -39,7 +39,6 @@ The guard is in ``StageContext.record``; these tests pin its behaviour.
 """
 
 import pytest
-
 from app.commands.port.context import StageContext
 
 

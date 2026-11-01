@@ -36,7 +36,7 @@ except ImportError:
 
 pytestmark = pytest.mark.skipif(not HAS_QUANTLIB, reason="QuantLib not installed")
 
-from .conftest import term_structure, make_gauge
+from .conftest import make_gauge, term_structure
 
 
 class TestLoadHazardCurvesErrors:

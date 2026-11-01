@@ -31,9 +31,10 @@ Run `python phys.py port --stressm`  to retrain GBM flood classifiers.
 
 import json
 import pathlib
+import sys
+
 import pytest
 
-import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parents[2]))
 from config import PortfolioConfig
 
@@ -99,8 +100,8 @@ class TestStressStormsFilePart2:
         result = _load_storms_from_dir_or_file()
         if result is None:
             pytest.skip(
-                f"stress_storms data not generated — skipping. "
-                f"Run `python phys.py port --stressm` to create."
+                "stress_storms data not generated — skipping. "
+                "Run `python phys.py port --stressm` to create."
             )
         return result
 

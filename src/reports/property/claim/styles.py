@@ -24,6 +24,7 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import TableStyle
+
 from reports.theme_pdf import pdf_colour
 
 # ── Shared TableStyle constants ──────────────────────────────────────────────

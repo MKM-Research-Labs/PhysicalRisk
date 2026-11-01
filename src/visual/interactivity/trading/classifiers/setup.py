@@ -27,7 +27,7 @@ Sub-modules imported and concatenated here.
 
 from visual.interactivity._jsbundle import js_static
 
-from . import summary_table, detail, training
+from . import detail, summary_table, training
 
 
 def get_js() -> str:

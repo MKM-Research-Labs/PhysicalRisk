@@ -23,11 +23,10 @@ Tests for GaugeLayer flood count, icon, location description,
 configure, and get_gauge_statistics.
 """
 
-import pytest
 import folium
+import pytest
 
 from visual.layer.gauge_layer import GaugeLayer
-
 
 # ===========================================================================
 # Helpers

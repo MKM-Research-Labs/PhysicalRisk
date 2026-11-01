@@ -20,9 +20,8 @@
 
 """Panel chrome: creation, tab switching, show/hide, storm change handler."""
 
-from visual.interactivity._jsbundle import js_static
-
 from config.format import percentile_selector_html as _pct_html
+from visual.interactivity._jsbundle import js_static
 
 
 def get_js() -> str:

@@ -26,11 +26,11 @@ running average AUC/accuracy in status (lines 225, 307-309, 324,
 
 import json
 import time
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ._data import GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH
+from ._data import GAUGE_CHELSEA, GAUGE_LAMBETH, GAUGE_WESTMINSTER
 
 
 class TestClearAllImportErrorFallback:

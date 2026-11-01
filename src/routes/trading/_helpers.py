@@ -37,8 +37,8 @@ logger = logging.getLogger(__name__)
 
 def _get_engines():
     """Lazily create and return trading engine instances."""
-    from models.trading.market_state import MarketStateManager
     from models.trading.delta_engine import DeltaEngine
+    from models.trading.market_state import MarketStateManager
     from models.trading.pnl_engine import PnLEngine
 
     # Ensure the PRS reports dir exists (PRS trades still land there as files).

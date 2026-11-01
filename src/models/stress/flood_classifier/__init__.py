@@ -26,7 +26,7 @@ predicts flood probability from raw water-level observations. The trainer and
 predictor live in dedicated submodules; this package re-exports both.
 """
 
-from ._trainer import FloodClassifierTrainer
 from ._predictor import FloodPredictor
+from ._trainer import FloodClassifierTrainer
 
 __all__ = ["FloodClassifierTrainer", "FloodPredictor"]

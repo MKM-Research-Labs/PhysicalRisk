@@ -18,5 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .generator import SyntheticGaugeGenerator, SYNTH_PREFIX
-from .geometry import _load_river_polyline, _snap_to_river, _lerp  # noqa: F401
+from .generator import SYNTH_PREFIX, SyntheticGaugeGenerator
+from .geometry import _lerp, _load_river_polyline, _snap_to_river  # noqa: F401
+
+__all__ = [
+    "SYNTH_PREFIX",
+    "SyntheticGaugeGenerator",
+]

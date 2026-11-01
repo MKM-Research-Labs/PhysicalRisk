@@ -29,8 +29,9 @@ from reportlab.lib.enums import TA_RIGHT
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
-from .formatters import fmt_gbp
 from reports.theme_pdf import pdf_colour
+
+from .formatters import fmt_gbp
 
 
 def build_page5_determination(

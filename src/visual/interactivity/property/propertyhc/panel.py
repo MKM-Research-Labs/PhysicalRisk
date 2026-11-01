@@ -36,16 +36,24 @@ Sub-modules:
 - phc_basis_property: Basis Explorer — Property sub-tab
 """
 
-from typing import Any, Dict
 
-import folium
 
 from visual.interactivity._jsbundle import js_static
 from visual.interactivity.panel_mixin import FoliumPanelMixin
-from .. import phc_hazard, phc_term, phc_prs, phc_basis
-from .. import phc_basis_gauge, phc_basis_she, phc_basis_shd, phc_basis_property
-from .. import phc_basis_waterfall, phc_peril_outcomes
-from . import panel_create, panel_tabs, panel_data, panel_basis_strip
+
+from .. import (
+    phc_basis,
+    phc_basis_gauge,
+    phc_basis_property,
+    phc_basis_shd,
+    phc_basis_she,
+    phc_basis_waterfall,
+    phc_hazard,
+    phc_peril_outcomes,
+    phc_prs,
+    phc_term,
+)
+from . import panel_basis_strip, panel_create, panel_data, panel_tabs
 
 
 class PropertyHazardCurvePanel(FoliumPanelMixin):

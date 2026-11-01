@@ -30,8 +30,8 @@ import math
 from typing import Dict, List
 
 from config.models import (
-    DEFAULT_RETENTION_LENGTH,
     DEFAULT_RECESSION_FACTOR,
+    DEFAULT_RETENTION_LENGTH,
     DEFAULT_ROUGHNESS,
     MIN_SLOPE,
 )

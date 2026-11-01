@@ -28,9 +28,9 @@ from .. import propertyts_bp
 from ..core_summary import _load_property_or_404
 from ._helpers import (
     _build_storm_lookups,
-    _tag_flood_events,
     _enrich_nearest_gauges,
     _lookup_property_address,
+    _tag_flood_events,
 )
 
 logger = logging.getLogger(__name__)

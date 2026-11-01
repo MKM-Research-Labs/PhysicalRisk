@@ -36,20 +36,20 @@ The user-facing surface (re-exported below) is built in ``_core``; the
 """
 
 from ._core import (
-    haversine_distance_km,
+    PointWind,
+    WindField,
+    asymmetry_factor,
     bearing_deg,
     calibrate_outer_decay_length,
-    symmetric_profile,
-    asymmetry_factor,
     compute_epsilon,
     compute_phi_deg,
-    surface_factor,
-    PointWind,
+    duration_above_threshold,
     evaluate_point,
     evaluate_point_with_geometry,
-    duration_above_threshold,
     evaluate_time_series,
-    WindField,
+    haversine_distance_km,
+    surface_factor,
+    symmetric_profile,
 )
 
 __all__ = [

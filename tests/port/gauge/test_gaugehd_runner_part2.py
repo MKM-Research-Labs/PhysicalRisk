@@ -25,9 +25,9 @@ import logging
 from pathlib import Path
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 from tests.port.gauge.conftest import SAMPLE_GAUGE_ENTRY, setup_gauge_env, write_nrfa_csv
 
 
@@ -105,6 +105,7 @@ class TestProcessNrfaDirectoryRunner:
         and processing continues to the next file.
         """
         import logging as _logging
+
         from port.src.gauge.gaugehd import runner
 
         write_nrfa_csv(tmp_path, station_id="EXC1", n_rows=10)

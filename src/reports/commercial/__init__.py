@@ -30,7 +30,7 @@ Mirrors the property report shape but:
   - shares all other section renderers via ``reports.asset``.
 """
 
-from .commercial_report import generate_commercial_report, generate_cloan_report
+from .commercial_report import generate_cloan_report, generate_commercial_report
 from .generator import CommercialReportGenerator
 
 __all__ = [

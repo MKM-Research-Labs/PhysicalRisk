@@ -19,6 +19,8 @@
 # SOFTWARE.
 
 """Core property timeseries endpoints (split into sub-modules)."""
-from . import core_summary  # noqa: F401
-from . import core_storms  # noqa: F401
-from . import core_storm_list  # noqa: F401
+from . import (
+    core_storm_list,  # noqa: F401
+    core_storms,  # noqa: F401
+    core_summary,  # noqa: F401
+)

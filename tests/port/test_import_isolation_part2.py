@@ -33,7 +33,6 @@ from tests.port.conftest_import_isolation import (
     _simulate_no_quantlib,
 )
 
-
 # ---------------------------------------------------------------------------
 # Tests: geopandas isolation
 # ---------------------------------------------------------------------------
@@ -78,6 +77,7 @@ class TestGeopandasIsolation:
     def test_floodrisk_init_does_not_import_flood_risk_model(self):
         """__init__.py must not have an executable FloodRiskModel import statement."""
         import inspect
+
         import models.floodrisk as pkg
         src = inspect.getsource(pkg)
         # Filter out comment lines -- only check non-comment lines
@@ -127,6 +127,7 @@ class TestCmdPortLazyBookImport:
         — otherwise QuantLib is required even for non-book steps.
         """
         import inspect
+
         from app.commands.port.stages import trading as _trading
         src = inspect.getsource(_trading)
 

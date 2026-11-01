@@ -22,12 +22,12 @@
 Tests for PropertyLayer.add_to_map and _add_property_marker.
 """
 
-import pytest
-import folium
 from unittest.mock import patch
 
-from visual.layer.property_layer.layer import PropertyLayer
+import folium
+import pytest
 
+from visual.layer.property_layer.layer import PropertyLayer
 
 # ===========================================================================
 # Helpers

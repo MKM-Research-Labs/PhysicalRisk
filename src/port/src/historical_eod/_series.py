@@ -54,8 +54,8 @@ def generate_historical_eod_series(
         Number of EOD snapshots generated
     """
     import database
-    from models.trading.market_state import MarketStateManager
     from models.trading.delta_engine import DeltaEngine
+    from models.trading.market_state import MarketStateManager
     from models.trading.pnl_engine import PnLEngine
 
     catchment = catchment or database.active_catchment()

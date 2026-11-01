@@ -44,8 +44,8 @@ from config.frequency import (
 )
 
 from .calibrate import calibrate_gauge_rate
-from .families import select_family, selection_to_dict
 from .datastructures import ProvenanceClass, rate_to_dict
+from .families import select_family, selection_to_dict
 
 # Key under which the daily observations sit in a gauge history record.
 OBSERVATIONS_KEY = "daily_observations"

@@ -20,8 +20,7 @@
 
 """Tests for _auto_select_pages, _generate_filename, and utility methods."""
 
-from .conftest import make_generator, minimal_property, minimal_mortgage
-
+from .conftest import make_generator, minimal_mortgage, minimal_property
 
 # ===========================================================================
 # TestAutoSelectPages

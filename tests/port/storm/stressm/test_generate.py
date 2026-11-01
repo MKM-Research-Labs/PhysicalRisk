@@ -25,18 +25,16 @@ import json
 import pytest
 
 import database
-
-from port.src.stressm import (
-    GAUGE_SUMMARY_DIR,
-    SCHEMA_VERSION_SPATIAL,
-    generate_stressm,
-)
 from port.src.storm_multi.utils.serialization import (
     SEQUENCES_FILENAME,
     SUMMARY_FILENAME,
     load_sequences,
 )
-
+from port.src.stressm import (
+    GAUGE_SUMMARY_DIR,
+    SCHEMA_VERSION_SPATIAL,
+    generate_stressm,
+)
 
 # ---------------------------------------------------------------------------
 # generate_stressm — summary dict

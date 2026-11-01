@@ -24,7 +24,6 @@ from unittest.mock import MagicMock
 
 from .conftest import make_generator
 
-
 # ===========================================================================
 # TestGenerateElements
 # ===========================================================================

@@ -23,16 +23,15 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-import numpy as np
-
 from config.models import FLOOD_RISK_MULTIPLIERS
+
+from ._pricing import _PricingMixin
 from .credit import (
     calculate_credit_spread,
     calculate_flood_risk_impact,
     calculate_loan_to_value_impact,
     create_credit_spread_function,
 )
-from ._pricing import _PricingMixin
 
 logger = logging.getLogger(__name__)
 

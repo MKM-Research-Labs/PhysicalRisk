@@ -47,11 +47,10 @@ from pathlib import Path
 from typing import Iterator, Optional, Union
 
 import database
-from database import FileRepository, InMemoryRepository
-from database.backend import active_backend, configure_backend
-from database import config_binding
 from config import config
 from config.data_layout import DEFAULT_MODE
+from database import FileRepository, InMemoryRepository, config_binding
+from database.backend import active_backend, configure_backend
 
 
 def active_test_backend() -> str:
@@ -191,9 +190,19 @@ def _purge_catchment(catchment: str) -> None:
     to provide, without disturbing the imported data once the test rolls back."""
     from database._pg import get_session
     from database._pg._models import (
-        Commercial, CommercialLoan, Counterparty, EodSnapshot, Gauge,
-        GaugeHazardCurve, Loan, PortBlob, PortDocument, PortRecord, PortRun,
-        Property, PrsTrade,
+        Commercial,
+        CommercialLoan,
+        Counterparty,
+        EodSnapshot,
+        Gauge,
+        GaugeHazardCurve,
+        Loan,
+        PortBlob,
+        PortDocument,
+        PortRecord,
+        PortRun,
+        Property,
+        PrsTrade,
     )
     models = (Gauge, Property, Loan, Commercial, CommercialLoan, Counterparty,
               GaugeHazardCurve, PrsTrade, EodSnapshot, PortDocument, PortRecord,

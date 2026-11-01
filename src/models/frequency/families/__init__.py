@@ -27,11 +27,11 @@ Per rule R4 this module contains no function definitions — only re-exports.
 from ._negbin import NegBinFit, fit_negbin
 from ._poisson import PoissonFit, fit_poisson
 from ._select import (
-    DispersionTest,
-    FamilySelection,
     OVER_DISPERSED,
     POISSON_CONSISTENT,
     UNDER_DISPERSED,
+    DispersionTest,
+    FamilySelection,
     dispersion_test,
     select_family,
     selection_to_dict,

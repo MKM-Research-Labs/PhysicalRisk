@@ -50,15 +50,15 @@ from .lookups import (
     analyze_id_relationships,
     build_all_lookups,
     build_gauge_flood_info,
-    build_rloan_lookup,
     build_property_flood_info,
+    build_rloan_lookup,
     extract_gauge_ids,
+    extract_property_ids,
     extract_rloan_ids,
     extract_rloan_property_ids,
-    extract_property_ids,
 )
-from .rloan_loader import RLoanLoader
 from .property_loader import PropertyLoader
+from .rloan_loader import RLoanLoader
 from .storm_loader import StormLoader
 from .timeseries_loader import TimeseriesLoader
 

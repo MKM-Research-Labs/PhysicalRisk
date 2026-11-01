@@ -46,8 +46,9 @@ class TestGaugeTimeSeries:
             assert len(data["flood_simulation"]["readings"]) > 0
 
     def test_requires_gauge_portfolio(self, tmp_path):
-        from port.src.gauge.gaugets import GaugeTimeSeriesGenerator
         from db_helpers import tmp_catchment
+
+        from port.src.gauge.gaugets import GaugeTimeSeriesGenerator
         # Empty backend (no gauge portfolio) → the generator must refuse.
         with tmp_catchment(tmp_path):
             with pytest.raises(FileNotFoundError):
@@ -129,8 +130,9 @@ class TestCounterparty:
         assert "ContactInformation" in ctpy["Party"]
 
     def test_custom_count(self, tmp_path):
-        from port.src.counterparty import CounterpartyPortfolioGenerator
         from db_helpers import tmp_catchment
+
+        from port.src.counterparty import CounterpartyPortfolioGenerator
         # The migrated writer persists through database; isolate it in a tmp backend.
         with tmp_catchment(tmp_path):
             gen = CounterpartyPortfolioGenerator(verbose=False)

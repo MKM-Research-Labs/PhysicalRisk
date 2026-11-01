@@ -29,7 +29,6 @@ import pytest
 from models.typhoon.transitions.position import EARTH_RADIUS_KM
 from models.typhoon.wind_field import bearing_deg, haversine_distance_km
 
-
 # Neutral test coordinates — see tests/models/typhoon/conftest.py.
 LON, LAT = 5.0, 5.0
 

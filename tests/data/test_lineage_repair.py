@@ -22,9 +22,9 @@
 Unit tests for lineage manifest repair — rebuilding from on-disk hashes.
 """
 
+import hashlib
 import json
 import os
-import hashlib
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -51,7 +51,7 @@ class TestRepairManifest:
 
     def test_repair_from_scratch(self, tmp_path):
         """Repair with no existing manifest creates entries for all steps."""
-        from lineage.manifest import repair_manifest, STEP_IO
+        from lineage.manifest import STEP_IO, repair_manifest
         fake_path = tmp_path / "lineage.json"
         self._create_pipeline_files(tmp_path)
         with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
@@ -106,7 +106,7 @@ class TestRepairManifest:
 
     def test_repair_hashes_are_current(self, tmp_path):
         """Repaired hashes must match current file content."""
-        from lineage.manifest import repair_manifest, hash_file
+        from lineage.manifest import hash_file, repair_manifest
         fake_path = tmp_path / "lineage.json"
         gauge_file = tmp_path / "gauge.json"
         gauge_file.write_text('{"flood_gauges": []}')

@@ -54,7 +54,6 @@ from models.typhoon.transitions.size import update_size
 from models.typhoon.transitions.step import advance, step
 from models.typhoon.transitions.wind import update_wind
 
-
 __all__ = [
     # compass
     "wrap_compass_degrees",

@@ -27,7 +27,6 @@ import numpy as np
 
 from config.typhoon import GenesisPrior, RegimeClass, ScenarioFamily, SizeParams
 
-
 # ===========================================================================
 # Initial-state samplers
 # ===========================================================================

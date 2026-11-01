@@ -38,6 +38,7 @@ from port.src.property.hc import (  # noqa: F401
     RECOVERY_RATES,
     TENORS,
 )
+
 from ._generator import CommercialHazardCurveGenerator
 
 __all__ = [

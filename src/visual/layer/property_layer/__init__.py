@@ -29,8 +29,8 @@ Sub-modules:
 
 from .layer import PropertyLayer  # noqa: F401
 from .popup import (  # noqa: F401
-    create_property_popup,
     create_flood_risk_section,
+    create_property_popup,
     create_rloan_section,
 )
 from .stats import get_property_statistics  # noqa: F401

@@ -22,10 +22,10 @@
 Trading desk analytics: market state, delta/risk calculations, P&L engine.
 """
 
-from .market_state import MarketStateManager
 from .delta_engine import DeltaEngine
-from .trade_marks import TradeMarks
+from .market_state import MarketStateManager
 from .pnl_engine import PnLEngine
+from .trade_marks import TradeMarks
 
 __all__ = [
     'MarketStateManager',

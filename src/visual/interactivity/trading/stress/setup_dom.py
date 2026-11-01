@@ -21,7 +21,6 @@
 """Stress Test — DOM construction for the stress view."""
 
 from config.format import percentile_selector_html as _pct_html
-
 from visual.interactivity._jsbundle import js_static
 
 

@@ -51,7 +51,6 @@ from models.typhoon.data_structures import (
     WindFieldOutput,
 )
 
-
 # ---------------------------------------------------------------------------
 # Canonical neutral coordinates used throughout the typhoon model tests.
 # Any test fixture that needs a position should pull from here so the test

@@ -28,7 +28,6 @@ import pytest
 
 from reports.gauge.gauge_generator import _find_gauge_by_id, generate_gauge_report
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------

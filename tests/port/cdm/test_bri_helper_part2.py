@@ -37,7 +37,6 @@ import pytest
 import port.cdm.asset.residential.bri as bri_mod
 from port.cdm.asset.residential.bri import _weaker_rating, apply_bri_rating
 
-
 _LEVELS_HIGH = "Verified"
 _LEVELS_LOW = "Not assessed"
 

@@ -52,8 +52,9 @@ class TestSetupMapInteractivity:
         assert mock_html.add_child.call_count > 0
 
     def test_copyright_element_added(self):
-        from visual.interactivity.manager import InteractivityManager
         import folium
+
+        from visual.interactivity.manager import InteractivityManager
         mgr = InteractivityManager()
         mock_map = MagicMock()
         mock_root = MagicMock()

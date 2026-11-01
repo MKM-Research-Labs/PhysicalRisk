@@ -186,12 +186,14 @@ class TestMortgageDateGenerator:
     ])
     def test_known_date_fields_return_iso(self, field, financial_data):
         from datetime import datetime
+
         from port.rand.halong.mortgage.generators import generate_date_value
         s = generate_date_value(field, financial_data)
         datetime.strptime(s, "%Y-%m-%d")
 
     def test_default_date_returns_iso(self, financial_data):
         from datetime import datetime
+
         from port.rand.halong.mortgage.generators import generate_date_value
         s = generate_date_value("Mystery", financial_data)
         datetime.strptime(s, "%Y-%m-%d")
@@ -203,6 +205,7 @@ class TestMortgageDateGenerator:
 
     def test_default_date_when_defaulted(self, financial_data):
         from datetime import datetime
+
         from port.rand.halong.mortgage.generators import generate_date_value
         financial_data["is_defaulted"] = True
         s = generate_date_value("DefaultDate", financial_data)

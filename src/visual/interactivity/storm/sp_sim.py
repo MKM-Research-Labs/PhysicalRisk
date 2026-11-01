@@ -31,6 +31,7 @@ from visual.interactivity._jsbundle import js_static, with_map_tiles
 def get_js() -> str:
     """Return JS fragment for sim/map tab (injected into parent IIFE)."""
     from config.models import STORM_SIMULATION_HOURS
+
     from . import catchment_map_center
     _max = STORM_SIMULATION_HOURS - 1
     _lat, _lon = catchment_map_center()

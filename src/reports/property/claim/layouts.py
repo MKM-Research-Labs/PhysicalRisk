@@ -24,8 +24,9 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.styles import ParagraphStyle
 
-from .constants import MARGIN, PAGE_H, PAGE_W
 from reports.theme_pdf import pdf_colour
+
+from .constants import MARGIN, PAGE_H, PAGE_W
 
 
 def white_hdr_style(styles) -> ParagraphStyle:

@@ -24,10 +24,10 @@ sorting order, and naming conventions.
 """
 
 import json
+
 import pytest
 
 from tests.port.gauge.conftest import make_gauge_file, make_response
-
 
 # ---------------------------------------------------------------------------
 # Metadata enrichment from storms.json
@@ -58,8 +58,8 @@ class TestMetadataEnrichment:
         assert storm["effective_precipitation_mm"] == pytest.approx(45.0)
 
     def test_fallback_to_config_defaults(self, tmp_path):
-        from port.src.gauge.stress_storms import generate_stress_storms
         from config.port import STRESS_STORM_DEFAULT_DURATION_HOURS, STRESS_STORM_DEFAULT_PEAK_POSITION
+        from port.src.gauge.stress_storms import generate_stress_storms
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"

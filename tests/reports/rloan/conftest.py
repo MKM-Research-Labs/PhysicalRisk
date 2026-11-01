@@ -20,4 +20,4 @@
 
 """Shared fixtures for residential-loan report tests — re-exported from pdf/conftest."""
 
-from tests.reports.pdf.conftest import sample_property_data, sample_mortgage_data
+from tests.reports.pdf.conftest import sample_mortgage_data, sample_property_data

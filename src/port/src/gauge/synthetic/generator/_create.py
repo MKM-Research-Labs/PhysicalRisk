@@ -26,7 +26,7 @@ from config import config
 from config.port import SYNTH_DEDUP_DISTANCE_M as DEDUP_DISTANCE_M
 from models.floodrisk.spatial import haversine_distance
 
-from ..geometry import _snap_to_river, _lerp
+from ..geometry import _lerp, _snap_to_river
 from ._ids import SYNTH_PREFIX, _synth_gauge_id
 
 

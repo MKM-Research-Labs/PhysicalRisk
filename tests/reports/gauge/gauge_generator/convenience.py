@@ -20,11 +20,12 @@
 
 """Tests for generate_gauge_report convenience function, _find_gauge_by_id, and edge cases."""
 
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from .conftest import _minimal_gauge, _timeseries_data, _make_generator
+import pytest
+
+from .conftest import _make_generator, _minimal_gauge, _timeseries_data
 
 
 def _mock_gauge_generator(tmp_path: Path):

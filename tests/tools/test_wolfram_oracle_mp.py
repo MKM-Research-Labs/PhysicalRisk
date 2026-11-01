@@ -33,11 +33,11 @@ import re
 
 import mpmath as mp
 import pytest
-
-from config.models import ORACLE_MP_PACKAGE, ORACLE_MP_REL_TOL
 from tools.wolfram_oracle import __main__ as cli
 from tools.wolfram_oracle._wl import save_wolfram
 from tools.wolfram_oracle.mortgage import cases, claims
+
+from config.models import ORACLE_MP_PACKAGE, ORACLE_MP_REL_TOL
 
 PRICER = importlib.import_module(ORACLE_MP_PACKAGE)
 

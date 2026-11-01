@@ -24,10 +24,10 @@ intensity category derivation.
 """
 
 import json
+
 import pytest
 
 from tests.port.gauge.conftest import make_gauge_file, make_response
-
 
 # ---------------------------------------------------------------------------
 # trigger_summary

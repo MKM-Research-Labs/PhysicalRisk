@@ -24,7 +24,6 @@ Tests for calculate_zoom_for_range and calculate_bounds from visual.core.map_bui
 
 import pytest
 
-
 # ===========================================================================
 # calculate_zoom_for_range
 # ===========================================================================

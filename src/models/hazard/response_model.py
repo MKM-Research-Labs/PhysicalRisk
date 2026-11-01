@@ -29,9 +29,8 @@ Uses CDM field names from FloodGaugeCDM.create_mapping():
 - flood_alert, flood_warning, severe_flood_warning
 """
 
-from typing import Dict, List
-
 import hashlib
+from typing import Dict, List
 
 import numpy as np
 

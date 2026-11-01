@@ -21,14 +21,14 @@
 """Tests for _extract_gauges, _parse_gauge, _build_summary, and storm response fields."""
 
 import json
+
 import pytest
 
+from port.src.storm_multi.generators.batch_generator import generate_event_set
 from port.src.stressm.gauge_parser import _extract_gauges, _parse_gauge
 from port.src.stressm.gaugets_writer import build_summary as _build_summary
-from port.src.storm_multi.generators.batch_generator import generate_event_set
 
 from .conftest import _G1, _G2
-
 
 # ---------------------------------------------------------------------------
 # _extract_gauges

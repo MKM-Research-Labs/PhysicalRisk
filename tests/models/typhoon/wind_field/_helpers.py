@@ -35,7 +35,6 @@ from models.typhoon.data_structures import (
     TyphoonTrajectory,
 )
 
-
 # Canonical test geography — coordinates are inside the neutral test bbox
 # (0, 0, 10, 10) defined in tests/models/typhoon/conftest.py.
 DEFAULT_LON = 5.0

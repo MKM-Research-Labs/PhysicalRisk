@@ -28,7 +28,6 @@ from tests.routes.propertyts._helpers import (
     make_prop_file,
 )
 
-
 STORM_ID = "STORM-cat-001"
 SEQ_ID = "SEQ-cat-001"
 

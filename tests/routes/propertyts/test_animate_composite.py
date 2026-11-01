@@ -28,8 +28,11 @@ See also:
 import pytest
 
 from tests.routes.propertyts.conftest import (
-    STORM_ID, STORM_HOURS,
-    make_gauge_json, make_gaugets_json, make_anim_client,
+    STORM_HOURS,
+    STORM_ID,
+    make_anim_client,
+    make_gauge_json,
+    make_gaugets_json,
 )
 
 _COMPOSITE_URL = "/api/v1/propertyts/animate/composite"

@@ -33,7 +33,6 @@ import pytest
 
 from port.src.storm_multi.models.sequence_response import _make_precip_series
 
-
 # ---------------------------------------------------------------------------
 # sample_multipliers
 # ---------------------------------------------------------------------------

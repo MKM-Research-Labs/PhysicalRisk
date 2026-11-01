@@ -34,8 +34,8 @@ class TestCheckPipelineComplete:
 
     def test_complete_pipeline(self, tmp_path):
         """All outputs present → complete."""
-        from lineage.validation import check_pipeline_complete
         from lineage.manifest import STEP_IO
+        from lineage.validation import check_pipeline_complete
         # Create every output (handles nested paths like typhoon/ensemble.json)
         for step, io in STEP_IO.items():
             for output in io["outputs"]:
@@ -65,8 +65,8 @@ class TestCheckPipelineComplete:
 
     def test_empty_directory_detected(self, tmp_path):
         """Empty directory is as broken as missing."""
-        from lineage.validation import check_pipeline_complete
         from lineage.manifest import STEP_IO
+        from lineage.validation import check_pipeline_complete
         # Create all outputs but leave propertyts/ empty
         for step, io in STEP_IO.items():
             for output in io["outputs"]:

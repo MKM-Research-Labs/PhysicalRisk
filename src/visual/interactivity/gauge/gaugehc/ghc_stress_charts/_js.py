@@ -20,7 +20,7 @@
 
 """Combined JS fragment for the gauge-hazard-curve stress-test charts."""
 
-from . import probability, pnl, surface
+from . import pnl, probability, surface
 
 
 def get_js() -> str:

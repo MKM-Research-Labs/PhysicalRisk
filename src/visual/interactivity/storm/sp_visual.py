@@ -26,8 +26,8 @@ properties flooded over the 60-hour storm window, with gauge
 dropdown filter for toggling individual gauge visibility.
 """
 
-from .sp_visual_dom import get_dom_js
 from .sp_visual_data import get_data_js
+from .sp_visual_dom import get_dom_js
 from .sp_visual_render import get_render_js
 from .sp_visual_toggle import get_toggle_js
 

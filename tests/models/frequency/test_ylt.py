@@ -37,11 +37,11 @@ from config.frequency import SimulationConfig, load_frequency_config
 from models.frequency.datastructures import EventDraws, YearSimulation
 from models.frequency.ylt import (
     analytic_annual_probability,
-    sampling_standard_error,
     analytic_expected_floods,
     apply_catalogue,
     draw_event_years,
     reconcile,
+    sampling_standard_error,
     simulate_annual_counts,
     simulate_years,
 )

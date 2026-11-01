@@ -27,10 +27,10 @@ files + _index.json) that replaced the single stress_storms.json.
 """
 
 import json
+
 import pytest
 
 from tests.port.gauge.conftest import make_gauge_file, make_response
-
 
 # ---------------------------------------------------------------------------
 # Core generation behaviour
@@ -45,6 +45,7 @@ class TestGenerateStressStorms:
         binding an empty tmp catchment makes that fallback empty too, so the legacy
         "nothing to scan" FileNotFoundError still fires."""
         from db_helpers import tmp_catchment
+
         from port.src.gauge.stress_storms import generate_stress_storms
         empty = tmp_path / "gaugets"
         empty.mkdir()
@@ -115,8 +116,8 @@ class TestGenerateStressStorms:
         assert result["total_storms"] == 0
 
     def test_storm_id_prefix_uses_config_constant(self, tmp_path):
-        from port.src.gauge.stress_storms import generate_stress_storms
         from config.port import STORM_ID_PREFIX
+        from port.src.gauge.stress_storms import generate_stress_storms
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         gf = gaugets / "GAUGE-00000001.json"

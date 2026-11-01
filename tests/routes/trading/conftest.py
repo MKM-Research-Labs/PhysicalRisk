@@ -30,18 +30,32 @@ import json
 import pytest
 
 from ._data_part1 import (  # noqa: F401 — re-export for test files that import from conftest
-    GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH,
-    GAUGE_VAUXHALL, GAUGE_WATERLOO, GAUGE_BLACKFRIARS, GAUGE_LONDON,
     ALL_TEST_GAUGE_IDS,
-    make_trade, make_gauge_entry,
-    SAMPLE_GAUGEHC, SAMPLE_GAUGE_JSON,
+    GAUGE_BLACKFRIARS,
+    GAUGE_CHELSEA,
+    GAUGE_LAMBETH,
+    GAUGE_LONDON,
+    GAUGE_VAUXHALL,
+    GAUGE_WATERLOO,
+    GAUGE_WESTMINSTER,
+    SAMPLE_GAUGE_JSON,
+    SAMPLE_GAUGEHC,
+    make_gauge_entry,
+    make_trade,
+)
+from ._data_part2 import (  # noqa: F401
+    ALL_TRADES,
+    CORE_TRADES,
+    EXTENDED_TRADES,
+    SAMPLE_PORT_STRESS_STORMS,
+    SAMPLE_STRESS_STORMS,
+    STORM_PORT_ALERT,
+    STORM_PORT_SEVERE,
+    STORM_SEVERE,
+    STORM_WARNING,
+    TOTAL_TRADES,
 )
 from ._xva_eod import xva_off_at_eod  # noqa: F401 — autouse fixture
-from ._data_part2 import (  # noqa: F401
-    CORE_TRADES, EXTENDED_TRADES, ALL_TRADES, TOTAL_TRADES,
-    STORM_PORT_SEVERE, STORM_PORT_ALERT, SAMPLE_PORT_STRESS_STORMS,
-    STORM_SEVERE, STORM_WARNING, SAMPLE_STRESS_STORMS,
-)
 
 # Backward compatibility: old imports used _CORE_TRADES / _EXTENDED_TRADES
 _CORE_TRADES = CORE_TRADES
@@ -145,8 +159,9 @@ def trading_env(tmp_path, monkeypatch):
 @pytest.fixture
 def trading_client(trading_env):
     """Flask test client with full trading environment."""
-    from server import create_app
     from fixtures_admin import AuthenticatedTestClient
+
+    from server import create_app
     app = create_app()
     app.config['TESTING'] = True
     app.test_client_class = AuthenticatedTestClient
@@ -209,8 +224,9 @@ def empty_trading_env(tmp_path, monkeypatch):
 @pytest.fixture
 def empty_trading_client(empty_trading_env):
     """Flask test client with no trades."""
-    from server import create_app
     from fixtures_admin import AuthenticatedTestClient
+
+    from server import create_app
     app = create_app()
     app.config['TESTING'] = True
     app.test_client_class = AuthenticatedTestClient
@@ -255,8 +271,9 @@ def stress_env(trading_env):
 @pytest.fixture
 def stress_client(stress_env):
     """Flask client with stress data available."""
-    from server import create_app
     from fixtures_admin import AuthenticatedTestClient
+
+    from server import create_app
     app = create_app()
     app.config['TESTING'] = True
     app.test_client_class = AuthenticatedTestClient
@@ -304,8 +321,9 @@ def port_stress_env(trading_env):
 @pytest.fixture
 def port_stress_client(port_stress_env):
     """Flask client with portfolio stress data available."""
-    from server import create_app
     from fixtures_admin import AuthenticatedTestClient
+
+    from server import create_app
     app = create_app()
     app.config['TESTING'] = True
     app.test_client_class = AuthenticatedTestClient

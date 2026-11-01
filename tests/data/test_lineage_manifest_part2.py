@@ -22,9 +22,9 @@
 Unit tests for lineage manifest operations — hashing, loading, saving, recording (part 2).
 """
 
+import hashlib
 import json
 import os
-import hashlib
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -46,7 +46,7 @@ class TestRecordStep:
     """record_step: full integration of hashing + manifest update."""
 
     def test_record_and_reload(self, tmp_path):
-        from lineage.manifest import record_step, load_manifest
+        from lineage.manifest import load_manifest, record_step
         fake_path = tmp_path / "lineage.json"
         # Create input/output files
         inp = tmp_path / "gauge.json"
@@ -119,6 +119,7 @@ class TestRecordStep:
     def test_record_captures_hostname(self, tmp_path):
         """record_step must capture the machine hostname."""
         import socket
+
         from lineage.manifest import record_step
         fake_path = tmp_path / "lineage.json"
         inp = tmp_path / "h.json"
@@ -194,9 +195,9 @@ class TestRepairManifestsEdgeCases:
     """Cover repair_manifests config fallback and unknown step skip."""
 
     def test_skips_unknown_step_in_topo_order(self, tmp_path, monkeypatch):
-        from lineage.manifest import repair_manifest
         from unittest.mock import patch as _p
-        from lineage.manifest import _core, _repair
+
+        from lineage.manifest import _core, _repair, repair_manifest
 
         # Add a phantom step to DEPENDENCY_GRAPH not in STEP_IO. Patched on the
         # modules that read them: patching the package re-exports changed nothing,
@@ -213,9 +214,9 @@ class TestRepairManifestsEdgeCases:
         assert "phantom" not in result.get("repaired", [])
 
     def test_config_fallback_when_import_fails(self, tmp_path, monkeypatch):
-        from lineage.manifest import repair_manifest
-        from lineage.manifest import _core
         import builtins
+
+        from lineage.manifest import _core, repair_manifest
 
         fake_lineage = tmp_path / "data_lineage.json"
         fake_lineage.write_text('{"runs": {}, "steps": {}}')

@@ -33,7 +33,6 @@ server via ``_active_commercial_id`` so they stay catchment-agnostic.
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Marker helpers — commercial assets render with purple icons (per
 # src/visual/layer/commercial_layer/layer.py:_MARKER_COLOR). The
@@ -53,6 +52,7 @@ from tests.e2e._helpers import (
     find_commercial_markers,
     open_commercial_context_menu,
 )
+
 
 def _active_commercial_id(page):
     """Return a real CPROP id from the *active* catchment via the server.

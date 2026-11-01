@@ -41,8 +41,9 @@ def test_document_round_trip_and_layout(tmp_path):
 def test_save_serializes_datetime_and_numpy(tmp_path):
     """Document writes accept datetime + numpy values (mirrors DateTimeEncoder),
     so generator payloads no longer need to pass their own encoder."""
-    import numpy as np
     from datetime import datetime
+
+    import numpy as np
 
     repo = FileRepository(tmp_path)
     repo.save("gauge", "thames", {

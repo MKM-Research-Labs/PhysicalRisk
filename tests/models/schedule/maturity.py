@@ -25,9 +25,9 @@ from datetime import date
 import pytest
 
 from models.schedule.maturity import (
-    last_friday_of_month,
-    current_roll_date,
     compute_maturity_date,
+    current_roll_date,
+    last_friday_of_month,
     maturity_table,
     tenor_from_maturity,
 )

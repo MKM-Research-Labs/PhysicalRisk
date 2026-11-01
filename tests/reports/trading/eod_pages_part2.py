@@ -30,7 +30,6 @@ from reportlab.platypus import Paragraph, Table
 
 from tests.reports.trading.conftest import BASE_SNAPSHOT, EMPTY_SNAPSHOT, PNL_SERIES
 
-
 # ===========================================================================
 # EODPnLDetailPage
 # ===========================================================================

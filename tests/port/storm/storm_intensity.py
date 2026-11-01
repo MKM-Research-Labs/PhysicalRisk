@@ -23,6 +23,7 @@
 import numpy as np
 import pytest
 
+from port.src.storm_multi.core.data_structures import SequenceType
 from port.src.storm_multi.generators.intensity_sampler import (
     DEFAULT_TYPE_WEIGHTS,
     INTENSITY_VARIATION,
@@ -33,7 +34,6 @@ from port.src.storm_multi.generators.intensity_sampler import (
     sample_storm_intensity,
     should_generate_sequence,
 )
-from port.src.storm_multi.core.data_structures import SequenceType
 
 
 class TestShouldGenerateSequence:

@@ -35,7 +35,7 @@ from models.hazard.terrain_grid import compute_terrain_grid
 from port.utils.asset_config import RESIDENTIAL_CONFIG, AssetTypeConfig
 from port.utils.generator_base import GeneratorInitMixin
 
-from ..constants import MIN_PRS_SPREAD_BPS, TENORS
+from ..constants import TENORS
 from ..encoder import json_default
 from ..loader import LoaderMixin
 from ..pricing import PricingMixin

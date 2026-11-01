@@ -20,7 +20,9 @@
 
 """Shared fixtures for claim report tests."""
 from datetime import datetime
+
 import pytest
+
 
 @pytest.fixture
 def styles():

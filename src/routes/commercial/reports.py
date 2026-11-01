@@ -36,7 +36,7 @@ from flask import jsonify
 from config import config
 from routes.utils import pdf_success_response
 
-from .blueprint import commercial_bp, logger, _parse_commercial_request
+from .blueprint import _parse_commercial_request, commercial_bp, logger
 
 
 @commercial_bp.route('/commercial/report', methods=['POST', 'OPTIONS'])

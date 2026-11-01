@@ -49,7 +49,10 @@ authority on what a token resolves to.
 import json
 
 from config.theme import (
-    STATUS_COLOUR_DEFAULTS, STATUS_COLOUR_TOKENS, THEME, THEME_GROUPS,
+    STATUS_COLOUR_DEFAULTS,
+    STATUS_COLOUR_TOKENS,
+    THEME,
+    THEME_GROUPS,
 )
 
 #: The element id carried by the injected ``<style>``, so a test — or a person with

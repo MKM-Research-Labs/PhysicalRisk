@@ -22,10 +22,9 @@
 
 import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Minimal jscpd report fixture
@@ -129,8 +128,8 @@ class TestAnalyse:
         result = _analyse(SAMPLE_REPORT)
         for entry in result['largest']:
             l1, l2 = entry[1], entry[3]
-            assert l1 != '?', f"Line number for firstFile is '?' — check field name in _analyse()"
-            assert l2 != '?', f"Line number for secondFile is '?' — check field name in _analyse()"
+            assert l1 != '?', "Line number for firstFile is '?' — check field name in _analyse()"
+            assert l2 != '?', "Line number for secondFile is '?' — check field name in _analyse()"
 
     def test_largest_line_numbers_are_integers(self, dup_mod):
         """Line numbers extracted from 'start' field must be integers."""

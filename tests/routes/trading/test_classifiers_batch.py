@@ -27,8 +27,10 @@ from unittest.mock import patch
 import pytest
 
 from ._data import (
-    GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH,
     ALL_TEST_GAUGE_IDS,
+    GAUGE_CHELSEA,
+    GAUGE_LAMBETH,
+    GAUGE_WESTMINSTER,
 )
 
 
@@ -55,8 +57,9 @@ class TestBatchTraining:
 
     def test_train_all_status_fields(self, trading_client):
         """Status endpoint returns expected fields when batch is running."""
-        import routes.trading.classifiers.batch_training as cl_mod
         import time
+
+        import routes.trading.classifiers.batch_training as cl_mod
         with cl_mod._batch_lock:
             cl_mod._batch_job = {
                 "status": "running",
@@ -83,8 +86,9 @@ class TestBatchTraining:
 
     def test_train_all_complete_includes_results(self, trading_client):
         """Complete status includes results list."""
-        import routes.trading.classifiers.batch_training as cl_mod
         import time
+
+        import routes.trading.classifiers.batch_training as cl_mod
         with cl_mod._batch_lock:
             cl_mod._batch_job = {
                 "status": "complete",

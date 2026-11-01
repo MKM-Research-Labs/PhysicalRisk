@@ -23,10 +23,10 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
 from tests.port.mortgage.conftest import make_generator, write_property_portfolio
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)

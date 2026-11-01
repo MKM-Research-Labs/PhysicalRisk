@@ -24,8 +24,8 @@ from __future__ import annotations
 
 from config.data_layout import EOD_KEY_PREFIX
 
-from .backend import active_backend
 from ._helpers import load_or
+from .backend import active_backend
 
 
 def _eod_key(eod_date: str) -> str:

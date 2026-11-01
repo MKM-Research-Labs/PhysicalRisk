@@ -23,9 +23,9 @@
 import math
 from typing import Dict
 
-from models.hazard.prs_analytical import compute_prs_spread, interpolate_yield_rate
 from config.models import MIN_PRS_SPREAD_BPS
 from config.port import BUMP_1BP
+from models.hazard.prs_analytical import compute_prs_spread, interpolate_yield_rate
 
 
 def compute_risky_annuity(annual_hazard_rate: float, tenor: int,

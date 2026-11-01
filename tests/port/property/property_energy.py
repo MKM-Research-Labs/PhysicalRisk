@@ -29,14 +29,13 @@ calculate_solar_generation (with/without solar), calculate_energy_bill.
 import pytest
 
 from port.rand.thames.property.property_energy import (
-    calculate_carbon_emissions,
     calculate_annual_energy,
-    calculate_grid_electricity,
-    calculate_gas_usage,
-    calculate_solar_generation,
+    calculate_carbon_emissions,
     calculate_energy_bill,
+    calculate_gas_usage,
+    calculate_grid_electricity,
+    calculate_solar_generation,
 )
-
 
 # ===========================================================================
 # calculate_carbon_emissions

@@ -23,11 +23,10 @@
 import pytest
 
 from loaders.lookups import (
+    _classify_property_risk,
     build_gauge_flood_info,
     build_property_flood_info,
-    _classify_property_risk,
 )
-
 
 # ===========================================================================
 # build_gauge_flood_info

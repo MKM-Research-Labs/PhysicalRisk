@@ -37,7 +37,6 @@ from models.windspeed.loader import load_event
 from models.windspeed.query import WindSpeedModel, windspeed
 from models.windspeed.timeseries import windspeed_series
 
-
 __all__ = [
     "interpolate_state_at_hour",
     "load_event",

@@ -29,13 +29,12 @@ Targets missing lines in:
 import json
 import logging
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from port.cdm.gauge.mapping import create_gauge_mapping, get_nrfa_fields
 from port.cdm.asset.residential.mapping import create_mapping as create_property_mapping
-
+from port.cdm.gauge.mapping import create_gauge_mapping, get_nrfa_fields
 
 # ---------------------------------------------------------------------------
 # gauge/mapping.py — exception handler + get_nrfa_fields (lines 89-90, 100)

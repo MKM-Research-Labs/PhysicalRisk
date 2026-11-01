@@ -21,6 +21,7 @@
 """Tests for popup builder modules — part 1: imports, base, and property popup."""
 
 import pytest
+
 from config.theme import colour
 
 

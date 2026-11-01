@@ -24,9 +24,8 @@ Tests how visual sub-modules work together with realistic data structures,
 without requiring real data files or a running server.
 """
 
-import pytest
 import folium
-
+import pytest
 
 # ---------------------------------------------------------------------------
 # Synthetic test data (mirrors TestDataSetup from legacy test_integration.py)

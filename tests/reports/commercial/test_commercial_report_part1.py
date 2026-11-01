@@ -67,9 +67,16 @@ def first_commercial_id(commercial_input_dir):
 
 def test_asset_renderers_produce_flowables_for_real_record(commercial_input_dir):
     from reports.asset import (
-        AssetBasePage, render_header, render_location, render_construction,
-        render_risk_assessment, render_valuation, render_energy,
-        render_protection, render_history, render_transactions,
+        AssetBasePage,
+        render_construction,
+        render_energy,
+        render_header,
+        render_history,
+        render_location,
+        render_protection,
+        render_risk_assessment,
+        render_transactions,
+        render_valuation,
     )
     with open(commercial_input_dir / "commercial.json") as f:
         rec = json.load(f)["commercial_assets"][0]
@@ -123,6 +130,7 @@ def test_generator_returns_none_for_unknown_id(commercial_input_dir, tmp_path):
 @pytest.fixture
 def app(commercial_input_dir):
     from flask import Flask
+
     from routes import register_blueprints
     a = Flask(__name__)
     register_blueprints(a)

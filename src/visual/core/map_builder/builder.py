@@ -34,8 +34,9 @@ from config.visual import (
     MAP_DEFAULT_ZOOM,
     get_map_center,
 )
-from .zoom_bounds import calculate_zoom_for_range, calculate_bounds
+
 from .controls import MapControls
+from .zoom_bounds import calculate_bounds, calculate_zoom_for_range
 
 logger = logging.getLogger(__name__)
 

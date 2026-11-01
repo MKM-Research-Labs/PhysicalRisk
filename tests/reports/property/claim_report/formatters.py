@@ -24,7 +24,6 @@ import pytest
 from reportlab.lib.enums import TA_CENTER
 from reportlab.platypus import Paragraph
 
-
 # ---------------------------------------------------------------------------
 # formatters.py
 # ---------------------------------------------------------------------------
@@ -61,38 +60,45 @@ class TestFmtGbp:
 
 class TestSeqTypeColor:
     def test_isolated(self):
-        from reports.property.claim.formatters import seq_type_color
         from reportlab.lib import colors
+
+        from reports.property.claim.formatters import seq_type_color
         assert seq_type_color('isolated') == colors.lightblue
 
     def test_doublet(self):
-        from reports.property.claim.formatters import seq_type_color
         from reportlab.lib import colors
+
+        from reports.property.claim.formatters import seq_type_color
         assert seq_type_color('doublet') == colors.lightyellow
 
     def test_cluster(self):
-        from reports.property.claim.formatters import seq_type_color
         from reportlab.lib import colors
+
+        from reports.property.claim.formatters import seq_type_color
         assert seq_type_color('cluster') == colors.lightsalmon
 
     def test_persistent(self):
-        from reports.property.claim.formatters import seq_type_color
         from reportlab.lib import colors
+
+        from reports.property.claim.formatters import seq_type_color
         assert seq_type_color('persistent') == colors.mistyrose
 
     def test_unknown_returns_white(self):
-        from reports.property.claim.formatters import seq_type_color
         from reportlab.lib import colors
+
+        from reports.property.claim.formatters import seq_type_color
         assert seq_type_color('unknown') == colors.white
 
     def test_none_returns_white(self):
-        from reports.property.claim.formatters import seq_type_color
         from reportlab.lib import colors
+
+        from reports.property.claim.formatters import seq_type_color
         assert seq_type_color(None) == colors.white
 
     def test_case_insensitive(self):
-        from reports.property.claim.formatters import seq_type_color
         from reportlab.lib import colors
+
+        from reports.property.claim.formatters import seq_type_color
         assert seq_type_color('DOUBLET') == colors.lightyellow
 
 
@@ -145,6 +151,7 @@ class TestSetupStyles:
 class TestLayouts:
     def test_white_hdr_style_returns_paragraph_style(self, styles):
         from reportlab.lib.styles import ParagraphStyle
+
         from reports.property.claim.layouts import white_hdr_style
         s = white_hdr_style(styles)
         assert isinstance(s, ParagraphStyle)
@@ -152,6 +159,7 @@ class TestLayouts:
 
     def test_body_style_default(self, styles):
         from reportlab.lib.styles import ParagraphStyle
+
         from reports.property.claim.layouts import body_style
         s = body_style(styles)
         assert isinstance(s, ParagraphStyle)

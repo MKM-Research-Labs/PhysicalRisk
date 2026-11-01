@@ -28,7 +28,6 @@ import pytest
 
 from tests.data.conftest import make_manifest as _make_manifest
 
-
 # ===========================================================================
 # Coverage: STEP_OWNERS — lock in the typhoon + commercial additions
 # ===========================================================================
@@ -38,7 +37,7 @@ class TestHelpersResidualBranches:
 
     def test_current_hash_returns_missing_for_non_dict_entry(self):
         """_current_hash: outputs entry is a string (legacy/corrupt) → _MISSING."""
-        from lineage.validation._helpers import _current_hash, _MISSING
+        from lineage.validation._helpers import _MISSING, _current_hash
         step = {"outputs": {"gauge.json": "not a dict"}}
         assert _current_hash("gauge.json", step) is _MISSING
 

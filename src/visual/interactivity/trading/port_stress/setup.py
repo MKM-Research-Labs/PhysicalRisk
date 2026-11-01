@@ -28,7 +28,6 @@ All rendering sub-tabs are imported and concatenated here.
 
 from config.format import percentile_selector_html as _pct_html
 from config.format import storm_option_js as _storm_opt
-
 from visual.interactivity._jsbundle import js_static
 
 from . import gauge_pnl, pfloods, portfolio_pnl, severity

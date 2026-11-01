@@ -58,7 +58,8 @@ class FileRepository(Repository):
         if dir_resolver is None:
             if self.root is None:
                 raise ValueError("FileRepository needs input_root or dir_resolver")
-            dir_resolver = lambda catchment: self.root / catchment
+            def dir_resolver(catchment: str) -> Path:
+                return self.root / catchment
         self._dir_resolver = dir_resolver
 
     # -- internal path resolution (private to this module) ---------------------

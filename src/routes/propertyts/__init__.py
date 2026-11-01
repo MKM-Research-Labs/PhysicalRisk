@@ -29,6 +29,7 @@ Sub-modules:
 - claim: Property flood damage claim report PDF
 """
 
+# isort: off
 from .blueprint import propertyts_bp, _get_propertyts_dir  # noqa: F401
 
 # Import sub-modules to register their routes on propertyts_bp.
@@ -38,3 +39,4 @@ from . import financial   # noqa: E402, F401
 from . import risk        # noqa: E402, F401
 from . import claim       # noqa: E402, F401
 from . import wind_impact  # noqa: E402, F401
+# isort: on

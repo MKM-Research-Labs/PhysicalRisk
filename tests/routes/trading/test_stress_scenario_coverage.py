@@ -22,7 +22,7 @@
 no trades, hydrograph padding, model_auc, threshold classification."""
 
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 

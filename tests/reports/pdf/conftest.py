@@ -21,6 +21,7 @@
 """Shared fixtures for PDF generation tests."""
 
 from typing import Any, Dict
+
 import pytest
 
 

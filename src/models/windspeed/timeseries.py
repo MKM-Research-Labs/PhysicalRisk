@@ -36,7 +36,6 @@ from models.typhoon.wind_field import evaluate_point
 from models.windspeed.interpolation import interpolate_state_at_hour
 from models.windspeed.loader import load_event
 
-
 __all__ = ["windspeed_series"]
 
 

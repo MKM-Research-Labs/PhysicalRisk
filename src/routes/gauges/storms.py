@@ -26,6 +26,7 @@ from flask import jsonify
 
 import database
 from config import config
+
 from . import gauges_bp
 from ._helpers import _get_registry
 

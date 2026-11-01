@@ -21,9 +21,9 @@
 """Summary, single-property hazard, and basis routes."""
 
 
-from flask import jsonify, request
+from flask import jsonify
 
-from . import propertyhc_bp, _get_hazard_data, _load_or_404
+from . import _load_or_404, propertyhc_bp
 
 
 @propertyhc_bp.route('/propertyhc/summary', methods=['GET', 'OPTIONS'])

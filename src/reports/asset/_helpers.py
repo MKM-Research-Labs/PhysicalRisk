@@ -28,7 +28,7 @@ the (label, value) pairs it wants on each table; everything else is
 done in one place.
 """
 
-from typing import Any, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Iterable, List, Sequence, Tuple
 
 from reportlab.platypus import Paragraph, Spacer, Table
 

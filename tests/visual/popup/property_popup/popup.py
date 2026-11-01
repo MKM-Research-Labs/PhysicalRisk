@@ -20,9 +20,8 @@
 
 """Tests for create_complete_popup_content and build_property_popup."""
 
-import pytest
 import folium
-
+import pytest
 
 # ---------------------------------------------------------------------------
 # create_complete_popup_content

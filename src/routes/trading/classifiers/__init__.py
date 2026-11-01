@@ -20,6 +20,7 @@
 
 """Classifier management endpoints for the Trading Desk."""
 
+# isort: off
 from . import summary         # noqa: E402, F401
 from . import batch_training  # noqa: E402, F401
 
@@ -29,3 +30,12 @@ from .batch_training import (  # noqa: E402
     _run_batch_training,
 )
 from .summary import _compute_data_version  # noqa: E402
+# isort: on
+
+__all__ = [
+    "_avg_per_gauge_seconds",
+    "_compute_data_version",
+    "_load_timings",
+    "_run_batch_training",
+    "_save_timings",
+]

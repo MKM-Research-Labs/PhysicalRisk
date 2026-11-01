@@ -30,7 +30,10 @@ import json
 import pytest
 
 from tests.port.property.conftest import (
-    make_prop, make_gauge_lookup, make_gaugets_multi_storm, make_generator,
+    make_gauge_lookup,
+    make_gaugets_multi_storm,
+    make_generator,
+    make_prop,
 )
 
 

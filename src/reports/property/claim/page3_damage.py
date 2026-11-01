@@ -27,10 +27,11 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
+from reports.theme_pdf import pdf_colour
+
 from .formatters import fmt_gbp, seq_type_color
 from .layouts import body_style, white_hdr_style
 from .styles import PURPLE_TABLE_STYLE
-from reports.theme_pdf import pdf_colour
 
 
 def build_page3_damage(

@@ -34,7 +34,6 @@ import pytest
 
 from tests.routes.propertyts.conftest import SEQ_ID, STORM_ID
 
-
 # ---------------------------------------------------------------------------
 # Fixture: environment where property has no matching valuation data
 # ---------------------------------------------------------------------------

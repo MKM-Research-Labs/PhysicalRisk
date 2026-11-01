@@ -22,7 +22,9 @@
 
 import re
 import uuid
+
 import pytest
+
 from .conftest import GAUGE_ID_RE, STORM_ID_RE
 
 
@@ -40,7 +42,8 @@ class TestTestFixtureStormIDs:
     def test_port_stress_routes_storm_constants_match_protocol(self):
         """_data.py STORM_PORT_* constants follow the protocol."""
         from tests.routes.trading._data import (
-            STORM_PORT_SEVERE, STORM_PORT_ALERT,
+            STORM_PORT_ALERT,
+            STORM_PORT_SEVERE,
         )
         assert STORM_ID_RE.match(STORM_PORT_SEVERE), \
             f"port_stress.STORM_PORT_SEVERE='{STORM_PORT_SEVERE}' violates protocol"
@@ -74,7 +77,10 @@ class TestTestFixtureGaugeIDs:
     def test_new_conftest_gauge_ids_match_protocol(self):
         """New gauge IDs added in conftest (GAUGE-{8hex}) follow the protocol."""
         from tests.routes.trading.conftest import (
-            GAUGE_VAUXHALL, GAUGE_WATERLOO, GAUGE_BLACKFRIARS, GAUGE_LONDON,
+            GAUGE_BLACKFRIARS,
+            GAUGE_LONDON,
+            GAUGE_VAUXHALL,
+            GAUGE_WATERLOO,
         )
         new_gauges = {
             'GAUGE_VAUXHALL': GAUGE_VAUXHALL,
@@ -90,7 +96,9 @@ class TestTestFixtureGaugeIDs:
     def test_backward_compat_gauge_ids_are_documented(self):
         """GAUGE-001, GAUGE-002, GAUGE-9042bd95 are backward-compat exceptions."""
         from tests.routes.trading.conftest import (
-            GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH,
+            GAUGE_CHELSEA,
+            GAUGE_LAMBETH,
+            GAUGE_WESTMINSTER,
         )
         compat_ids = {GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH}
         assert compat_ids == {'GAUGE-001', 'GAUGE-002', 'GAUGE-9042bd95'}, (
@@ -126,7 +134,7 @@ class TestTestFixtureGaugeIDs:
 
     def test_stress_storm_gauge_ids_are_in_known_set(self):
         """Gauge IDs in SAMPLE_STRESS_STORMS gauge_responses are from _data."""
-        from tests.routes.trading._data import SAMPLE_STRESS_STORMS, ALL_TEST_GAUGE_IDS
+        from tests.routes.trading._data import ALL_TEST_GAUGE_IDS, SAMPLE_STRESS_STORMS
         known = set(ALL_TEST_GAUGE_IDS)
         violations = []
         for storm in SAMPLE_STRESS_STORMS['storms']:
@@ -153,7 +161,7 @@ class TestProtocolUniformity:
 
     def test_gauge_prop_mort_storm_share_same_suffix_derivation(self):
         """All four entity types use str(uuid4())[:8] — same derivation, same format."""
-        from .conftest import GAUGE_ID_RE, PROP_ID_RE, MORT_ID_RE, STORM_ID_RE
+        from .conftest import GAUGE_ID_RE, MORT_ID_RE, PROP_ID_RE, STORM_ID_RE
         for entity, pattern in [
             ('GAUGE', GAUGE_ID_RE),
             ('PROP', PROP_ID_RE),

@@ -23,7 +23,6 @@
 import pytest
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table
 
-
 # ---------------------------------------------------------------------------
 # page1_cover.py
 # ---------------------------------------------------------------------------

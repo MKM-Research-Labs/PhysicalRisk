@@ -109,6 +109,7 @@ class TestHistoricalHighInjection:
         underlying datetime so the in-range check at line 116-117 succeeds.
         """
         from datetime import datetime as _dt
+
         import models.statistics.synthetic as synth_mod
 
         # Pick a date near today so the range check passes

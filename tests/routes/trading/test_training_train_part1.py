@@ -31,7 +31,6 @@ import pytest
 
 from ._data import GAUGE_WESTMINSTER, SAMPLE_GAUGE_JSON
 
-
 # Gauge JSON in the Header.GaugeID format that training.py's parser expects.
 _TRAINING_GAUGE_JSON = {
     "flood_gauges": [
@@ -66,8 +65,9 @@ def training_env(trading_env):
 @pytest.fixture
 def training_client(training_env):
     """Flask test client with training-compatible gauge.json."""
-    from server import create_app
     from fixtures_admin import AuthenticatedTestClient
+
+    from server import create_app
     app = create_app()
     app.config['TESTING'] = True
     app.test_client_class = AuthenticatedTestClient

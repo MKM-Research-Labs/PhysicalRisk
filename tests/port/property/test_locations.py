@@ -26,9 +26,9 @@ Tests for PropertyPortfolioGenerator location generation:
 from unittest.mock import MagicMock
 
 import pytest
+from db_helpers import tmp_catchment
 
 from port.src.property.main import PropertyPortfolioGenerator
-from db_helpers import tmp_catchment
 
 from .conftest import GAUGE_POINTS, make_portfolio_gen, make_portfolio_params
 

@@ -29,8 +29,10 @@ from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table
 
 from config.format import property_title_py
-from .risk_page_00_base import RiskBasePage
+
 from ._risk_page_06_analysis import _RiskPropertyAnalysisMixin
+from .risk_page_00_base import RiskBasePage
+
 
 class RiskPropertyDetailsPage(_RiskPropertyAnalysisMixin, RiskBasePage):
     """Generates the property risk details page."""

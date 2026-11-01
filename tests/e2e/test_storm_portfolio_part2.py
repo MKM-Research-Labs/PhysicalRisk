@@ -24,8 +24,7 @@ Storm Portfolio panel -- e2e tests: VaR tab and data load API tests.
 
 import pytest
 
-from .conftest import close_all_storm_panels, open_storm_portfolio, close_storm_portfolio
-
+from .conftest import close_all_storm_panels, close_storm_portfolio, open_storm_portfolio
 
 # ---------------------------------------------------------------------------
 # VaR tab (loss distribution histogram)

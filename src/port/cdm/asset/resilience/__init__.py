@@ -34,12 +34,6 @@ The 5-level RESILIENCE_LEVELS vocabulary is exported for downstream BRI
 scoring code that needs to compare option lists against the canonical set.
 """
 
-from port.cdm.asset.resilience._exposure import (
-    HAZARD_PROFILE_SCHEMA,
-    RISK_ASSESSMENT_SCHEMA,
-    _HAZARD_CLASS_OPTIONS,
-)
-from port.cdm.asset.resilience._ratings import RATINGS_SCHEMA
 from port.cdm.asset.resilience._checklist import (
     BUILDING_ASSESSMENT_SCHEMA,
     CONTINUITY_MEASURES_SCHEMA,
@@ -49,6 +43,12 @@ from port.cdm.asset.resilience._checklist import (
     RESILIENCE_MEASURES_SCHEMA,
     SITE_AND_DRAINAGE_SCHEMA,
 )
+from port.cdm.asset.resilience._exposure import (
+    _HAZARD_CLASS_OPTIONS,
+    HAZARD_PROFILE_SCHEMA,
+    RISK_ASSESSMENT_SCHEMA,
+)
+from port.cdm.asset.resilience._ratings import RATINGS_SCHEMA
 
 __all__ = [
     "RISK_ASSESSMENT_SCHEMA",
@@ -61,4 +61,5 @@ __all__ = [
     "FLOOD_PROTECTION_SCHEMA",
     "FIRE_PROTECTION_SCHEMA",
     "CONTINUITY_MEASURES_SCHEMA",
+    "_HAZARD_CLASS_OPTIONS",
 ]

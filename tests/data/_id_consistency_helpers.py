@@ -26,7 +26,6 @@ import json
 import os
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 # Catchment-aware: lineage checks run against whichever catchment the rest
 # of the stack is pinned to (MKM_CATCHMENT), defaulting to thames. Previously

@@ -45,7 +45,6 @@ import json
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Tuple, Union
 
-
 __all__ = ["EventWindts", "load_event_peaks", "duration_above_threshold"]
 
 

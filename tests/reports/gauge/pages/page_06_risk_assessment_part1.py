@@ -44,8 +44,9 @@ class TestGaugeRiskAssessmentPageBasic:
         assert len(elements) > 0
 
     def test_no_timeseries_shows_placeholder(self):
-        from reports.gauge.gauge_page_06_risk_assessment import GaugeRiskAssessmentPage
         from reportlab.platypus import Paragraph
+
+        from reports.gauge.gauge_page_06_risk_assessment import GaugeRiskAssessmentPage
         page = GaugeRiskAssessmentPage()
         elements = page.generate_elements(_make_gauge_data(), timeseries_data=None)
         texts = [e.text if hasattr(e, "text") else "" for e in elements]

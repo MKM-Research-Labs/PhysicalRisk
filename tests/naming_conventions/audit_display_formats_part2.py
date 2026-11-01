@@ -51,7 +51,6 @@ from pathlib import Path
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -61,14 +60,14 @@ def _read(rel: str) -> str:
 
 
 from tests.naming_conventions._audit_display_data import (
-    _STORM_COMPLIANT,
-    _STORM_HARDCODED,
+    _COUNTERPARTY_HARDCODED,
     _GAUGE_COMPLIANT,
     _GAUGE_HARDCODED,
     _PROPERTY_COMPLIANT_JS,
     _PROPERTY_COMPLIANT_PY,
     _PROPERTY_HARDCODED,
-    _COUNTERPARTY_HARDCODED,
+    _STORM_COMPLIANT,
+    _STORM_HARDCODED,
 )
 
 
@@ -137,8 +136,8 @@ class TestPropertyDisplayAudit:
                 if pattern.search(src):
                     violations.append(rel)
         assert not violations, (
-            f"New property display violations found — add to "
-            f"_PROPERTY_COMPLIANT_* or _PROPERTY_HARDCODED:\n"
+            "New property display violations found — add to "
+            "_PROPERTY_COMPLIANT_* or _PROPERTY_HARDCODED:\n"
             + '\n'.join(sorted(violations))
         )
 
@@ -229,7 +228,7 @@ class TestAuditCoverage:
             if 'storm_option_js' in src and rel not in covered:
                 uncovered.append(rel)
         assert not uncovered, (
-            f"Files importing storm_option_js but not in audit:\n"
+            "Files importing storm_option_js but not in audit:\n"
             + '\n'.join(sorted(uncovered))
         )
 
@@ -253,7 +252,7 @@ class TestAuditCoverage:
                         and rel not in covered:
                     uncovered.append(rel)
         assert not uncovered, (
-            f"Files importing gauge_title_js/py but not in audit:\n"
+            "Files importing gauge_title_js/py but not in audit:\n"
             + '\n'.join(sorted(uncovered))
         )
 
@@ -279,7 +278,7 @@ class TestAuditCoverage:
             if 'propertyDisplayName' in src and rel not in covered:
                 uncovered.append(rel)
         assert not uncovered, (
-            f"Files using propertyDisplayName but not in audit:\n"
+            "Files using propertyDisplayName but not in audit:\n"
             + '\n'.join(sorted(uncovered))
         )
 
@@ -302,7 +301,7 @@ class TestAuditCoverage:
             if 'property_title_py' in src and rel not in covered:
                 uncovered.append(rel)
         assert not uncovered, (
-            f"Files importing property_title_py but not in audit:\n"
+            "Files importing property_title_py but not in audit:\n"
             + '\n'.join(sorted(uncovered))
         )
 

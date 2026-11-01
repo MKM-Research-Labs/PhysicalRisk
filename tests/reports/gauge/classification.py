@@ -20,6 +20,8 @@
 
 """Tests for gauge status classification, level analysis, and exceedance probability."""
 
+from datetime import datetime
+
 from tests.reports.gauge._helpers import (
     calculate_duration_above_threshold,
     calculate_level_trend,
@@ -28,7 +30,6 @@ from tests.reports.gauge._helpers import (
     get_current_level,
     get_peak_level,
 )
-from datetime import datetime
 
 
 class TestGaugeStatusClassification:

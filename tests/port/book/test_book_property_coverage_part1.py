@@ -28,11 +28,10 @@ from unittest.mock import patch
 import pytest
 
 from port.src.book.book_property import (
-    _select_properties,
     _lookup_property_metadata,
+    _select_properties,
     generate_property_book,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers — build minimal test data

@@ -23,8 +23,7 @@
 
 from flask import jsonify, request
 
-from . import propertyhc_bp, _get_hazard_data, _load_or_404
-
+from . import _get_hazard_data, propertyhc_bp
 
 # ---------------------------------------------------------------------------
 # Synthetic Hazard Distance (propertyshd) and Elevation (propertyshe) routes

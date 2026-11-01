@@ -22,7 +22,7 @@
 
 from typing import Dict, List, Optional
 
-from config.models import TERRAIN_VELOCITY_SCALE, DEFAULT_TERRAIN_TYPE
+from config.models import DEFAULT_TERRAIN_TYPE, TERRAIN_VELOCITY_SCALE
 from config.port import BANKFULL_OFFSET_M
 from models.floodrisk import relative_elevation
 from models.floodrisk.depth_damage import scalar_depth_damage

@@ -21,7 +21,6 @@
 """Stress Test — data loading, gauge/storm dropdown population and handlers."""
 
 from config.format import storm_option_js as _storm_opt
-
 from visual.interactivity._jsbundle import js_static
 
 

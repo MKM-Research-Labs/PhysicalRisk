@@ -43,7 +43,6 @@ from config.bri import (
     WIND_V50_SHIFT_MAX_MS,
 )
 
-
 __all__ = ["bri_v50_shift"]
 
 

@@ -25,6 +25,7 @@ import math
 import pytest
 
 from config.models import EA_FLOOD_ZONE_RATES
+from models.floodrisk.velocity import compute_retention
 from models.hazard.prs_analytical import compute_prs_spread
 from models.hazard.terrain_grid import (
     ELEV_SCALE_M,
@@ -36,7 +37,6 @@ from models.hazard.terrain_grid import (
     compute_terrain_grid,
     interpolate_terrain_spread,
 )
-from models.floodrisk.velocity import compute_retention
 
 
 @pytest.fixture(scope="module")

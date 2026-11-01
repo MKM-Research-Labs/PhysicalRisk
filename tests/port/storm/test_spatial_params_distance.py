@@ -40,7 +40,6 @@ from port.src.storm_multi.models.spatial_correlation import (
 
 from .conftest import SYNTHETIC_LOCATIONS, THAMES_GAUGE_PATH
 
-
 # ---------------------------------------------------------------------------
 # SpatialCorrelationParams
 # ---------------------------------------------------------------------------

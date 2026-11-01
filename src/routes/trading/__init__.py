@@ -42,6 +42,7 @@ Sub-modules:
 - xva: XVA run, latest run and incremental quote (MKM-XV-001)
 """
 
+# isort: off
 from .blueprint import trading_bp  # noqa: F401
 
 # Import sub-modules to register their routes on trading_bp.
@@ -58,3 +59,4 @@ from . import classifiers   # noqa: E402, F401
 from . import client        # noqa: E402, F401
 from . import control       # noqa: E402, F401
 from . import xva           # noqa: E402, F401
+# isort: on

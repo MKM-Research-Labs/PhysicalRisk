@@ -23,10 +23,9 @@
 import pytest
 
 from loaders.lookups import (
-    build_rloan_lookup,
     build_all_lookups,
+    build_rloan_lookup,
 )
-
 
 # ===========================================================================
 # build_rloan_lookup

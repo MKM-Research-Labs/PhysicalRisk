@@ -44,9 +44,9 @@ that the pg backend no longer reflects.
 from pathlib import Path
 from unittest.mock import patch
 
-import database
 from db_helpers import memory_catchment
 
+import database
 from lineage.manifest import repair_manifest
 from lineage.validation._helpers import _live_hash, _outputs_exist
 

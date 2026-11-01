@@ -25,7 +25,6 @@ Click navigation, chart display, stats bar, data caching, field consistency.
 
 import pytest
 
-
 # =============================================================================
 # Click handler — navigation to Stress Test tab
 # =============================================================================

@@ -21,9 +21,9 @@
 """Pytest configuration for services tests."""
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)

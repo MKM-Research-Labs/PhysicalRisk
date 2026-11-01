@@ -29,7 +29,6 @@ import math
 
 import pytest
 
-
 # ===========================================================================
 # p_flood_poly — 2D model (water level + time)
 # ===========================================================================
@@ -201,8 +200,8 @@ class TestModelCard:
         assert "fitted_from" in card
 
     def test_model_id_matches_config(self):
-        from models.stress.flood_poly import model_card
         from config.models import flood_poly_fit
+        from models.stress.flood_poly import model_card
         card = model_card()
         assert card["model_id"] == flood_poly_fit["model_id"]
 

@@ -28,7 +28,7 @@ drainage patterns.
 
 import numpy as np
 
-from ..core.data_structures import GapType, SequenceType, SEQUENCE_GAP_TYPE
+from ..core.data_structures import SEQUENCE_GAP_TYPE, GapType, SequenceType
 
 # Inter-storm gap parameters — spec Section 3.2
 # (min_hours, mode_hours, max_hours) — triangular distribution

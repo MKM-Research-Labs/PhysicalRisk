@@ -21,11 +21,11 @@
 """Tests for mortgage_random — integer and date value generators."""
 
 import pytest
-from port.rand.thames.mortgage.mortgage_random import (
-    generate_integer_value,
-    generate_date_value,
-)
 
+from port.rand.thames.mortgage.mortgage_random import (
+    generate_date_value,
+    generate_integer_value,
+)
 
 # =============================================================================
 # generate_integer_value

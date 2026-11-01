@@ -26,11 +26,11 @@ log method, processing stats, and output file structure.
 import json
 
 import pytest
+from db_helpers import active_test_backend, tmp_catchment
 
 import database
 from config import config
 from port.src.property.main import PropertyPortfolioGenerator
-from db_helpers import active_test_backend, tmp_catchment
 
 from .conftest import make_portfolio_gen, make_portfolio_params
 

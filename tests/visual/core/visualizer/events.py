@@ -23,10 +23,12 @@
 import json
 from pathlib import Path
 from types import SimpleNamespace
-import pytest
-import folium
 from unittest.mock import MagicMock, patch
-from .conftest import _write_minimal_inputs, _make_loaded_data, _write_gaugets
+
+import folium
+import pytest
+
+from .conftest import _make_loaded_data, _write_gaugets, _write_minimal_inputs
 
 
 class TestCreateEventMap:

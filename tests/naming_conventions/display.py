@@ -20,12 +20,16 @@
 
 """Tests for storm display format and blotter trade existence."""
 
-import json
 import fnmatch
+import json
+
 import pytest
+
 from .conftest import (
-    _STORM_DROPDOWN_FILES, _PROPERTY_DISPLAY_FILES_PY,
-    _PROPERTY_DISPLAY_FILES_JS, _read_source,
+    _PROPERTY_DISPLAY_FILES_JS,
+    _PROPERTY_DISPLAY_FILES_PY,
+    _STORM_DROPDOWN_FILES,
+    _read_source,
 )
 
 
@@ -211,7 +215,7 @@ class TestPropertyDisplayFormat:
 
     def test_canonical_format_defined_in_config_format(self):
         """The property display format is centralised in config/format.py."""
-        from config.format import property_title_py, property_title_js
+        from config.format import property_title_js, property_title_py
         # Python
         assert property_title_py('128 Horseferry Road', 'PROP-abc123') == \
             '128 Horseferry Road (PROP-abc123)'

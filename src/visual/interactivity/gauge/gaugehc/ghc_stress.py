@@ -33,7 +33,7 @@ Sub-modules:
 - ghc_stress_charts: Flood probability chart, stress P&L chart
 """
 
-from . import ghc_stress_training, ghc_stress_setup, ghc_stress_table, ghc_stress_charts
+from . import ghc_stress_charts, ghc_stress_setup, ghc_stress_table, ghc_stress_training
 
 
 def get_js() -> str:

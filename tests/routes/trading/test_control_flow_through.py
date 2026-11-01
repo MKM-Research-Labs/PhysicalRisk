@@ -131,6 +131,7 @@ class TestFloodPolyJsHasNoHardcodedStormHours:
 
     def test_fpStormHours_is_not_hardcoded(self):
         from pathlib import Path
+
         from tests.visual.conftest import _augment_with_static
         repo = str(Path('.').resolve())
         setup = Path('src/visual/interactivity/trading/port_stress/setup.py')

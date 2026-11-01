@@ -22,9 +22,15 @@
 
 import json
 
-from .conftest import (write_gauge, write_property, write_mortgage,
-                       write_hazard, write_property_hazard,
-                       write_storms, write_counterparty)
+from .conftest import (
+    write_counterparty,
+    write_gauge,
+    write_hazard,
+    write_mortgage,
+    write_property,
+    write_property_hazard,
+    write_storms,
+)
 
 
 class TestDataLoaderLoadAll:
@@ -54,37 +60,43 @@ class TestDataLoaderLoadAll:
 
     def test_with_property_data_loaded(self, tmp_path):
         from visual.core.data_loader import DataLoader
-        write_gauge(tmp_path); write_property(tmp_path)
+        write_gauge(tmp_path)
+        write_property(tmp_path)
         result = DataLoader(input_dir=tmp_path).load_all_data()
         assert result.property_data is not None
 
     def test_with_mortgage_data_loaded(self, tmp_path):
         from visual.core.data_loader import DataLoader
-        write_gauge(tmp_path); write_mortgage(tmp_path)
+        write_gauge(tmp_path)
+        write_mortgage(tmp_path)
         result = DataLoader(input_dir=tmp_path).load_all_data()
         assert result.rloan_data is not None
 
     def test_hazard_curves_loaded(self, tmp_path):
         from visual.core.data_loader import DataLoader
-        write_gauge(tmp_path); write_hazard(tmp_path)
+        write_gauge(tmp_path)
+        write_hazard(tmp_path)
         result = DataLoader(input_dir=tmp_path).load_all_data()
         assert result.hazard_data is not None
 
     def test_property_hazard_curves_loaded(self, tmp_path):
         from visual.core.data_loader import DataLoader
-        write_gauge(tmp_path); write_property_hazard(tmp_path)
+        write_gauge(tmp_path)
+        write_property_hazard(tmp_path)
         result = DataLoader(input_dir=tmp_path).load_all_data()
         assert result.property_hazard_data is not None
 
     def test_property_hazard_summary_fields_accessible(self, tmp_path):
         from visual.core.data_loader import DataLoader
-        write_gauge(tmp_path); write_property_hazard(tmp_path)
+        write_gauge(tmp_path)
+        write_property_hazard(tmp_path)
         result = DataLoader(input_dir=tmp_path).load_all_data()
         assert "summary" in result.property_hazard_data
 
     def test_storm_data_loaded_dict_format(self, tmp_path):
         from visual.core.data_loader import DataLoader
-        write_gauge(tmp_path); write_storms(tmp_path)
+        write_gauge(tmp_path)
+        write_storms(tmp_path)
         result = DataLoader(input_dir=tmp_path).load_all_data()
         assert result.storm_data is not None
 
@@ -115,7 +127,8 @@ class TestDataLoaderLoadAll:
 
     def test_counterparty_data_loaded(self, tmp_path):
         from visual.core.data_loader import DataLoader
-        write_gauge(tmp_path); write_counterparty(tmp_path)
+        write_gauge(tmp_path)
+        write_counterparty(tmp_path)
         result = DataLoader(input_dir=tmp_path).load_all_data()
         assert result.counterparty_data is not None
 

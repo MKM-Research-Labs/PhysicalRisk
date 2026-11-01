@@ -25,8 +25,8 @@ import contextvars
 import pytest
 
 import database
-from database import active_catchment, catchment_context
 from config import config
+from database import active_catchment, catchment_context
 
 
 def test_falls_back_to_config_when_unbound():

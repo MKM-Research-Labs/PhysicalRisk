@@ -58,7 +58,9 @@ def test_import_commercial_subpackage():
 
 def test_import_all_modules():
     from port.rand.halong.commercial.commercial_random import (
-        COMMERCIAL_TYPE_ALLOCATION, generators, metadata,
+        COMMERCIAL_TYPE_ALLOCATION,
+        generators,
+        metadata,
     )
     assert COMMERCIAL_TYPE_ALLOCATION
     assert hasattr(generators, "generate_field_value")
@@ -71,14 +73,14 @@ def test_import_all_modules():
 
 class TestGetCommercialType:
     def test_index_within_allocation(self):
-        from port.rand.halong.commercial.commercial_random.metadata import get_commercial_type
         from port.rand.halong.commercial.commercial_random import COMMERCIAL_TYPE_ALLOCATION
+        from port.rand.halong.commercial.commercial_random.metadata import get_commercial_type
         for i, expected in enumerate(COMMERCIAL_TYPE_ALLOCATION):
             assert get_commercial_type(i) == expected
 
     def test_index_past_allocation_cycles(self):
-        from port.rand.halong.commercial.commercial_random.metadata import get_commercial_type
         from port.rand.halong.commercial.commercial_random import COMMERCIAL_TYPE_ALLOCATION
+        from port.rand.halong.commercial.commercial_random.metadata import get_commercial_type
         n = len(COMMERCIAL_TYPE_ALLOCATION)
         assert get_commercial_type(n) == COMMERCIAL_TYPE_ALLOCATION[0]
         assert get_commercial_type(n + 3) == COMMERCIAL_TYPE_ALLOCATION[3]

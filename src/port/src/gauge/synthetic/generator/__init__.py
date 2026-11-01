@@ -20,7 +20,7 @@
 
 """Synthetic gauge generator package."""
 
-from ._ids import SYNTH_PREFIX, _synth_gauge_id
 from ._core import SyntheticGaugeGenerator
+from ._ids import SYNTH_PREFIX, _synth_gauge_id
 
 __all__ = ["SyntheticGaugeGenerator", "SYNTH_PREFIX", "_synth_gauge_id"]

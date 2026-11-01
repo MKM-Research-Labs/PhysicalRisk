@@ -21,10 +21,10 @@
 """Tests for src/reports/port/generator.py — mixin integration and edge cases."""
 
 import json
+
 import pytest
 
 from reports.port.generator import PortReportGenerator
-
 
 # ---------------------------------------------------------------------------
 # Integration: mixins work together

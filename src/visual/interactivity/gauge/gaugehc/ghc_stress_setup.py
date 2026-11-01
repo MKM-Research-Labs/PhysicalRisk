@@ -27,10 +27,9 @@ chart tab switching, and draw dispatcher.
 On-demand classifier training UI is in ghc_stress_training.py.
 """
 
-from visual.interactivity._jsbundle import js_static
-
 from config.format import percentile_selector_html as _pct_html
 from config.format import storm_option_js as _storm_opt
+from visual.interactivity._jsbundle import js_static
 
 
 def get_js() -> str:

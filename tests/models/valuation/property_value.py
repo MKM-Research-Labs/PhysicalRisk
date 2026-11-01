@@ -37,13 +37,12 @@ from models.valuation.property_value import (
     MAX_PROPERTY_VALUE,
     MIN_PROPERTY_VALUE,
     PROXIMITY_ZONES,
-    RENTAL_YIELD_RATES,
     RENT_PER_SQM,
+    RENTAL_YIELD_RATES,
     apply_valuation_factors,
     get_age_band,
     get_proximity_zone,
 )
-
 
 # ===========================================================================
 # Factor table structure sanity checks

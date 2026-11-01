@@ -42,7 +42,9 @@ from datetime import date, timedelta
 import pytest
 
 from port.src.property.main.builder import (
-    BuilderMixin, _period_from_year, _years_since,
+    BuilderMixin,
+    _period_from_year,
+    _years_since,
 )
 
 

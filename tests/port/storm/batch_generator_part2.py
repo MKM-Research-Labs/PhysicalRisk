@@ -25,7 +25,9 @@ Tests for Phase 2: JSON serialization round-trip and summary.
 import json
 
 import pytest
+from db_helpers import tmp_catchment
 
+import database
 from port.src.storm_multi.generators.batch_generator import generate_event_set
 from port.src.storm_multi.utils.serialization import (
     SCHEMA_VERSION,
@@ -36,10 +38,6 @@ from port.src.storm_multi.utils.serialization import (
     save_summary,
 )
 from port.src.storm_multi.utils.validation import validate_event_set
-
-import database
-from db_helpers import tmp_catchment
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

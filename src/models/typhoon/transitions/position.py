@@ -32,7 +32,6 @@ from typing import Tuple
 
 from models.typhoon.data_structures import TyphoonState
 
-
 __all__ = [
     "EARTH_RADIUS_KM",
     "haversine_step",

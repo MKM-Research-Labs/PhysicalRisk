@@ -31,7 +31,6 @@ import numpy as np
 import pytest
 
 from config.seismic import load_seismic_config
-from models.seismic.datastructures import AssetSeismicFeatures
 from models.seismic.damage import (
     adjusted_medians,
     assign_damage_state,
@@ -41,6 +40,7 @@ from models.seismic.damage import (
     simulate_asset_seismic,
     simulate_portfolio_seismic,
 )
+from models.seismic.datastructures import AssetSeismicFeatures
 from models.seismic.occurrence import parse_fault_trace
 
 # Lat-21.0 fault from lon 105 to 107 (~208 km), [lon, lat] on disk.

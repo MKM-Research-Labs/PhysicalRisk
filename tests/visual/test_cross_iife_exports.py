@@ -25,8 +25,7 @@ import sys
 
 import pytest
 
-from tests.visual.conftest import iife_src_file, iife_has_node, iife_node_check, _IIFE_SRC
-
+from tests.visual.conftest import _IIFE_SRC, iife_has_node, iife_node_check, iife_src_file
 
 # ---------------------------------------------------------------------------
 # CONTRACT F — cross-panel window.* exports are consistent

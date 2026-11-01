@@ -25,10 +25,9 @@ from tests.reports.port.conftest import (
     _has_paragraph_containing,
     _has_table,
     _make_gauge,
-    _make_property,
     _make_mortgage,
+    _make_property,
 )
-
 
 # ---------------------------------------------------------------------------
 # _section_gauges

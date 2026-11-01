@@ -42,7 +42,7 @@ from config import config
 from port.storm_typhoon_pairing import typhoon_for_storm
 
 from .blueprint import propertyts_bp
-from .financial_loaders import _load_rloan_lookup, _load_prop_values
+from .financial_loaders import _load_prop_values, _load_rloan_lookup
 
 logger = logging.getLogger(__name__)
 

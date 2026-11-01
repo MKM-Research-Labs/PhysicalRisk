@@ -39,7 +39,6 @@ from port.rand.thames.commercial.commercial_random import (
     period_from_year,
 )
 
-
 # ---------------------------------------------------------------------------
 # Type allocation
 # ---------------------------------------------------------------------------

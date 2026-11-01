@@ -41,7 +41,6 @@ import pytest
 
 import models.typhoon as typhoon_pkg
 
-
 # Top-level packages the model must never import from.
 FORBIDDEN_TOP_LEVELS = {"catch", "port", "app"}
 

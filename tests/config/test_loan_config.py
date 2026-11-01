@@ -23,14 +23,14 @@
 import pytest
 
 from config.loan import (
-    DISCOUNT_CURVE,
+    COMMERCIAL_MAX_TERM_YEARS,
     CREDIT_RATING_SPREADS,
     CREDIT_RATINGS,
-    COMMERCIAL_MAX_TERM_YEARS,
+    DISCOUNT_CURVE,
     FLOOD_CATEGORY_ANNUAL_HAZARD,
     PRS_FLOOD_RECOVERY,
-    discount_rate,
     credit_spread_for_rating,
+    discount_rate,
     flood_annual_hazard,
     wind_hazard_spread,
 )

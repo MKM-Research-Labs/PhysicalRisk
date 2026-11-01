@@ -22,9 +22,9 @@
 230, 237-238."""
 
 import pytest
+from db_helpers import seed_gauge_hazard_curves, tmp_catchment
 
 import database
-from db_helpers import seed_gauge_hazard_curves, tmp_catchment
 from models.trading.delta_engine.engine import DeltaEngine
 
 

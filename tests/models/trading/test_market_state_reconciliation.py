@@ -22,9 +22,9 @@
 gauges in load() (lines 136-153) and get_yield_rate final fallback (line 323)."""
 
 import pytest
+from db_helpers import seed_gauge_hazard_curves, tmp_catchment
 
 import database
-from db_helpers import seed_gauge_hazard_curves, tmp_catchment
 from models.trading.market_state import MarketStateManager
 
 

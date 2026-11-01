@@ -23,14 +23,14 @@
 import random
 
 import pytest
+
 from port.rand.thames.mortgage.mortgage_random import (
-    determine_mortgage_type,
+    _determine_occupancy_type,
     calculate_mortgage_financials,
+    determine_mortgage_type,
     estimate_property_value,
     generate_financial_data,
-    _determine_occupancy_type,
 )
-
 
 # =============================================================================
 # Helpers

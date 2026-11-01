@@ -25,9 +25,9 @@ Tests for models.hazard.io — save_hazard_curves, save_gauge_storm_responses.
 import json
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 from models.hazard.data_structures import GaugeResponse
 from tests.port.hazard.conftest import _make_hazard_curve
 

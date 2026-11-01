@@ -46,7 +46,6 @@ the calling interface (see plan, Phase 1 non-goals).
 
 import math
 
-
 __all__ = [
     "calibrate_outer_decay_length",
     "symmetric_profile",

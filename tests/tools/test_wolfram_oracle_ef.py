@@ -32,11 +32,11 @@ import re
 
 import mpmath as mp
 import pytest
-
-from config.models import ORACLE_EF_LL_TOL, ORACLE_EF_PVALUE_TOL, ORACLE_EF_REL_TOL
 from tools.wolfram_oracle import __main__ as cli
 from tools.wolfram_oracle._wl import save_wolfram
 from tools.wolfram_oracle.frequency import cases, claims
+
+from config.models import ORACLE_EF_LL_TOL, ORACLE_EF_PVALUE_TOL, ORACLE_EF_REL_TOL
 
 
 @pytest.fixture(scope="module")

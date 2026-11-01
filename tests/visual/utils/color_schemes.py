@@ -30,7 +30,6 @@ import pytest
 
 from visual.utils.color_schemes import ColorSchemes, get_risk_color, get_status_color
 
-
 # ===========================================================================
 # Flood risk colors
 # ===========================================================================

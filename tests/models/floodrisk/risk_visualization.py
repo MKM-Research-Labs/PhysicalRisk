@@ -26,8 +26,8 @@ without error using synthetic GeoDataFrame data, and verifies
 the risk-level colour assignment logic.
 """
 
-import pytest
 import numpy as np
+import pytest
 
 try:
     import geopandas as gpd
@@ -44,7 +44,6 @@ from models.floodrisk.risk_visualization import (
     create_static_plots,
     visualize_risk,
 )
-
 
 # ---------------------------------------------------------------------------
 # Shared fixtures

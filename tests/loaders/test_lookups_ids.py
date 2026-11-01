@@ -23,13 +23,12 @@
 import pytest
 
 from loaders.lookups import (
+    analyze_id_relationships,
+    extract_gauge_ids,
     extract_property_ids,
     extract_rloan_ids,
     extract_rloan_property_ids,
-    extract_gauge_ids,
-    analyze_id_relationships,
 )
-
 
 # ===========================================================================
 # extract_property_ids

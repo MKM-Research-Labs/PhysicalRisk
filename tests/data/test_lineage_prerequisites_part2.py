@@ -29,7 +29,6 @@ import pytest
 
 from tests.data.conftest import make_manifest as _make_manifest
 
-
 # ---------------------------------------------------------------------------
 # Integration: port command prerequisite resolution
 # ---------------------------------------------------------------------------

@@ -23,6 +23,7 @@
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
+
 from config import config
 from reports.theme_pdf import pdf_colour
 

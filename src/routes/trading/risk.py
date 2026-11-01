@@ -26,8 +26,9 @@ from flask import jsonify
 
 import database
 from config import config
+
 from . import trading_bp
-from ._helpers import _get_engines, _load_open_trades, _load_gauge_locations
+from ._helpers import _get_engines, _load_gauge_locations, _load_open_trades
 from .client import _load_property_trades
 
 logger = logging.getLogger(__name__)

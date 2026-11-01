@@ -28,8 +28,7 @@ from datetime import datetime
 import numpy as np
 import pytest
 
-from .conftest import make_prop, make_gauge_lookup, make_generator
-
+from .conftest import make_gauge_lookup, make_generator, make_prop
 
 # ===========================================================================
 # DateTimeEncoder — numpy type branches (lines 59-67)

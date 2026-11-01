@@ -31,7 +31,6 @@ from models.typhoon.genesis import coupled_genesis_wind
 from models.typhoon.pipeline.aggregation import summarise_property_winds
 from models.typhoon.pipeline.event import (
     pick_representative_index,
-    pick_representative_trajectory,
     simulate_one_event,
 )
 from models.typhoon.pipeline.results import (

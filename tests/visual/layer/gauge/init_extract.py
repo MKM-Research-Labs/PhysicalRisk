@@ -22,11 +22,10 @@
 Tests for GaugeLayer.__init__ attributes and _extract_gauges.
 """
 
-import pytest
 import folium
+import pytest
 
 from visual.layer.gauge_layer import GaugeLayer
-
 
 # ===========================================================================
 # Helpers

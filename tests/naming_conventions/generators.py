@@ -22,8 +22,10 @@
 
 import inspect
 import uuid
+
 import pytest
-from .conftest import GAUGE_ID_RE, PROP_ID_RE, MORT_ID_RE, STORM_ID_RE, PRS_ID_RE
+
+from .conftest import GAUGE_ID_RE, MORT_ID_RE, PROP_ID_RE, PRS_ID_RE, STORM_ID_RE
 
 
 class TestGaugeIDGenerator:

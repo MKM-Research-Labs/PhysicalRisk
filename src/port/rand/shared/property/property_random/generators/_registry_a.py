@@ -21,8 +21,6 @@
 """Field generator registry (part A) for property randomisation."""
 
 import random
-from datetime import datetime, timedelta
-from typing import Any, Callable, Dict
 
 from config.port import (
     DESIGN_WIND_SPEED_JITTER_KPH,
@@ -31,40 +29,20 @@ from config.port import (
 )
 from port.rand.profiles import active_profile as _profile
 
+from ...property_location import (
+    generate_postcode_for_area,
+)
+from ...property_utils import (
+    generate_past_date,
+)
+from ...property_valuation import (
+    calculate_insurance_premium,
+    calculate_property_area,
+)
 from ..helpers import (
     _deterministic_prop_id,
     _ea_zone_from_elevation,
     _flood_hazard_class_from_offset,
-)
-from ...property_energy import (
-    calculate_annual_energy,
-    calculate_carbon_emissions,
-    calculate_energy_bill,
-    calculate_gas_usage,
-    calculate_grid_electricity,
-    calculate_solar_generation,
-)
-from ...property_location import (
-    calculate_purchase_price,
-    generate_bathrooms,
-    generate_bedrooms,
-    generate_council_tax_band,
-    generate_floor_level,
-    generate_postcode_for_area,
-    generate_street_name,
-)
-from ...property_utils import (
-    generate_construction_year,
-    generate_owner_name,
-    generate_past_date,
-    get_property_period,
-)
-from ...property_valuation import (
-    calculate_insurance_premium,
-    calculate_monthly_rent,
-    calculate_property_area,
-    calculate_property_value,
-    calculate_sale_price,
 )
 
 

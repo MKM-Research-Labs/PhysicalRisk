@@ -27,10 +27,8 @@ from typing import Optional
 import joblib
 import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import accuracy_score, brier_score_loss, log_loss, roc_auc_score
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import (
-    accuracy_score, roc_auc_score, brier_score_loss, log_loss
-)
 
 logger = logging.getLogger(__name__)
 

@@ -28,9 +28,7 @@ failing JS suite must fail the run the same way a failing Python suite does.
 import json
 
 import pytest
-
 from app.commands.test.artefacts import run_verdict
-from config import js_coverage
 from app.commands.test.js import (
     _preflight,
     _read_counts,
@@ -38,6 +36,8 @@ from app.commands.test.js import (
     _run_js_tests,
     _skipped,
 )
+
+from config import js_coverage
 
 
 @pytest.fixture

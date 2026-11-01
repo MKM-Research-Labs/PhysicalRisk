@@ -24,7 +24,6 @@ Tests for MapControls and MapBuilder defaults from visual.core.map_builder.
 
 import folium
 
-
 # ===========================================================================
 # MapControls
 # ===========================================================================
@@ -117,6 +116,7 @@ class TestMapControls:
     def test_apply_to_map_exception_handler(self):
         """Lines 87-88: exception in MeasureControl → warning logged, no crash."""
         from unittest.mock import patch
+
         from visual.core.map_builder import MapControls
         mc = MapControls(measure=True)
         m = folium.Map(location=[51.5, -0.1])
@@ -128,6 +128,7 @@ class TestMapControls:
     def test_add_layer_control_exception_handler(self):
         """Lines 95-96: exception in LayerControl → warning logged, no crash."""
         from unittest.mock import patch
+
         from visual.core.map_builder import MapControls
         mc = MapControls(layer_control=True)
         m = folium.Map(location=[51.5, -0.1])

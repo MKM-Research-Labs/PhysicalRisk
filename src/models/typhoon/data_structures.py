@@ -47,7 +47,6 @@ from typing import Any, Dict, List, Optional
 
 from config.typhoon import RegimeClass, ScenarioFamily
 
-
 # Re-export the enums for callers that prefer to import everything from
 # this module. The canonical home is config.typhoon.
 __all__ = [

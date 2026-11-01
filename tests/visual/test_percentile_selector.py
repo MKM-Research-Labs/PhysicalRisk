@@ -29,7 +29,6 @@ Validates that:
 
 import pytest
 
-
 # =========================================================================
 #  config/format.py — percentile helper functions
 # =========================================================================
@@ -230,10 +229,10 @@ class TestPercentileConsistency:
 
     @pytest.fixture(scope='class')
     def all_js(self):
-        from visual.interactivity.trading.stress.setup_dom import get_js as td_dom
-        from visual.interactivity.trading.port_stress.setup import _get_setup_js as ps
         from visual.interactivity.gauge.gaugehc.ghc_stress_setup import get_js as ghc
         from visual.interactivity.storm.stormportfolio.chrome import get_js as sp
+        from visual.interactivity.trading.port_stress.setup import _get_setup_js as ps
+        from visual.interactivity.trading.stress.setup_dom import get_js as td_dom
         return {
             'td_stress': td_dom(),
             'port_stress': ps(),

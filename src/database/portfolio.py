@@ -22,8 +22,8 @@
 
 from __future__ import annotations
 
-from .backend import active_backend
 from ._helpers import find_record, list_records, load_or
+from .backend import active_backend
 
 
 def list_gauges(catchment): return list_records("gauge", catchment)

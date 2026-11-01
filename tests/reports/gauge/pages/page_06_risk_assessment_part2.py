@@ -28,8 +28,9 @@ from tests.reports.gauge.pages.conftest import _make_gauge_data, _make_timeserie
 class TestLastExceedDate:
 
     def test_recent_activity_within_1_year(self):
-        from reports.gauge.gauge_page_06_risk_assessment import GaugeRiskAssessmentPage
         from datetime import datetime
+
+        from reports.gauge.gauge_page_06_risk_assessment import GaugeRiskAssessmentPage
         page = GaugeRiskAssessmentPage()
         current_year = datetime.now().year
         elements = page.generate_elements(
@@ -38,8 +39,9 @@ class TestLastExceedDate:
         assert "Recent severe level activity" in str(elements)
 
     def test_moderate_recent_activity(self):
-        from reports.gauge.gauge_page_06_risk_assessment import GaugeRiskAssessmentPage
         from datetime import datetime
+
+        from reports.gauge.gauge_page_06_risk_assessment import GaugeRiskAssessmentPage
         page = GaugeRiskAssessmentPage()
         year = datetime.now().year - 2
         elements = page.generate_elements(

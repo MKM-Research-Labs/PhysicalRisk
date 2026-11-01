@@ -38,9 +38,11 @@ shrinking rather than absent, so the remaining work stays visible instead of exe
 """
 
 import pytest
-
 from docs.models.full_audit.sections_tests.styling import (
-    GATED_SUFFIXES, REPORTED_SUFFIXES, scan_repo, scan_text,
+    GATED_SUFFIXES,
+    REPORTED_SUFFIXES,
+    scan_repo,
+    scan_text,
 )
 
 

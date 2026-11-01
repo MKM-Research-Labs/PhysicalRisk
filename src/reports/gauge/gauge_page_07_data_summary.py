@@ -24,13 +24,15 @@ Handles complete data overview, key metrics summary, and report conclusions.
 """
 
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List
 
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer, Table
 
-from .gauge_page_00_base import GaugeBasePage
 from ._gauge_page_07_data_table import _DataTableMixin
+from .gauge_page_00_base import GaugeBasePage
+
+
 class GaugeDataSummaryPage(_DataTableMixin, GaugeBasePage):
     """Generates the comprehensive data summary page."""
     def generate_elements(self, gauge_data: Dict[str, Any],

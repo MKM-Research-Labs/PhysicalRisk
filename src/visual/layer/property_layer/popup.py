@@ -23,6 +23,7 @@
 from typing import Any, Dict
 
 from config.format import property_title_py
+
 from ...utils import ColorSchemes, DataFormatter
 
 

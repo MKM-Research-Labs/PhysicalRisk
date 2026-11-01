@@ -210,8 +210,8 @@ class TestLoadGaugesFromPortfolio:
         assert result == []
 
     def test_loads_gauge_from_portfolio(self, tmp_path):
-        from models.stormgauge.storm_factory import load_gauges_from_portfolio
         from models.stormgauge.data_structures import GaugeConfig
+        from models.stormgauge.storm_factory import load_gauges_from_portfolio
         data = {
             "flood_gauges": [
                 {

@@ -21,8 +21,8 @@
 """Tests for convenience functions, integration scenarios, flood anim modules,
 and create_visualization."""
 
-import pytest
 import folium
+import pytest
 
 
 class TestConvenienceFunctions:
@@ -30,8 +30,8 @@ class TestConvenienceFunctions:
 
     def test_create_notification_system(self):
         from visual.interactivity.notifications import (
-            NotificationSystem,
             NotificationPosition,
+            NotificationSystem,
             create_notification_system,
         )
         ns = create_notification_system(position="bottom-right", timeout=3000, max_notifications=10)
@@ -153,6 +153,6 @@ class TestCreateVisualization:
 
     def test_create_visualization_returns_instance(self, tmp_path):
         """Line 32: create_visualization() returns TCEventVisualization."""
-        from visual import create_visualization, TCEventVisualization
+        from visual import TCEventVisualization, create_visualization
         vis = create_visualization(input_dir=tmp_path, output_dir=tmp_path)
         assert isinstance(vis, TCEventVisualization)

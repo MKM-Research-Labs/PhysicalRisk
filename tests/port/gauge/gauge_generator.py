@@ -26,11 +26,11 @@ import json
 import re
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
 from port.cdm import FloodGaugeCDM
 from port.src.gauge import GaugePortfolioGenerator
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)
@@ -50,41 +50,55 @@ class TestDateTimeEncoder:
     """Lines 56-64: DateTimeEncoder branches."""
 
     def test_encodes_datetime(self):
-        from port.src.gauge.gauge import DateTimeEncoder
         import json
         from datetime import datetime
+
+        from port.src.gauge.gauge import DateTimeEncoder
         result = json.dumps({"d": datetime(2026, 1, 1)}, cls=DateTimeEncoder)
         assert "2026-01-01" in result
 
     def test_encodes_numpy_integer(self):
+        import json
+
+        import numpy as np
+
         from port.src.gauge.gauge import DateTimeEncoder
-        import json, numpy as np
         result = json.dumps({"n": np.int64(42)}, cls=DateTimeEncoder)
         assert "42" in result
 
     def test_encodes_numpy_floating(self):
+        import json
+
+        import numpy as np
+
         from port.src.gauge.gauge import DateTimeEncoder
-        import json, numpy as np
         result = json.dumps({"f": np.float64(3.14)}, cls=DateTimeEncoder)
         assert "3.14" in result
 
     def test_encodes_numpy_float32(self):
         """Line 80: np.float32 is np.floating but NOT a Python float subclass in NumPy 2.x,
         so the JSON encoder cannot handle it natively and must call default()."""
+        import json
+
+        import numpy as np
+
         from port.src.gauge.gauge import DateTimeEncoder
-        import json, numpy as np
         result = json.dumps({"f": np.float32(2.5)}, cls=DateTimeEncoder)
         assert "2.5" in result
 
     def test_encodes_numpy_ndarray(self):
+        import json
+
+        import numpy as np
+
         from port.src.gauge.gauge import DateTimeEncoder
-        import json, numpy as np
         result = json.dumps({"a": np.array([1.0, 2.0])}, cls=DateTimeEncoder)
         assert "1.0" in result
 
     def test_fallback_raises_for_unknown(self):
-        from port.src.gauge.gauge import DateTimeEncoder
         import json
+
+        from port.src.gauge.gauge import DateTimeEncoder
         with pytest.raises(TypeError):
             json.dumps({"x": object()}, cls=DateTimeEncoder)
 
@@ -209,7 +223,7 @@ class TestGaugeGeneratorEdgeCases:
 
     def test_generate_single_gauge_failure_counted(self, tmp_path):
         """Lines 212-215: exception in _generate_single_gauge increments failed_gauges."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
         gen = GaugePortfolioGenerator(verbose=False)
         # Patch random to raise on generate_gauge_metadata
         original_random = gen.random

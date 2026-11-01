@@ -33,12 +33,13 @@ import re
 
 import mpmath as mp
 import pytest
+from tools.wolfram_oracle import __main__ as cli
+from tools.wolfram_oracle._wl import save_wolfram, wl_precise
+from tools.wolfram_oracle.delta import claims
+from tools.wolfram_oracle.delta import sensitivity as sens
 
 from config.models import ORACLE_DE_ANNUITY_TOL, ORACLE_DE_PACKAGE, ORACLE_DE_ROUNDING
 from config.port import BUMP_1BP
-from tools.wolfram_oracle import __main__ as cli
-from tools.wolfram_oracle._wl import save_wolfram, wl_precise
-from tools.wolfram_oracle.delta import claims, sensitivity as sens
 
 PRICER = importlib.import_module(ORACLE_DE_PACKAGE)
 

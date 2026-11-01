@@ -27,10 +27,9 @@ Covers: extract_id_from_tooltip and extract_id_from_popup.
 import pytest
 
 from visual.utils.data_extractors.id_extractor import (
-    extract_id_from_tooltip,
     extract_id_from_popup,
+    extract_id_from_tooltip,
 )
-
 
 # ===========================================================================
 # extract_id_from_tooltip

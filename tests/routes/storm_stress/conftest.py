@@ -22,8 +22,8 @@
 
 import json
 import math
-import pytest
 
+import pytest
 
 SHARED_STORM_DATA = {
     'metadata': {'generated': '2026-03-01'},

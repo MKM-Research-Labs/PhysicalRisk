@@ -26,6 +26,7 @@ with gauge water levels and property flood states. Helpers live in _helpers;
 importing _routes registers the endpoints on propertyts_bp.
 """
 
+# isort: off
 from ._helpers import (
     STORM_HOURS,
     _build_gauge_lookup,
@@ -36,3 +37,13 @@ from ._helpers import (
 )
 
 from . import _routes  # noqa: E402,F401  (registers animate_storm / animate_composite)
+# isort: on
+
+__all__ = [
+    "STORM_HOURS",
+    "_build_animation_frames",
+    "_build_gauge_frame",
+    "_build_gauge_lookup",
+    "_load_animation_context",
+    "_load_gauge_readings",
+]

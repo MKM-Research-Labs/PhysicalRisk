@@ -28,10 +28,10 @@ from pathlib import Path
 
 import lineage.manifest as _manifest
 from lineage.validation._helpers import (
+    _MISSING,
     _current_hash,
     _find_producer,
     _live_hash,
-    _MISSING,
     _output_step_map,
     _resolve_data_dir,
 )

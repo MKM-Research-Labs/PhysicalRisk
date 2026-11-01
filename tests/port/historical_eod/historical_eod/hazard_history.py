@@ -21,10 +21,11 @@
 """Tests for generate_hazard_curve_history_file()."""
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
-from .conftest import generate_hazard_curve_history_file, _write_eod
+
+from .conftest import _write_eod, generate_hazard_curve_history_file
 
 
 @pytest.fixture(autouse=True)

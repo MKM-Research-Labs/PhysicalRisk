@@ -31,11 +31,10 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # 9. storm_factory.py line 107 — else branch (unknown IntensityProfile)
@@ -149,8 +148,8 @@ class TestVisualFactory:
 
     def test_create_visualization_returns_instance(self, tmp_path):
         """create_visualization() returns a TCEventVisualization instance."""
-        from visual.factory import create_visualization
         from visual.core.visualizer import TCEventVisualization
+        from visual.factory import create_visualization
 
         viz = create_visualization(
             input_dir=str(tmp_path),

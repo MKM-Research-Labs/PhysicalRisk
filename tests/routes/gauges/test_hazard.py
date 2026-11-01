@@ -21,9 +21,9 @@
 """Tests for routes.gauges.hazard — get_gauge_hazard error, price_prs paths."""
 
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from .conftest import GAUGE_ID, GAUGE_DATA, HAZARD_DATA, make_client
+from .conftest import GAUGE_DATA, GAUGE_ID, HAZARD_DATA, make_client
 
 
 class TestHazardErrorPaths:

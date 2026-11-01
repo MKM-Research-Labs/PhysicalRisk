@@ -20,17 +20,16 @@
 
 """Tests for sequence record structure and intensity_category round-trip."""
 
-import pytest
-
-from db_helpers import pg_function_scope
-from port.src.stressm import GAUGE_SUMMARY_DIR
+import json
 from pathlib import Path
+
+import pytest
+from db_helpers import pg_function_scope
+
 from port.src.storm_multi.core.data_structures import StormSequence
 from port.src.storm_multi.generators.batch_generator import generate_event_set
 from port.src.storm_multi.utils.serialization import SEQUENCES_FILENAME, load_sequences
-
-import json
-
+from port.src.stressm import GAUGE_SUMMARY_DIR
 
 # ---------------------------------------------------------------------------
 # generate_stressm — sequence record structure

@@ -24,6 +24,7 @@ from flask import jsonify, request
 
 import database
 from config import config
+
 from .. import propertyts_bp
 from ._helpers import STORM_HOURS, _build_animation_frames, _load_animation_context
 

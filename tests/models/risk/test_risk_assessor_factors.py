@@ -29,7 +29,6 @@ import pytest
 
 from models.risk.risk_assessor.assessor import RiskAssessor
 
-
 # ===========================================================================
 # calculate_value_at_risk
 # ===========================================================================

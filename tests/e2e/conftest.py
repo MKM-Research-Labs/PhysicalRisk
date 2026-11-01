@@ -38,27 +38,26 @@ import pytest
 
 from tests.e2e import _js_coverage
 from tests.e2e._helpers import (
+    CLOSE_PANELS_JS,
+    PANEL_IDS_TO_CLOSE,
     ROOT,
     _free_port,
     _wait_for_server,
     # Re-export helpers so existing `from tests.e2e.conftest import X` works
     close_all_data_panels,
-    PANEL_IDS_TO_CLOSE,
-    CLOSE_PANELS_JS,
     close_all_storm_panels,
-    open_storm_portfolio,
     close_storm_portfolio,
     cpf_close_all_panels,
     cpf_open_gauge_panel,
     cpf_open_trading_desk,
+    open_storm_portfolio,
     ps_close_all_panels,
-    ps_open_trading_desk,
     ps_close_trading_desk,
+    ps_open_trading_desk,
     td_close_all_panels,
-    td_open_trading_desk,
     td_close_trading_desk,
+    td_open_trading_desk,
 )
-
 
 # ---------------------------------------------------------------------------
 # Guard mutable data files against E2E mutation

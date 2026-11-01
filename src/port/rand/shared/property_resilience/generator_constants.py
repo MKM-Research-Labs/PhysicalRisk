@@ -23,12 +23,10 @@ synthesise plausible checklists, plus section-field membership."""
 
 from typing import Dict, List
 
-# Single authoritative definitions live in config (parameter governance).
-from config.bri import (
-    RESILIENCE_DEFAULT_PERIOD_PROB as _DEFAULT_PERIOD_PROB,
-    RESILIENCE_DEFAULT_CONDITION_MULT as _DEFAULT_CONDITION_MULT,
-)
+from config.bri import RESILIENCE_DEFAULT_CONDITION_MULT as _DEFAULT_CONDITION_MULT
+from config.bri import RESILIENCE_DEFAULT_PERIOD_PROB as _DEFAULT_PERIOD_PROB
 
+# Single authoritative definitions live in config (parameter governance).
 
 # "Baseline probability that any one resilience boolean is True" for each
 # construction period. Captures the qualitative consensus that 1890s
@@ -131,3 +129,8 @@ SECTION_FIELDS: Dict[str, List[str]] = {
 
 # Mirrors schema/resilience.py:RESILIENCE_LEVELS.
 _RESILIENCE_LEVELS = ["Not assessed", "Partial", "Meets minimum", "Enhanced", "Verified"]
+
+__all__ = [
+    "_DEFAULT_CONDITION_MULT",
+    "_DEFAULT_PERIOD_PROB",
+]
