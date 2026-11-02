@@ -41,6 +41,7 @@ SEED_OFFSETS = {
     "typhoon": 4,
     "fire": 5,
     "seismic": 6,
+    "book_layoff": 7,
 }
 
 # What each stage used before a run seed existed. Preserved exactly so a run
@@ -50,6 +51,7 @@ LEGACY_SEEDS = {
     "book": 42,
     "book_property": 42,
     "eod": 42,
+    "book_layoff": 44,
 }
 
 

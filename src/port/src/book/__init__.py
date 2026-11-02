@@ -39,7 +39,7 @@ from .book_common import (  # noqa: F401
     _compute_leg_pvs,
     _load_counterparties,
 )
-from .book_property import generate_property_book  # noqa: F401
+from .book_property import generate_property_book, generate_reit_layoff_book  # noqa: F401
 from .book_thames import (  # noqa: F401
     _AREA_TO_GAUGE_NAME,
     _THAMES_TRADE_SPECS,

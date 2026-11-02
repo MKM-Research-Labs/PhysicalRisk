@@ -19,158 +19,55 @@
 # SOFTWARE.
 
 """
-PRS trade loading, property matching, and portfolio enrichment.
+REIT hedge payouts attached to flooded properties.
 
-Used by the per-storm and per-sequence portfolio-impact endpoints to
-attach PRS derivative payouts to flooded properties.
+Used by the per-storm and per-sequence portfolio-impact endpoints. The payout
+rules live in ``models.trading.storm_hedges``: a hedge pays its notional when
+its gauge reaches severe in the storm, not merely when the property floods.
 """
 
-import logging
-
-import database
 from config import config
+from models.trading.storm_hedges import storm_hedge_report
 
-logger = logging.getLogger(__name__)
 
+def _enrich_with_prs(properties, storm_ids):
+    """Attach the REIT's hedge payouts for ``storm_ids`` to each property.
 
-def _load_all_prs_trades():
-    """Load all PRS trades (PropertyPRS and inter-dealer).
-
-    Returns a list of flat dicts with swap_id, gauge_id, property_id,
-    notional, is_payer, trigger, spread_bps, counterparty, trade_type.
+    Each entry gets ``prs_trades`` (its hedges, triggered or not),
+    ``prs_payout`` and ``net_pnl`` (payout less damage). Mutates
+    ``properties`` in place and returns a derivatives summary dict.
     """
-    trades = []
-    catchment = config.catchment_id
-    for swap_id in database.iter_prs_trade_ids(catchment):
-        if 'PRS-' not in swap_id:
-            continue
-        try:
-            raw = database.get_prs_trade(catchment, swap_id)
-            if raw is None:
-                continue
-            ps = raw.get('PhysicalSwap', {})
-            header = ps.get('Header', {})
-            leg = ps.get('LegData', {})
-            pricing = ps.get('Pricing', {})
-            gauge_set = ps.get('GaugeSet', {})
-            prop_set = ps.get('PropertySet', {})
+    report = storm_hedge_report(config.catchment_id, storm_ids)
+    by_asset = {}
+    for h in report['reit']['hedges']:
+        by_asset.setdefault(h['asset_id'], []).append(h)
 
-            gauge_basket = gauge_set.get('GaugeBasket', [])
-            gauge_id = gauge_basket[0].get('GaugeID', '') if gauge_basket else ''
-
-            trades.append({
-                'swap_id': header.get('SwapID', ''),
-                'trade_type': header.get('TradeType', 'PRS'),
-                'counterparty': header.get('CounterPartyName', ''),
-                'is_payer': leg.get('Payer', True),
-                'notional': leg.get('Notional', 0),
-                'trigger': pricing.get('TriggerLevel', 'severe'),
-                'spread_bps': pricing.get('SpreadBps', 0),
-                'gauge_id': gauge_id,
-                'property_id': prop_set.get('PropertyID', ''),
-            })
-        except Exception as e:
-            logger.warning('Skipping PRS file %s: %s', f'{swap_id}.json', e)
-    return trades
-
-
-def _match_prs_to_properties(prs_trades, property_ids, property_gauges):
-    """Match PRS trades to properties.
-
-    Returns {property_id: [trade, ...]} mapping.
-
-    Matching rules:
-    - Direct: trade.property_id == property_id
-    - Gauge: trade.gauge_id in property's reference gauges
-    """
-    by_prop = {}
-    by_gauge = {}
-    for t in prs_trades:
-        if t['property_id']:
-            by_prop.setdefault(t['property_id'], []).append(t)
-        if t['gauge_id']:
-            by_gauge.setdefault(t['gauge_id'], []).append(t)
-
-    result = {pid: [] for pid in property_ids}
-    for pid in property_ids:
-        # Direct match
-        if pid in by_prop:
-            result[pid].extend(by_prop[pid])
-        # Gauge match (avoid duplicates)
-        seen = {t['swap_id'] for t in result[pid]}
-        for gid in property_gauges.get(pid, []):
-            for t in by_gauge.get(gid, []):
-                if t['swap_id'] not in seen:
-                    result[pid].append(t)
-                    seen.add(t['swap_id'])
-    return result
-
-
-def _enrich_with_prs(properties, prop_details):
-    """Enrich property entries with PRS derivative payouts.
-
-    For each flooded property, finds matching PRS trades and computes
-    the REIT payout (positive = protection received).
-
-    Mutates ``properties`` in place and returns a derivatives summary dict.
-    """
-    prs_trades = _load_all_prs_trades()
-    if not prs_trades:
-        for p in properties:
-            p['prs_trades'] = []
-            p['prs_payout'] = 0
-            p['net_pnl'] = -p['damage_amount']
-        return {
-            'total_prs_payout': 0,
-            'total_prs_notional': 0,
-            'num_trades_triggered': 0,
-            'net_portfolio_pnl': -sum(p['damage_amount'] for p in properties),
-        }
-
-    # Build property → gauge mapping from property details
-    property_gauges = {}
-    for pid, d in prop_details.items():
-        property_gauges[pid] = d.get('reference_gauges', [])
-
-    prop_ids = [p['property_id'] for p in properties]
-    matched = _match_prs_to_properties(prs_trades, prop_ids, property_gauges)
-
-    total_prs_payout = 0
-    total_prs_notional = 0
+    total_payout = 0
+    total_notional = 0
     num_triggered = 0
-
     for p in properties:
-        pid = p['property_id']
-        trades_for_prop = matched.get(pid, [])
-        prs_entries = []
-        prop_payout = 0
-
-        for t in trades_for_prop:
-            # REIT is payer (buys protection) → receives +notional on trigger
-            # Trader is receiver (sells protection) → pays out notional
-            notional = t['notional']
-            payout = notional  # full binary payout on flood
-            prop_payout += payout
-            total_prs_notional += notional
-            num_triggered += 1
-            prs_entries.append({
-                'swap_id': t['swap_id'],
-                'notional': notional,
-                'payout': round(payout, 2),
-                'trigger': t['trigger'],
-                'counterparty': t['counterparty'],
-                'trade_type': t['trade_type'],
-            })
-
-        p['prs_trades'] = prs_entries
-        p['prs_payout'] = round(prop_payout, 2)
-        p['net_pnl'] = round(prop_payout - p['damage_amount'], 2)
-        total_prs_payout += prop_payout
+        hedges = by_asset.get(p['property_id'], [])
+        payout = sum(h['payout'] for h in hedges)
+        p['prs_trades'] = [{
+            'swap_id': h['swap_id'],
+            'notional': h['notional'],
+            'payout': round(h['payout'], 2),
+            'triggered': h['triggered'],
+            'gauge_id': h['gauge_id'],
+            'gauge_name': h['gauge_name'],
+            'counterparty': h['counterparty'],
+            'trade_type': h['trade_type'],
+        } for h in hedges]
+        p['prs_payout'] = round(payout, 2)
+        p['net_pnl'] = round(payout - p['damage_amount'], 2)
+        total_payout += payout
+        total_notional += sum(h['notional'] for h in hedges)
+        num_triggered += sum(1 for h in hedges if h['triggered'])
 
     total_damage = sum(p['damage_amount'] for p in properties)
     return {
-        'total_prs_payout': round(total_prs_payout, 2),
-        'total_prs_notional': round(total_prs_notional, 2),
+        'total_prs_payout': round(total_payout, 2),
+        'total_prs_notional': round(total_notional, 2),
         'num_trades_triggered': num_triggered,
-        'net_portfolio_pnl': round(total_prs_payout - total_damage, 2),
+        'net_portfolio_pnl': round(total_payout - total_damage, 2),
     }

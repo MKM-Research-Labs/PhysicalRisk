@@ -35,71 +35,55 @@ from tests.routes.propertyts._financial_coverage_helpers import (
     _make_prop_details,
     _make_prop_flood,
     _make_prs_trade,
+    write_gauge_responses,
 )
 from tests.routes.propertyts._helpers import PROP_ID, SEQ_ID, STORM_ID
 
 # ===========================================================================
-# _match_prs_to_properties — gauge matching + dedup
+# REIT hedge payouts follow the gauge trigger
 # ===========================================================================
 
-class TestPrsGaugeMatch:
-    """Trades without a property_id should match via reference gauge."""
+class TestHedgeTrigger:
+    """A REIT hedge pays when its gauge reaches severe in the storm."""
 
-    def test_gauge_only_trade_matches_via_reference_gauge(
-            self, tmp_path, monkeypatch):
-        """Trade has property_id='' but gauge_id matches property's
-        reference gauge → should attach to the property."""
-        pf = _make_prop_flood()
-        trade = _make_prs_trade(
-            swap_id='PRS-GAUGE-ONLY',
-            gauge_id='GAUGE-001',
-            property_id='',
-            notional=100_000,
-            trade_type='InterDealerPRS',
-        )
-        client = _build_client(
+    def _client(self, tmp_path, monkeypatch, trades, severe_storms=None):
+        return _build_client(
             tmp_path, monkeypatch,
-            prop_flood=pf,
+            prop_flood=_make_prop_flood(),
             property_json=_make_prop_details(),
             mortgage_json=_make_mortgage(),
-            prs_trades=[trade],
+            prs_trades=trades,
+            severe_storms=severe_storms,
         )
-        r = client.get(f'/api/v1/propertyts/{SEQ_ID}/portfolio-impact')
-        assert r.status_code == 200
-        data = r.get_json()
-        prop = data['properties'][0]
-        swap_ids = [t['swap_id'] for t in prop['prs_trades']]
-        assert 'PRS-GAUGE-ONLY' in swap_ids
-        assert prop['prs_payout'] == 100_000
 
-    def test_direct_and_gauge_match_dedup(self, tmp_path, monkeypatch):
-        """A trade with both a matching property_id AND matching gauge_id
-        must appear exactly once (swap_id dedup)."""
-        pf = _make_prop_flood()
-        trade = _make_prs_trade(
-            swap_id='PRS-DUP',
-            gauge_id='GAUGE-001',
-            property_id=PROP_ID,
-            notional=300_000,
-        )
-        client = _build_client(
-            tmp_path, monkeypatch,
-            prop_flood=pf,
-            property_json=_make_prop_details(),
-            mortgage_json=_make_mortgage(),
-            prs_trades=[trade],
-        )
-        r = client.get(f'/api/v1/propertyts/{SEQ_ID}/portfolio-impact')
-        data = r.get_json()
-        prop = data['properties'][0]
-        dup_hits = [t for t in prop['prs_trades'] if t['swap_id'] == 'PRS-DUP']
-        assert len(dup_hits) == 1
+    def test_hedge_pays_when_gauge_reaches_severe(self, tmp_path, monkeypatch):
+        trade = _make_prs_trade('PRS-HIT', 'GAUGE-001', PROP_ID, notional=300_000)
+        client = self._client(tmp_path, monkeypatch, [trade])
+        prop = client.get(f'/api/v1/propertyts/{SEQ_ID}/portfolio-impact').get_json()['properties'][0]
         assert prop['prs_payout'] == 300_000
+        assert prop['prs_trades'][0]['triggered'] is True
 
+    def test_flooded_property_gets_nothing_when_gauge_stays_below_severe(
+            self, tmp_path, monkeypatch):
+        """The property floods, but the contract trigger is the gauge."""
+        trade = _make_prs_trade('PRS-MISS', 'GAUGE-001', PROP_ID, notional=300_000)
+        client = self._client(tmp_path, monkeypatch, [trade], severe_storms={})
+        data = client.get(f'/api/v1/propertyts/{SEQ_ID}/portfolio-impact').get_json()
+        prop = data['properties'][0]
+        assert prop['prs_payout'] == 0
+        assert prop['prs_trades'][0]['triggered'] is False
+        assert data['derivatives']['num_trades_triggered'] == 0
+        assert data['derivatives']['total_prs_notional'] == 300_000
 
-# ===========================================================================
-# _load_all_prs_trades — edge cases
-# ===========================================================================
+    def test_desk_gauge_trade_is_not_a_reit_payout(self, tmp_path, monkeypatch):
+        """A desk gauge trade on the property's gauge is not the REIT's."""
+        trade = _make_prs_trade('PRS-DESK', 'GAUGE-001', '', notional=100_000,
+                                trade_type='PRS')
+        client = self._client(tmp_path, monkeypatch, [trade])
+        prop = client.get(f'/api/v1/propertyts/{SEQ_ID}/portfolio-impact').get_json()['properties'][0]
+        assert prop['prs_trades'] == []
+        assert prop['prs_payout'] == 0
+
 
 class TestLoadAllPrsTrades:
 
@@ -137,6 +121,7 @@ class TestLoadAllPrsTrades:
         (tmp_path / 'property.json').write_text(
             json.dumps(_make_prop_details()))
         (tmp_path / 'loan.json').write_text(json.dumps(_make_mortgage()))
+        write_gauge_responses(gaugets_dir, {'GAUGE-001': [SEQ_ID]})
 
         # One valid trade, one corrupt, plus a stray non-PRS file (skipped).
         good = _make_prs_trade('PRS-GOOD', 'GAUGE-001', PROP_ID, 200_000)
@@ -166,7 +151,7 @@ class TestLoadAllPrsTrades:
         assert data['derivatives']['total_prs_notional'] == 200_000
 
     def test_trade_with_empty_gauge_basket(self, tmp_path, monkeypatch):
-        """Trade with empty GaugeBasket → gauge_id='' → direct match only."""
+        """A hedge with no gauge can never trigger, so it is left out."""
         trade = _make_prs_trade(
             swap_id='PRS-NO-GAUGE',
             gauge_id=None,  # empty basket
@@ -181,11 +166,9 @@ class TestLoadAllPrsTrades:
             prs_trades=[trade],
         )
         r = client.get(f'/api/v1/propertyts/{SEQ_ID}/portfolio-impact')
-        data = r.get_json()
-        prop = data['properties'][0]
-        # Direct property_id match succeeds despite empty gauge basket
-        assert prop['prs_payout'] == 150_000
-        assert prop['prs_trades'][0]['swap_id'] == 'PRS-NO-GAUGE'
+        prop = r.get_json()['properties'][0]
+        assert prop['prs_payout'] == 0
+        assert prop['prs_trades'] == []
 
 
 # ===========================================================================

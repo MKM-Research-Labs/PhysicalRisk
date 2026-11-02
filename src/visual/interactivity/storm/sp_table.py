@@ -28,6 +28,7 @@ Returns the JS body for the Table tab, composed from sibling sub-modules:
 - sp_table_damage:     Flood Damage (combined residential + commercial) sub-tab
 - sp_table_wind:       Wind Damage sub-tab (model pending)
 - sp_table_mortgage:   Loan/Mortgage sub-tab (Flood + Wind LTV/Remaining)
+- sp_table_hedges:     Hedges sub-tab (REIT hedge payouts, market-maker net)
 - sp_table_summary:    Summary report card
 
 This file owns the cross-sub-tab state, DOM creation, sub-tab switching,
@@ -43,6 +44,7 @@ from . import (
     sp_table_blotter,
     sp_table_commercial,
     sp_table_damage,
+    sp_table_hedges,
     sp_table_mortgage,
     sp_table_summary,
     sp_table_wind,
@@ -62,6 +64,7 @@ def get_js() -> str:
         + sp_table_damage.get_js()
         + sp_table_wind.get_js()
         + sp_table_mortgage.get_js()
+        + sp_table_hedges.get_js()
         + sp_table_summary.get_js()
     )
     return js.replace('__STORM_OPT__', _storm_opt('s'))

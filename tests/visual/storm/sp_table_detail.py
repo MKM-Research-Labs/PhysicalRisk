@@ -149,3 +149,24 @@ class TestStormListSortMode:
         """Default sortMode must be 'damage'."""
         assert "sortMode || 'damage'" in table_js or \
                "sortMode = sortMode || 'damage'" in table_js
+
+
+class TestHedgesTab:
+    """The storm table has its own Hedges tab for hedge payouts."""
+
+    def test_tab_button_between_loan_and_summary(self, table_js):
+        loan = table_js.index("mkBtn('mortgage'")
+        hedges = table_js.index("mkBtn('hedges',     'Hedges'")
+        summary = table_js.index("mkBtn('summary'")
+        assert loan < hedges < summary
+
+    def test_switching_to_hedges_loads_them(self, table_js):
+        assert "sub === 'hedges'" in table_js
+        assert 'function loadHedges()' in table_js
+
+    def test_reads_the_hedges_endpoint(self, table_js):
+        assert "'/api/v1/propertyts/' + sid + '/hedges'" in table_js
+
+    def test_summary_uses_storm_payout_not_npv(self, table_js):
+        assert 'Hedge Payout to REIT' in table_js
+        assert 'Hedge NPV (REIT)' not in table_js

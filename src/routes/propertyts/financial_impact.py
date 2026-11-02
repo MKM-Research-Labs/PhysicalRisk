@@ -41,7 +41,6 @@ from .financial_loaders import (
     _build_property_entry,
     _check_options_and_dir,
     _load_prop_values,
-    _load_property_details,
     _load_rloan_lookup,
     _portfolio_totals,
 )
@@ -62,7 +61,6 @@ def portfolio_impact(storm_id: str):
 
     prop_values = _load_prop_values()
     rloan_lookup = _load_rloan_lookup()
-    prop_details = _load_property_details()
 
     # Scan all property flood files for this storm
     properties = []
@@ -95,7 +93,7 @@ def portfolio_impact(storm_id: str):
         }), 404
 
     # Enrich with PRS derivative payouts
-    derivatives = _enrich_with_prs(properties, prop_details)
+    derivatives = _enrich_with_prs(properties, [storm_id])
 
     properties.sort(key=lambda p: p['damage_amount'], reverse=True)
 
@@ -126,7 +124,6 @@ def sequence_portfolio_impact(sequence_id: str):
 
     prop_values = _load_prop_values()
     rloan_lookup = _load_rloan_lookup()
-    prop_details = _load_property_details()
 
     # For each property, find the worst (max depth) flood event in this sequence
     properties = []
@@ -179,7 +176,7 @@ def sequence_portfolio_impact(sequence_id: str):
         }), 404
 
     # Enrich with PRS derivative payouts
-    derivatives = _enrich_with_prs(properties, prop_details)
+    derivatives = _enrich_with_prs(properties, [sequence_id])
 
     properties.sort(key=lambda p: p['damage_amount'], reverse=True)
 
