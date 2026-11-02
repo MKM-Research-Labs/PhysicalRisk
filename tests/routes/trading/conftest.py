@@ -157,6 +157,16 @@ def trading_env(tmp_path, monkeypatch):
 
 
 @pytest.fixture
+def trading_catchment(trading_env):
+    """Bind the catchment to ``trading_env``'s input dir for tests that call the
+    seam directly rather than through ``create_app``. Without it the Postgres
+    run reads the imported portfolio instead of the files the test writes."""
+    from db_helpers import tmp_catchment
+    with tmp_catchment(trading_env['input_dir']):
+        yield trading_env
+
+
+@pytest.fixture
 def trading_client(trading_env):
     """Flask test client with full trading environment."""
     from fixtures_admin import AuthenticatedTestClient

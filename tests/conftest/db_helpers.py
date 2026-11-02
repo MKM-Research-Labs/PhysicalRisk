@@ -66,6 +66,15 @@ def active_test_backend() -> str:
     return os.getenv("MKM_TEST_BACKEND", "file").strip().lower()
 
 
+def file_backend_only(reason: str):
+    """Skip a test under ``MKM_TEST_BACKEND=pg`` because it sets up a state only
+    files can hold (a corrupt or loosely shaped file, a record with no ID, an
+    empty folder). ``reason`` says which, so the skip is never silent."""
+    import pytest
+    return pytest.mark.skipif(active_test_backend() == "pg",
+                              reason=f"file backend only: {reason}")
+
+
 def seed_gauge_hazard_curves(catchment, records):
     """Seed gauge hazard curves from a list of per-gauge records.
 
@@ -213,6 +222,122 @@ def _purge_catchment(catchment: str) -> None:
         session.commit()
 
 
+def _snapshot(root: Path) -> dict:
+    """``{relative path: (mtime_ns, size)}`` for every file under ``root``."""
+    snap = {}
+    for dirpath, _dirs, names in os.walk(root):
+        for name in names:
+            path = os.path.join(dirpath, name)
+            try:
+                st = os.stat(path)
+            except OSError:
+                continue
+            snap[os.path.relpath(path, root)] = (st.st_mtime_ns, st.st_size)
+    return snap
+
+
+def _mirroring_postgres(root: Path):
+    """A PostgresRepository kept in step with the files under ``root``.
+
+    Tests written for the file backend put fixture JSON under ``tmp_path`` (often
+    after the catchment is bound) and read a generator's output back as files.
+    So before each read, files that changed since the last look are copied in
+    (a deleted file means the catchment is rebuilt from the files), and each save
+    is also written as a file. Reads still come only from Postgres, so the
+    backend under test is still Postgres."""
+    from database._pg.pg_repo import PostgresRepository
+
+    mirror = FileRepository(dir_resolver=lambda _c: root)
+    plain = PostgresRepository()
+
+    class _Mirroring(PostgresRepository):
+        _seen: dict = _snapshot(root)
+
+        def _sync(self, catchment):
+            now = _snapshot(root)
+            if now == self._seen:
+                return
+            if set(self._seen) - set(now):
+                _purge_catchment(catchment)
+            _seed_from_files(root, catchment, pg=plain)
+            self._seen = _snapshot(root)
+
+        def load(self, artifact, catchment, key=None, *, mode=DEFAULT_MODE):
+            self._sync(catchment)
+            return super().load(artifact, catchment, key, mode=mode)
+
+        def iter_keys(self, artifact, catchment, *, mode=DEFAULT_MODE):
+            self._sync(catchment)
+            return super().iter_keys(artifact, catchment, mode=mode)
+
+        def exists(self, artifact, catchment, key=None, *, mode=DEFAULT_MODE):
+            self._sync(catchment)
+            return super().exists(artifact, catchment, key, mode=mode)
+
+        def has_collection(self, artifact, catchment, *, mode=DEFAULT_MODE):
+            self._sync(catchment)
+            return super().has_collection(artifact, catchment, mode=mode)
+
+        def save(self, artifact, catchment, payload, key=None, *, mode=DEFAULT_MODE):
+            self._sync(catchment)
+            result = super().save(artifact, catchment, payload, key, mode=mode)
+            mirror.save(artifact, catchment, payload, key, mode=mode)
+            self._seen = _snapshot(root)
+            return result
+
+        def delete(self, artifact, catchment, key=None, *, mode=DEFAULT_MODE):
+            self._sync(catchment)
+            result = super().delete(artifact, catchment, key, mode=mode)
+            if mirror.exists(artifact, catchment, key, mode=mode):
+                mirror.delete(artifact, catchment, key, mode=mode)
+            self._seen = _snapshot(root)
+            return result
+
+    return _Mirroring()
+
+
+def _seed_from_files(root: Path, catchment: str, pg=None) -> None:
+    """Copy whatever a fixture already wrote under ``root`` into Postgres.
+
+    On the file backend ``tmp_catchment(root)`` reads those files directly; under
+    Postgres the same test would otherwise see an empty catchment. Runs inside the
+    test transaction, so it is rolled back with everything else."""
+    if not root.is_dir():
+        return
+    from database._pg.pg_repo import _COLLECTIONS, _DOCUMENTS, _KEYED, _KEYED_DOCS, modes_for
+
+    files = FileRepository(dir_resolver=lambda _c: root)
+    pg = pg if pg is not None else active_backend()
+
+    def copy(artifact, key=None, mode=DEFAULT_MODE):
+        # A file a test made corrupt on purpose has no Postgres equivalent;
+        # leave it out, so the reader finds nothing, as it does with bad JSON.
+        # The same goes for a shape Postgres cannot key (a bare string, a list
+        # where a container belongs): those fail before any SQL runs.
+        try:
+            payload = files.load(artifact, catchment, key, mode=mode)
+            pg.save(artifact, catchment, payload, key, mode=mode)
+        except (ValueError, KeyError, TypeError, AttributeError):
+            return
+
+    # Mirrors database._pg.etl.import_catchment, minus blobs (no object store
+    # in CI) and with the tolerance above.
+    for artifact in _COLLECTIONS:
+        if files.exists(artifact, catchment):
+            copy(artifact)
+    for artifact in _KEYED:
+        for key in files.iter_keys(artifact, catchment):
+            copy(artifact, key)
+    for artifact in _DOCUMENTS:
+        for mode in modes_for(artifact):
+            if files.exists(artifact, catchment, mode=mode):
+                copy(artifact, mode=mode)
+    for artifact in _KEYED_DOCS:
+        for mode in modes_for(artifact):
+            for key in files.iter_keys(artifact, catchment, mode=mode):
+                copy(artifact, key, mode)
+
+
 def _current_backend() -> Optional[database.Repository]:
     """The bound backend, or ``None`` if startup never configured one."""
     try:
@@ -249,15 +374,19 @@ def tmp_catchment(
     writer's reads and writes land there and can be read back through ``database``.
 
     Under ``MKM_TEST_BACKEND=pg`` there is no scratch dir: the autouse fixture has
-    already bound Postgres in a rolled-back transaction, so this just clears the
-    catchment to a clean slate and makes it active — writes land in Postgres and
-    are rolled back with the rest of the test.
+    already bound Postgres in a rolled-back transaction, so this clears the
+    catchment to a clean slate, loads any files already under ``tmp_path`` and
+    makes it active — writes land in Postgres and are rolled back with the rest
+    of the test, and are copied to ``tmp_path`` for file read-backs. Files written
+    to ``tmp_path`` after entry are not seen there: write those through ``database``.
     """
     catchment = catchment or config.catchment_id
     if active_test_backend() == "pg":
+        root = Path(tmp_path)
         _purge_catchment(catchment)
-        with database.catchment_context(catchment):
-            yield active_backend()
+        _seed_from_files(root, catchment)
+        with _bound(_mirroring_postgres(root), catchment) as bound:
+            yield bound
         return
     root = Path(tmp_path)
     repo = FileRepository(dir_resolver=lambda _catchment: root)

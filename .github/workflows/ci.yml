@@ -122,6 +122,15 @@ jobs:
           MKM_ALLOW_NO_POSTGRES: "1"
         run: python phys.py port --all --thames -np 20 -nc 20 -ns 300 --seed 42
 
+      - name: Import the portfolio into Postgres
+        # Read-path tests on Postgres read the imported catchment; each test runs
+        # in a rolled-back transaction, so the import survives the whole run.
+        # Exits non-zero if the file and Postgres reads disagree.
+        env:
+          MKM_ALLOW_NO_POSTGRES: "1"
+          PYTHONPATH: src
+        run: python -m database._pg.cutover thames --import
+
       - name: Run the test suite on Postgres
         env:
           MKM_TEST_BACKEND: pg

@@ -132,3 +132,28 @@ def test_bound_test_connection_rolls_back_repo_writes():
 
     reset_engine()
     assert PostgresRepository().exists("gauge", catchment) is False  # rolled back, gone
+
+
+def test_json_round_trips_non_finite_floats():
+    """Postgres JSON has no Infinity or NaN; the engine tags them and restores them."""
+    import json
+    import math
+
+    from database._pg.engine import _json_deserializer, _json_serializer
+
+    doc = {"rp": float("inf"), "low": float("-inf"), "gap": float("nan"),
+           "nested": [1.5, {"rp": float("inf")}], "label": "Infinity"}
+    text = _json_serializer(doc)
+    json.loads(text, parse_constant=lambda c: pytest.fail(f"bare {c} in {text}"))
+    back = _json_deserializer(text)
+    assert back["rp"] == math.inf and back["low"] == -math.inf
+    assert math.isnan(back["gap"])
+    assert back["nested"] == [1.5, {"rp": math.inf}]
+    assert back["label"] == "Infinity"
+
+
+def test_json_leaves_finite_values_alone():
+    from database._pg.engine import _json_deserializer, _json_serializer
+
+    doc = {"a": 1, "b": [0.5, None, True], "c": "text", "d": (1, 2)}
+    assert _json_deserializer(_json_serializer(doc)) == {**doc, "d": [1, 2]}

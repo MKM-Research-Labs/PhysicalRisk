@@ -27,7 +27,7 @@ import json
 
 import pytest
 
-from tests.port.gauge.conftest import make_gauge_file, make_response
+from tests.port.gauge.conftest import make_gauge_file, make_response, write_gauge
 
 # ---------------------------------------------------------------------------
 # Metadata enrichment from storms.json
@@ -40,7 +40,7 @@ class TestMetadataEnrichment:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -63,7 +63,7 @@ class TestMetadataEnrichment:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -80,7 +80,7 @@ class TestMetadataEnrichment:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -115,11 +115,11 @@ class TestSorting:
             responses = [make_response(sid, alert=alert, warning=warn, severe=sev, peak=peak)]
             if sid == "STORM-aaaaaaaa":
                 responses.append(make_response("STORM-aaaaaaaa", alert=True, warning=True, peak=2.5))
-            gf.write_text(json.dumps(make_gauge_file(f"GAUGE-0000000{gid_n}", responses)))
+            write_gauge(gf, json.dumps(make_gauge_file(f"GAUGE-0000000{gid_n}", responses)))
 
         # Second gauge for storm B (severe)
         gf2 = gaugets / "GAUGE-00000003.json"
-        gf2.write_text(json.dumps(make_gauge_file(
+        write_gauge(gf2, json.dumps(make_gauge_file(
             "GAUGE-00000003",
             [make_response("STORM-bbbbbbbb", alert=True, warning=True, severe=True, peak=2.8)],
         )))
@@ -159,7 +159,7 @@ class TestNaming:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -175,7 +175,7 @@ class TestNaming:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))

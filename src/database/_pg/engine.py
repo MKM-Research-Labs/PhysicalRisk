@@ -26,10 +26,50 @@ Private to ``src/database``. The connection *values* come from
 tests that point at a different database call :func:`reset_engine` to drop it.
 """
 
+import json
+import math
+
 from sqlalchemy import Connection, Engine, create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from config.database import get_database_url
+
+# Postgres JSON has no Infinity or NaN, but the models emit them (a return period
+# for a gauge that never floods is infinite) and the file backend stores them as
+# bare tokens. Store them as these tagged strings and turn them back on read, so
+# both backends return the same values.
+_NON_FINITE = {"inf": "__mkm_float__:Infinity", "-inf": "__mkm_float__:-Infinity",
+               "nan": "__mkm_float__:NaN"}
+_FROM_TAG = {tag: float(name) for name, tag in _NON_FINITE.items()}
+
+
+def _tag_non_finite(value):
+    if isinstance(value, float) and not math.isfinite(value):
+        return _NON_FINITE[repr(value)]
+    if isinstance(value, dict):
+        return {k: _tag_non_finite(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_tag_non_finite(v) for v in value]
+    return value
+
+
+def _untag_non_finite(value):
+    if isinstance(value, str):
+        return _FROM_TAG.get(value, value)
+    if isinstance(value, dict):
+        return {k: _untag_non_finite(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_untag_non_finite(v) for v in value]
+    return value
+
+
+def _json_serializer(value) -> str:
+    return json.dumps(_tag_non_finite(value), allow_nan=False)
+
+
+def _json_deserializer(text_value: str):
+    return _untag_non_finite(json.loads(text_value))
+
 
 _engine: Engine | None = None
 _Session: sessionmaker | None = None
@@ -47,7 +87,9 @@ def get_engine() -> Engine:
     """
     global _engine
     if _engine is None:
-        _engine = create_engine(get_database_url(), future=True, pool_pre_ping=True)
+        _engine = create_engine(get_database_url(), future=True, pool_pre_ping=True,
+                                json_serializer=_json_serializer,
+                                json_deserializer=_json_deserializer)
     return _engine
 
 

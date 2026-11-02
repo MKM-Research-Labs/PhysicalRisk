@@ -156,7 +156,7 @@ class TestDataLoaderLoadAll:
         write_gauge(tmp_path)
         hd = tmp_path / "gaugehd"
         hd.mkdir()
-        (hd / "GAUGE-001.json").write_text("{}")
+        (hd / "gauge_GAUGE-001_hd.json").write_text("{}")
         result = DataLoader(input_dir=tmp_path).load_all_data()
         assert result.gaugehd_count == 1
 

@@ -28,6 +28,8 @@ import math
 
 import pytest
 
+import database
+
 # ---------------------------------------------------------------------------
 # Helpers (same CDM builders as test_synthetic_gauge.py)
 # ---------------------------------------------------------------------------
@@ -97,13 +99,13 @@ def synth_env(tmp_path, monkeypatch):
         _make_gauge_cdm("GAUGE-BBB00002", 51.46, -0.30, 4.0, 4.0, 5.0, 6.0),
         _make_gauge_cdm("GAUGE-CCC00003", 51.47, -0.10, 5.0, 4.5, 5.5, 7.0),
     ]
-    (tmp_path / "gauge.json").write_text(json.dumps({"flood_gauges": gauges}))
+    database.save_gauges(database.active_catchment(), {"flood_gauges": gauges})
 
     properties = [
         _make_property_cdm("PROP-001", 51.455, -0.40),
         _make_property_cdm("PROP-002", 51.465, -0.20),
     ]
-    (tmp_path / "property.json").write_text(json.dumps({"properties": properties}))
+    database.save_properties(database.active_catchment(), {"properties": properties})
 
     from unittest.mock import MagicMock
     mock_params = MagicMock()
@@ -246,7 +248,8 @@ class TestRandomPositionGeneration:
 
     def test_generates_without_property_json(self, synth_env):
         """Generator no longer needs property.json — uses random positions on river."""
-        (synth_env / "property.json").unlink()
+        from database.backend import active_backend
+        active_backend().delete("property", database.active_catchment())
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
         result = SyntheticGaugeGenerator(synth_env).generate(count=10)
         assert result["count"] > 0

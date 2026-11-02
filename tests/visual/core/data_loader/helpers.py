@@ -132,19 +132,21 @@ class TestLoadOptionalJson:
         import database
         from visual.core.data_loader import DataLoader
         cat = database.active_catchment()
-        database.save_commercial(cat, {"commercial_assets": [{"a": 1}, {"b": 2}]})
+        assets = [{"CommercialAsset": {"Header": {"PropertyID": f"CPROP-{i}"}}} for i in (1, 2)]
+        database.save_commercial(cat, {"commercial_assets": assets})
         dl = DataLoader(input_dir=tmp_path)
         dl.load_all_data()
-        assert dl.loaded_data.commercial_data["commercial_assets"][0] == {"a": 1}
+        assert dl.loaded_data.commercial_data["commercial_assets"][0] == assets[0]
 
     def test_commercial_loan_loaded_from_seam(self, tmp_path):
         import database
         from visual.core.data_loader import DataLoader
         cat = database.active_catchment()
-        database.save_commercial_loans(cat, {"commercial_loans": [{"x": 1}]})
+        loans = [{"Mortgage": {"Header": {"MortgageID": "CMORT-1"}}}]
+        database.save_commercial_loans(cat, {"commercial_loans": loans})
         dl = DataLoader(input_dir=tmp_path)
         dl.load_all_data()
-        assert dl.loaded_data.commercial_loan_data["commercial_loans"] == [{"x": 1}]
+        assert dl.loaded_data.commercial_loan_data["commercial_loans"] == loans
 
     def test_build_commercial_loan_lookup_indexes_by_pid(self, tmp_path):
         from visual.core.data_loader import DataLoader

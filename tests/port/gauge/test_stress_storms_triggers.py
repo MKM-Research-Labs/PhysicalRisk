@@ -27,7 +27,7 @@ import json
 
 import pytest
 
-from tests.port.gauge.conftest import make_gauge_file, make_response
+from tests.port.gauge.conftest import make_gauge_file, make_response, write_gauge
 
 # ---------------------------------------------------------------------------
 # trigger_summary
@@ -42,11 +42,11 @@ class TestTriggerSummary:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, warning=True, severe=True, peak=3.0)],
         )))
-        (gaugets / "GAUGE-00000002.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000002.json", json.dumps(make_gauge_file(
             "GAUGE-00000002",
             [make_response(sid, alert=True, warning=False, severe=False, peak=2.0)],
         )))
@@ -79,7 +79,7 @@ class TestTriggerSummary:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, warning=True, severe=False, peak=2.0)],
         )))
@@ -93,7 +93,7 @@ class TestTriggerSummary:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, warning=False, severe=False, peak=2.0)],
         )))
@@ -119,7 +119,7 @@ class TestIntensityCategoryDerivation:
             warn = i < n_warning or sev
             ale = i < n_alert or warn or sev or True
             gf = gaugets / f"GAUGE-{i:08d}.json"
-            gf.write_text(json.dumps(make_gauge_file(
+            write_gauge(gf, json.dumps(make_gauge_file(
                 f"GAUGE-{i:08d}",
                 [make_response(sid, alert=ale, warning=warn, severe=sev, peak=2.0 + i * 0.1)],
             )))

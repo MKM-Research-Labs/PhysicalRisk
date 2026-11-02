@@ -28,6 +28,8 @@ import math
 
 import pytest
 
+import database
+
 # ---------------------------------------------------------------------------
 # Helpers (same CDM builders as test_synthetic_gauge.py)
 # ---------------------------------------------------------------------------
@@ -97,13 +99,13 @@ def synth_env(tmp_path, monkeypatch):
         _make_gauge_cdm("GAUGE-BBB00002", 51.46, -0.30, 4.0, 4.0, 5.0, 6.0),
         _make_gauge_cdm("GAUGE-CCC00003", 51.47, -0.10, 5.0, 4.5, 5.5, 7.0),
     ]
-    (tmp_path / "gauge.json").write_text(json.dumps({"flood_gauges": gauges}))
+    database.save_gauges(database.active_catchment(), {"flood_gauges": gauges})
 
     properties = [
         _make_property_cdm("PROP-001", 51.455, -0.40),
         _make_property_cdm("PROP-002", 51.465, -0.20),
     ]
-    (tmp_path / "property.json").write_text(json.dumps({"properties": properties}))
+    database.save_properties(database.active_catchment(), {"properties": properties})
 
     from unittest.mock import MagicMock
     mock_params = MagicMock()
@@ -129,15 +131,14 @@ class TestSyntheticGaugeSkippedInPolyline:
 
     def test_existing_synth_gauge_not_matched_to_gauge_point(self, synth_env):
         """A pre-existing SYNTH- gauge in gauge.json is skipped in polyline matching."""
-        with open(synth_env / "gauge.json") as f:
-            data = json.load(f)
+        data = database.get_gauge_portfolio(database.active_catchment())
 
         # Add a synthetic gauge near a gauge point
         synth_gauge = _make_gauge_cdm(
             "SYNTH-existing", 51.45, -0.50, 3.0, 3.5, 4.5, 5.0
         )
         data["flood_gauges"].append(synth_gauge)
-        (synth_env / "gauge.json").write_text(json.dumps(data))
+        database.save_gauges(database.active_catchment(), data)
 
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
         result = SyntheticGaugeGenerator(synth_env).generate()
@@ -158,8 +159,7 @@ class TestPolylineEndpoints:
         gen = SyntheticGaugeGenerator(synth_env)
         result = gen.generate(count=50)
 
-        with open(synth_env / "gauge.json") as f:
-            data = json.load(f)
+        data = database.get_gauge_portfolio(database.active_catchment())
 
         synth = [g for g in data["flood_gauges"]
                  if g["FloodGauge"]["Header"]["GaugeID"].startswith("SYNTH")]

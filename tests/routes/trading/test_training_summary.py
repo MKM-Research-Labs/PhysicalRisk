@@ -75,6 +75,7 @@ def training_client(training_env):
 # _update_training_summary
 # ===========================================================================
 
+@pytest.mark.usefixtures("trading_catchment")
 class TestUpdateTrainingSummary:
     """Tests for the _update_training_summary helper."""
 

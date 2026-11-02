@@ -27,6 +27,21 @@ import pytest
 import config.database as dbcfg
 
 
+@pytest.fixture(autouse=True)
+def _restore_module_settings():
+    """Put DB_HOST etc. back as they were before each test.
+
+    They are read at import time, so a test that reloads the module leaks its
+    values into every later pg test. Restoring the saved values rather than
+    reloading keeps a local MKM_DB_PORT, and does not depend on when
+    ``monkeypatch`` restores the environment."""
+    saved = {name: getattr(dbcfg, name)
+             for name in ("DB_HOST", "DB_PORT", "DB_NAME", "DB_USER", "DB_PASSWORD")}
+    yield
+    for name, value in saved.items():
+        setattr(dbcfg, name, value)
+
+
 def test_default_url_composes_from_parts(monkeypatch):
     monkeypatch.delenv("MKM_DATABASE_URL", raising=False)
     for var in ("MKM_DB_HOST", "MKM_DB_PORT", "MKM_DB_NAME", "MKM_DB_USER", "MKM_DB_PASSWORD"):
@@ -48,17 +63,7 @@ def test_per_part_env_overrides(monkeypatch):
     monkeypatch.setenv("MKM_DB_USER", "svc")
     monkeypatch.setenv("MKM_DB_PASSWORD", "secret")
     mod = importlib.reload(dbcfg)
-    try:
-        assert mod.get_database_url() == "postgresql+psycopg2://svc:secret@pg.internal:6000/mkmdb"
-    finally:
-        # DB_HOST etc. are bound at import time, so the override leaks into the
-        # module unless we clear the env BEFORE reloading. monkeypatch only restores
-        # env at teardown — after this finally — so clear it here, else every later
-        # pg test builds an engine pointing at pg.internal.
-        for _var in ("MKM_DB_HOST", "MKM_DB_PORT", "MKM_DB_NAME",
-                     "MKM_DB_USER", "MKM_DB_PASSWORD"):
-            monkeypatch.delenv(_var, raising=False)
-        importlib.reload(dbcfg)  # restore module-level defaults with the env cleared
+    assert mod.get_database_url() == "postgresql+psycopg2://svc:secret@pg.internal:6000/mkmdb"
 
 
 def test_repo_backend_default_is_file(monkeypatch):
