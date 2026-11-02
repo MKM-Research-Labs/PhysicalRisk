@@ -28,7 +28,6 @@ and generate_rloan_report convenience function.
 
 import pytest
 
-
 # ===========================================================================
 # RLoanTitlePage
 # ===========================================================================
@@ -61,8 +60,9 @@ class TestRLoanTitlePage:
         assert isinstance(elements, list)
 
     def test_extracts_mortgage_id(self, sample_property_data, sample_mortgage_data):
-        from reports.rloan.rloan_page_01_title import RLoanTitlePage
         from reportlab.platypus import Paragraph
+
+        from reports.rloan.rloan_page_01_title import RLoanTitlePage
         page = RLoanTitlePage()
         elements = page.generate_elements(sample_property_data, sample_mortgage_data)
         # Find paragraph elements and check for mortgage ID text
@@ -74,8 +74,9 @@ class TestRLoanTitlePage:
         assert "MORT-test0001" in full_text
 
     def test_table_elements_included(self, sample_property_data, sample_mortgage_data):
-        from reports.rloan.rloan_page_01_title import RLoanTitlePage
         from reportlab.platypus import Table
+
+        from reports.rloan.rloan_page_01_title import RLoanTitlePage
         page = RLoanTitlePage()
         elements = page.generate_elements(sample_property_data, sample_mortgage_data)
         tables = [e for e in elements if isinstance(e, Table)]
@@ -141,8 +142,9 @@ class TestRLoanReportGenerator:
 
     def test_generate_report_returns_path(self, tmp_path,
                                           sample_property_data, sample_mortgage_data):
-        from reports.rloan.rloan_generator import RLoanReportGenerator
         from pathlib import Path
+
+        from reports.rloan.rloan_generator import RLoanReportGenerator
         gen = RLoanReportGenerator(output_dir=tmp_path)
         result = gen.generate_report(
             sample_property_data, sample_mortgage_data,
@@ -168,8 +170,9 @@ class TestGenerateMortgageReport:
 
     def test_convenience_function_returns_path(self, tmp_path,
                                                 sample_property_data, sample_mortgage_data):
-        from reports.rloan.rloan_generator import generate_rloan_report
         from pathlib import Path
+
+        from reports.rloan.rloan_generator import generate_rloan_report
         result = generate_rloan_report(
             sample_property_data, sample_mortgage_data,
             output_dir=tmp_path

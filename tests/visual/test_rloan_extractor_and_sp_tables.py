@@ -25,7 +25,6 @@ import pytest
 
 from visual.utils.data_extractors import rloan_extractor as rx
 
-
 # ---------------------------------------------------------------------------
 # extract_rloan_info
 # ---------------------------------------------------------------------------

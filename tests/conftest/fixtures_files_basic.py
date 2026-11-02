@@ -28,10 +28,17 @@ from pathlib import Path
 import pytest
 
 from data import (
-    SAMPLE_GAUGE, SAMPLE_GAUGE_2, SAMPLE_GAUGE_INACTIVE,
-    SAMPLE_MORTGAGE, SAMPLE_MORTGAGE_2, SAMPLE_MORTGAGE_DELINQUENT,
-    SAMPLE_PROPERTY, SAMPLE_PROPERTY_2, SAMPLE_PROPERTY_TX,
-    SAMPLE_STORM, SAMPLE_TIMESERIES,
+    SAMPLE_GAUGE,
+    SAMPLE_GAUGE_2,
+    SAMPLE_GAUGE_INACTIVE,
+    SAMPLE_MORTGAGE,
+    SAMPLE_MORTGAGE_2,
+    SAMPLE_MORTGAGE_DELINQUENT,
+    SAMPLE_PROPERTY,
+    SAMPLE_PROPERTY_2,
+    SAMPLE_PROPERTY_TX,
+    SAMPLE_STORM,
+    SAMPLE_TIMESERIES,
 )
 
 
@@ -139,8 +146,9 @@ def populated_data_dir(
     # Imported lazily (not at module top): db_helpers pulls in ``database``, whose
     # transitive ``import helpers`` would otherwise shadow the tests' own helpers
     # module if loaded before conftest caches it (see tests/conftest.py).
-    import database
     from db_helpers import tmp_catchment
+
+    import database
 
     seam_root = temp_data_dir / "_seam"
     with tmp_catchment(seam_root):

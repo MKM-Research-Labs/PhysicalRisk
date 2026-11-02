@@ -174,9 +174,9 @@ class TestSeamRoundTrip:
         assert doc["metadata"]["num_gauges"] == 0
 
     def test_a_calibrated_catchment_round_trips_through_the_seam(self, tmp_path):
-        import database
         from db_helpers import tmp_catchment
 
+        import database
         from models.frequency import calibrate_and_save
 
         with tmp_catchment(tmp_path):
@@ -193,9 +193,9 @@ class TestSeamRoundTrip:
         assert restored.provenance.provenance_class is ProvenanceClass.GENERATOR_DERIVED
 
     def test_an_unreadable_gauge_is_skipped_not_fatal(self, tmp_path):
-        import database
         from db_helpers import tmp_catchment
 
+        import database
         from models.frequency import calibrate_catchment
 
         with tmp_catchment(tmp_path):
@@ -214,9 +214,9 @@ class TestFamilyIsRecorded:
     """Stage 2: the persisted document carries the selected family per gauge."""
 
     def test_each_gauge_records_its_family(self, tmp_path):
-        import database
         from db_helpers import tmp_catchment
 
+        import database
         from models.frequency import calibrate_catchment
 
         with tmp_catchment(tmp_path):
@@ -234,9 +234,9 @@ class TestFamilyIsRecorded:
     def test_the_family_block_is_json_serialisable(self, tmp_path):
         import json
 
-        import database
         from db_helpers import tmp_catchment
 
+        import database
         from models.frequency import calibrate_catchment
 
         with tmp_catchment(tmp_path):
@@ -260,6 +260,7 @@ class TestUnreadableGaugeRecordsAreSkipped:
     @staticmethod
     def _calibrate_with(monkeypatch, tmp_path, ids, getter):
         from db_helpers import tmp_catchment
+
         import database
         from models.frequency import calibrate_catchment
 

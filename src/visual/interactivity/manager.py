@@ -28,24 +28,23 @@ from config import config
 
 from ..theme_css import theme_html
 from .backend_handler import BackendHandler
+from .cdm_review import CdmReviewControl
 from .context_menus import ContextMenuHandler
-from .notifications import create_notification_system
-from .startup import StartupPreloader
-
-from .storm.stormportfolio import StormPortfolioPanel
 from .gauge.gaugeha import GaugeGraphInteraction
 from .gauge.gaugehc import GaugeHazardCurve
 from .gauge.gaugepdf import GaugePDFPanel
 from .gauge.gaugesa import GaugeStormAnalysis
+from .notifications import create_notification_system
 from .property.loanpricer import LoanPricerPanel
-from .property.rloandetail import RLoanDetailPanel
 from .property.propertydetails import PropertyDetailsPanel
 from .property.propertyhc import PropertyHazardCurvePanel
 from .property.propertypdf import PropertyPDFPanel
 from .property.propertysa import PropertyStormAnalysis
-from .trading.tradingdesk import TradingDeskPanel
+from .property.rloandetail import RLoanDetailPanel
+from .startup import StartupPreloader
+from .storm.stormportfolio import StormPortfolioPanel
 from .trading.td_main_map import MainMapFS01
-from .cdm_review import CdmReviewControl
+from .trading.tradingdesk import TradingDeskPanel
 
 
 class InteractivityManager:

@@ -21,12 +21,12 @@
 """Tests for src/reports/port/data_loader.py — _load and _count_dir primitives."""
 
 import json
-import pytest
 from pathlib import Path
 from unittest.mock import patch
 
-from reports.port.data_loader import DataLoaderMixin, _count_dir, _load
+import pytest
 
+from reports.port.data_loader import DataLoaderMixin, _count_dir, _load
 
 # ---------------------------------------------------------------------------
 # _load()

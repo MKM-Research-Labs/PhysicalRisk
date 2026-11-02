@@ -27,7 +27,7 @@ generator prices it unchanged. This package builds those input dirs by
 re-stamping the flood timeseries with the peril outcome.
 """
 
-from .peril_ts import PerilTimeseriesGenerator
 from ._commercial import CommercialPerilTimeseriesGenerator
+from .peril_ts import PerilTimeseriesGenerator
 
 __all__ = ["PerilTimeseriesGenerator", "CommercialPerilTimeseriesGenerator"]

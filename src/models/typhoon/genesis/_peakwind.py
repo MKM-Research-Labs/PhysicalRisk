@@ -28,7 +28,6 @@ from scipy.special import ndtri
 
 from config.typhoon import PeakWindParams, ScenarioFamily
 
-
 # ===========================================================================
 # Peak-wind hybrid distribution — spec eq. (14)
 # ===========================================================================

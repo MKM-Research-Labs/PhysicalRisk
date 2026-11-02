@@ -27,12 +27,12 @@ including error handling, incremental summary updates, and memory cleanup.
 
 import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
+from db_helpers import file_backend_only, tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)
@@ -158,6 +158,7 @@ class TestBatchTrainClassifiers:
         with pytest.raises(FileNotFoundError, match="gauge portfolio"):
             batch_train_classifiers(input_dir, tmp_path / "out")
 
+    @file_backend_only("a gauge with no ID; Postgres keys gauges on it")
     def test_no_valid_gauges(self, tmp_path):
         from port.src.stressm.batch_train import batch_train_classifiers
         input_dir = tmp_path / "input"

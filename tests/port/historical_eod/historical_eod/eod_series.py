@@ -24,14 +24,15 @@ from datetime import date
 from unittest.mock import patch
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
+
 from .conftest import (
-    generate_historical_eod_series,
     _business_days,
     _make_gaugehc,
     _make_trade,
+    generate_historical_eod_series,
 )
 
 

@@ -26,16 +26,15 @@ ghc_historical, ghc_stress) into a single IIFE and attaches it to
 the Folium map.
 """
 
-from typing import Any, Dict
 
-import folium
 
-from . import ghc_hazard, ghc_return, ghc_prs, ghc_historical, ghc_stress
-from .panel_create import get_create_panel_js
-from .panel_nav import get_nav_js
 from visual.interactivity._jsbundle import js_static
 from visual.interactivity.panel_mixin import FoliumPanelMixin
+
+from . import ghc_hazard, ghc_historical, ghc_prs, ghc_return, ghc_stress
+from .panel_create import get_create_panel_js
 from .panel_data import get_data_js
+from .panel_nav import get_nav_js
 
 
 class GaugeHazardCurve(FoliumPanelMixin):

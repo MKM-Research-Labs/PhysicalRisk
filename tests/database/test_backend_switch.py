@@ -70,6 +70,7 @@ def test_port_ensure_backend_only_binds_when_unbound(monkeypatch):
     """WP2.5: the port run binds the configured backend itself, but never clobbers
     a backend a caller (test fixture / web app) already chose."""
     from app.commands.port.orchestrator import _ensure_backend
+
     from database import InMemoryRepository, backend_configured, configure_backend
 
     # Already bound → no-op, the caller's backend stays.

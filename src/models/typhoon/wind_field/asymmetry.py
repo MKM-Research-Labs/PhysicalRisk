@@ -39,7 +39,6 @@ motion. The NH convention (peak on the right of motion) corresponds to
 
 import math
 
-
 __all__ = [
     "KMH_TO_MS",
     "compute_epsilon",

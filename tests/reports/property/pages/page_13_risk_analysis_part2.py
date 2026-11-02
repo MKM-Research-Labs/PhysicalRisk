@@ -23,7 +23,7 @@
 Interest rate branches, DTI branches, overall risk levels, and helper methods.
 """
 
-from .conftest import make_property, make_mortgage
+from .conftest import make_mortgage, make_property
 
 
 class TestInterestRateBranches:

@@ -38,9 +38,15 @@ import numpy as np
 
 from config.port import (
     LOG_END as _LOG_END,
+)
+from config.port import (
     LOG_EPS as _LOG_EPS,
-    NUM_CLASSIFIER_HOURS as _NUM_HOURS,
+)
+from config.port import (
     NEARMISS_COUNT as _NEARMISS_COUNT,
+)
+from config.port import (
+    NUM_CLASSIFIER_HOURS as _NUM_HOURS,
 )
 
 from ._nearmiss import _generate_nearmiss_vectors
@@ -101,7 +107,9 @@ def build_gauge_training_set(
         real storms, which come first), ``label_level`` and ``label_name``.
     """
     from port.src.storm_multi.models.sequence_response import (
-        SequenceGaugeParams, compute_sequence_gauge_response, _make_precip_series,
+        SequenceGaugeParams,
+        _make_precip_series,
+        compute_sequence_gauge_response,
     )
 
     gid = gauge["gauge_id"]

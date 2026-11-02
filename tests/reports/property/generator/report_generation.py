@@ -25,7 +25,6 @@ from unittest.mock import MagicMock, patch
 
 from .conftest import make_generator, minimal_property
 
-
 # ===========================================================================
 # TestGenerateReport
 # ===========================================================================

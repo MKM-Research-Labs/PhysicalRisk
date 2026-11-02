@@ -27,7 +27,6 @@ from reportlab.lib.units import inch
 from reportlab.platypus import Table
 
 from config.theme import colour
-from reports.theme_pdf import pdf_colour
 from reports.port.styles import (
     ALT_ROWS_AMBER,
     ALT_ROWS_BLUE,
@@ -43,7 +42,7 @@ from reports.port.styles import (
     LIGHT_RED,
     StylesMixin,
 )
-
+from reports.theme_pdf import pdf_colour
 
 # ---------------------------------------------------------------------------
 # Colour constants

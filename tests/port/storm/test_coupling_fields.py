@@ -35,11 +35,11 @@ import numpy as np
 import pytest
 
 from config.port import DEFAULT_INTENSITY_WEIGHTS
+from port.src.storm_multi.core.data_structures import StormSequence
 from port.src.storm_multi.generators.batch_generator import (
     BASE_INTENSITY_PARAMS,
     generate_event_set,
 )
-from port.src.storm_multi.core.data_structures import StormSequence
 
 
 @pytest.fixture(scope="module")

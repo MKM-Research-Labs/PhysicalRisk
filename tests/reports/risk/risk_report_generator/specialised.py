@@ -21,7 +21,9 @@
 """Tests for specialised report methods, utility methods and header/footer."""
 
 from unittest.mock import MagicMock
+
 import pytest
+
 from .conftest import _make_generator
 
 

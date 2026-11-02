@@ -23,7 +23,7 @@
 import pytest
 
 from database import artifacts
-from database._helpers import records, matches
+from database._helpers import matches, records
 from database.file_repo import FileRepository
 from database.memory_repo import InMemoryRepository
 
@@ -45,6 +45,7 @@ def test_has_collection_file_and_memory(tmp_path):
 def test_load_or_propagates_corrupt_json(tmp_path):
     # absence -> default; corruption is NOT swallowed (callers decide tolerance)
     import json
+
     import database
     p = tmp_path / "thames" / "fire" / "fire.json"
     p.parent.mkdir(parents=True)

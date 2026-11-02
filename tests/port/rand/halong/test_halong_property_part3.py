@@ -94,7 +94,8 @@ class TestResilienceModule:
 
     def test_compute_bri_rating(self):
         from port.rand.halong.property.property_random.resilience import (
-            compute_bri_rating, generate_resilience,
+            compute_bri_rating,
+            generate_resilience,
         )
         prop = self._scaffold()
         resilience = generate_resilience(prop)
@@ -138,7 +139,8 @@ class TestResilienceModule:
 
     def test_apply_flood_resilience_score_to_property(self):
         from port.rand.halong.property.property_random.resilience import (
-            apply_flood_resilience_score, generate_resilience,
+            apply_flood_resilience_score,
+            generate_resilience,
         )
         prop = self._scaffold()
         prop["ProtectionMeasures"] = {"ResilienceMeasures": generate_resilience(prop)}

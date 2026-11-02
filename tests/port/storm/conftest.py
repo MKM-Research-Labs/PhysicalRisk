@@ -20,6 +20,7 @@
 
 """Shared fixtures for spatial correlation tests."""
 
+# isort: off
 import numpy as np
 import pytest
 
@@ -33,6 +34,7 @@ _DATA_DIR = str(_pl.Path(__file__).parents[3] / "data")
 if _DATA_DIR not in _sys.path:
     _sys.path.insert(0, _DATA_DIR)
 from catch.thames import GAUGE_POINTS as THAMES_GAUGE_POINTS  # noqa: E402
+# isort: on
 
 
 # ---------------------------------------------------------------------------

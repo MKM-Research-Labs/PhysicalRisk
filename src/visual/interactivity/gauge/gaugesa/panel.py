@@ -25,13 +25,12 @@ Composes sub-module JavaScript (gsa_distribution, gsa_timeline)
 into a single IIFE and attaches it to the Folium map.
 """
 
-from typing import Any, Dict
 
-import folium
 
 from config.format import gauge_title_js as _gauge_title_js
 from visual.interactivity._jsbundle import js_static
 from visual.interactivity.panel_mixin import FoliumPanelMixin
+
 from . import gsa_distribution, gsa_timeline
 
 

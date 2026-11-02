@@ -29,6 +29,7 @@ from typing import Any, Dict, List
 from reportlab.platypus import Paragraph, Spacer, Table
 
 from config.format import property_title_py
+
 from .property_page_00_base import PropertyBasePage
 
 

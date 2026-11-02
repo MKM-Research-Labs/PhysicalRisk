@@ -21,7 +21,7 @@
 """Coverage tests for the loan-pricing coupon helpers — _truthy numeric/string
 branches and the _peril_leg non-numeric / off / negative paths."""
 
-from routes._loan_pricing._coupon import _truthy, _peril_leg
+from routes._loan_pricing._coupon import _peril_leg, _truthy
 
 
 class TestTruthy:

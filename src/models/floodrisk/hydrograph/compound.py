@@ -20,21 +20,19 @@
 
 """Compound property hydrograph orchestrator."""
 
-import logging
 from typing import Dict, List, Optional
 
 import numpy as np
 
 from config.models import (
-    HYDRO_ALPHA,
     DEFAULT_IMPERV_FRACTION,
+    HYDRO_ALPHA,
     STORM_SIMULATION_HOURS,
 )
 from models.floodrisk import relative_elevation
-from .gamma import gamma_shape_array
+
 from .pulse import build_pulse_gauge_hydrograph
 from .saturation import compute_saturation_factor, superimpose_pulses
-from .infiltration import apply_infiltration
 
 
 def build_compound_property_hydrograph(

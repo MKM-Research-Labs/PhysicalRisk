@@ -29,10 +29,10 @@ import json
 import pytest
 
 from .conftest import (
-    CLAIM_PROP_ID,
-    CLAIM_PROP_FLOOD_DATA,
-    CLAIM_PROPERTY_JSON,
     CLAIM_MORTGAGE_JSON,
+    CLAIM_PROP_FLOOD_DATA,
+    CLAIM_PROP_ID,
+    CLAIM_PROPERTY_JSON,
     CLAIM_SEQUENCES_JSON,
 )
 

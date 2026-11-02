@@ -35,8 +35,8 @@ from config.xva import XvaConfig
 from models.xva import HazardCurve, PrsTrade, ZeroCurve
 from models.xva import monte_carlo as mc
 from models.xva.capital import CounterpartyProfile, capital
-from models.xva.integrals import kernel
 from models.xva.inputs import Market
+from models.xva.integrals import kernel
 from models.xva.netting import Csa, NettingSet
 from models.xva.valuation import fair_spread
 

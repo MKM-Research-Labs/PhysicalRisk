@@ -26,9 +26,8 @@ Tests for PopupBuilder HTML element methods:
 - create_data_row
 """
 
-from visual.popups.popup_builder import PopupBuilder
 from config.theme import colour
-
+from visual.popups.popup_builder import PopupBuilder
 
 # ===========================================================================
 # Instantiation

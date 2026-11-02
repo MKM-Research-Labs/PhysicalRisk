@@ -25,7 +25,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from tests.routes.propertyts._helpers import STORM_ID, SEQ_ID, PROP_ID
+from tests.routes.propertyts._helpers import PROP_ID, SEQ_ID, STORM_ID
 
 
 def _make_property_prs(swap_id, gauge_id, property_id, notional,

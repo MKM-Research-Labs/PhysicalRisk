@@ -33,8 +33,8 @@ class TestValidateFullChain:
     """validate_full_chain: end-to-end consistency check."""
 
     def test_empty_manifest(self):
-        from lineage.validation import validate_full_chain
         from lineage.manifest import DEPENDENCY_GRAPH, OPTIONAL_STEPS
+        from lineage.validation import validate_full_chain
         with patch("lineage.validation.load_manifest", return_value=_make_manifest({})):
             result = validate_full_chain()
         assert not result["is_consistent"]

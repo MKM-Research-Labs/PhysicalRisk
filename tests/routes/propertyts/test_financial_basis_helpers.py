@@ -35,8 +35,9 @@ class TestAccumulateSynthData:
     def test_groups_by_synth_gauge_and_skips_non_prop(self, tmp_path):
         """Properties are grouped by their controlling synthetic gauge; stray
         non-``PROP-`` records in the collection are skipped (line 144)."""
-        import database
         from db_helpers import tmp_catchment
+
+        import database
         with tmp_catchment(tmp_path, catchment=fb.config.catchment_id):
             catchment = database.active_catchment()
             database.save_property_timeseries(catchment, "PROP-001", {
@@ -68,8 +69,9 @@ class TestLoadGaugeThresholds:
             assert fb._load_gauge_thresholds() == {}
 
     def test_valid_file_parsed(self, tmp_path):
-        import database
         from db_helpers import tmp_catchment
+
+        import database
         with tmp_catchment(tmp_path, catchment=fb.config.catchment_id):
             database.save_gauge_hazard_curves(database.active_catchment(), {
                 "hazard_curves": {"G1": {"gauge_name": "One",
@@ -93,8 +95,9 @@ class TestLoadStormGaugePeaks:
         assert fb._load_storm_gauge_peaks("STORM-X") == {}
 
     def test_valid_file_parsed(self, tmp_path):
-        import database
         from db_helpers import tmp_catchment
+
+        import database
         with tmp_catchment(tmp_path, catchment=fb.config.catchment_id):
             database.save_stress_storm(database.active_catchment(), "STORM-1", {
                 "gauge_responses": [{"gauge_id": "G1", "peak_level_m": 2.5,

@@ -27,11 +27,9 @@ used across all split e2e test files.
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Panel IDs
 # ---------------------------------------------------------------------------
-
 # One list, defined in _helpers.py. This module's cleanup additionally clears
 # notifications, so it builds its own snippet from the shared ids.
 from tests.e2e._helpers import PANEL_IDS_TO_CLOSE  # noqa: E402

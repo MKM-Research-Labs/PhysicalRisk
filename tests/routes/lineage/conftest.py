@@ -37,7 +37,6 @@ import shutil
 
 import pytest
 
-
 # Real inputs the blotter/delta engines read but never mutate — copied into the
 # scratch dir so revaluation behaves exactly as against production data.
 _READONLY_INPUTS = ("gaugehc.json", "gauge.json", "property.json")

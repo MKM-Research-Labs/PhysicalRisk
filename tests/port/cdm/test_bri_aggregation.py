@@ -34,12 +34,14 @@ Covers:
 import pytest
 
 from port.rand.thames.property.property_random.resilience import (
-    _field_credit, _map_score_to_rating,
-    BASEMENT_FLOOD_STRATEGY_CREDIT, CONTINUITY_PLUS_THRESHOLD,
+    BASEMENT_FLOOD_STRATEGY_CREDIT,
+    CONTINUITY_PLUS_THRESHOLD,
     HAZARD_RELEVANT_FIELDS,
     RATING_THRESHOLDS,
     RESILIENCE_LEVEL_CREDIT,
     SECTION_WEIGHTS,
+    _field_credit,
+    _map_score_to_rating,
     compute_bri_rating,
     distribution_summary,
     recalibrate_thresholds_from_scores,
@@ -47,7 +49,6 @@ from port.rand.thames.property.property_random.resilience import (
     score_section,
     validate_weights,
 )
-
 
 # ---------------------------------------------------------------------------
 # _field_credit

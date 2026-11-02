@@ -29,15 +29,14 @@ catchment ``_ea_zone_from_elevation`` helpers — must agree.
 
 import pytest
 
-from port.src.property.main.locations import _zone_from_offset as zone_locations
-from port.src.property.ts.flood.process import FloodMixin
-from port.rand.thames.property.property_random.helpers import (
-    _ea_zone_from_elevation as zone_thames,
-)
 from port.rand.halong.property.property_random.helpers import (
     _ea_zone_from_elevation as zone_halong,
 )
-
+from port.rand.thames.property.property_random.helpers import (
+    _ea_zone_from_elevation as zone_thames,
+)
+from port.src.property.main.locations import _zone_from_offset as zone_locations
+from port.src.property.ts.flood.process import FloodMixin
 
 # (offset_m, expected_zone) — boundaries are half-open [lo, hi).
 _CASES = [

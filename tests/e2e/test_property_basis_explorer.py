@@ -31,8 +31,8 @@ import pytest
 from tests.e2e.helpers import (
     close_all_panels,
     open_property_panel,
-    switch_to_basis_explorer_tab,
     switch_basis_sub_tab,
+    switch_to_basis_explorer_tab,
 )
 
 

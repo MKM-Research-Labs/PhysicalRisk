@@ -31,9 +31,10 @@ Run `python phys.py port --stressm`  to retrain GBM flood classifiers.
 
 import json
 import pathlib
+import sys
+
 import pytest
 
-import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parents[2]))
 from config import PortfolioConfig
 

@@ -22,12 +22,11 @@
 
 import logging
 
-from config.port import EVENT_WINDOW_HOURS as STORM_HOURS  # 7-day storm window
-
 from flask import jsonify
 
 import database
 from config import config
+from config.port import EVENT_WINDOW_HOURS as STORM_HOURS  # 7-day storm window
 
 logger = logging.getLogger(__name__)
 

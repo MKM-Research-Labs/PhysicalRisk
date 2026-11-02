@@ -37,6 +37,7 @@ class TestDependencyGraphIntegrity:
         dependency of the consuming step.  If this fails, the lineage
         staleness check will compare against the wrong producer hash."""
         from graphlib import TopologicalSorter
+
         from lineage.manifest import DEPENDENCY_GRAPH, EXTERNAL_INPUTS, STEP_IO
 
         topo_order = list(TopologicalSorter(DEPENDENCY_GRAPH).static_order())
@@ -100,9 +101,10 @@ class TestResolveDataDir:
     """Cover the ImportError fallback in _resolve_data_dir."""
 
     def test_fallback_when_config_missing(self, monkeypatch):
-        from lineage.validation._helpers import _resolve_data_dir
         # Patch the function-local import to fail
         from unittest.mock import patch as _p
+
+        from lineage.validation._helpers import _resolve_data_dir
         with _p("lineage.validation._helpers.Path") as mock_path:
             # Just force ImportError when config is imported
             import builtins
@@ -177,6 +179,7 @@ class TestCheckInputsFreshEdgeCases:
             },
         })
         from unittest.mock import patch as _patch
+
         import lineage.validation as _val
         with _patch.object(_val, "load_manifest", return_value=manifest), \
              _patch.object(_val, "STEP_IO", {
@@ -201,6 +204,7 @@ class TestCheckInputsFreshEdgeCases:
         })
         (tmp_path / "gauge.json").write_text('{"x": 1}')
         from unittest.mock import patch as _patch
+
         import lineage.validation as _val
         with _patch.object(_val, "load_manifest", return_value=manifest), \
              _patch("lineage.validation._helpers._resolve_data_dir", return_value=tmp_path):
@@ -220,8 +224,9 @@ class TestCheckInputsFreshEdgeCases:
                 "outputs": {"property.json": {"hash": "def"}},
             },
         })
-        from unittest.mock import patch as _patch
         from pathlib import Path as _P
+        from unittest.mock import patch as _patch
+
         import lineage.validation as _val
         fake_dir = _P("/tmp/nonexistent_lineage_test_dir")
         with _patch.object(_val, "load_manifest", return_value=manifest), \
@@ -245,6 +250,7 @@ class TestCheckInputsFreshEdgeCases:
         })
         (tmp_path / "gauge.json").write_text('{"x": 1}')
         from unittest.mock import patch as _patch
+
         import lineage.validation as _val
         with _patch.object(_val, "load_manifest", return_value=manifest), \
              _patch("lineage.validation._helpers._resolve_data_dir", return_value=tmp_path):

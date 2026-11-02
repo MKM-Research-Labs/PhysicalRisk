@@ -24,9 +24,10 @@ Verifies that all modules import, instantiate, and expose their basic API.
 No file I/O required — tests run entirely in-memory.
 """
 
-import pytest
-import folium
 from unittest.mock import Mock
+
+import folium
+import pytest
 
 
 class TestModuleImports:
@@ -55,7 +56,7 @@ class TestModuleImports:
         assert ContextMenuHandler is not None
 
     def test_utils_imports(self):
-        from visual.utils import DataFormatter, RiskAssessor, ColorSchemes
+        from visual.utils import ColorSchemes, DataFormatter, RiskAssessor
         assert DataFormatter is not None
         assert RiskAssessor is not None
         assert ColorSchemes is not None

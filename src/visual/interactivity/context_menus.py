@@ -29,7 +29,7 @@ from typing import Any, Dict, List
 
 import folium
 
-from visual.interactivity._jsbundle import js_static, css_static
+from visual.interactivity._jsbundle import css_static, js_static
 
 # Default menu configurations
 DEFAULT_PROPERTY_MENU = [

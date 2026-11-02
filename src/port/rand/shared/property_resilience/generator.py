@@ -24,12 +24,18 @@ checklist from period/condition/zone priors, plus a sanity-check sampler."""
 import random
 from typing import Any, Dict, List, Optional
 
-from .generator_constants import (
-    _PERIOD_BASE_PROB, _DEFAULT_PERIOD_PROB, _CONDITION_MULTIPLIER,
-    _DEFAULT_CONDITION_MULT, _MODERN_ONLY_FIELDS, _FLOOD_PROTECTION_FIELDS,
-    _FLOOD_ZONE_UPLIFT, _ALWAYS_LIKELY_TRUE, SECTION_FIELDS,
-)
 from .bri_rating import compute_bri_rating, distribution_summary
+from .generator_constants import (
+    _ALWAYS_LIKELY_TRUE,
+    _CONDITION_MULTIPLIER,
+    _DEFAULT_CONDITION_MULT,
+    _DEFAULT_PERIOD_PROB,
+    _FLOOD_PROTECTION_FIELDS,
+    _FLOOD_ZONE_UPLIFT,
+    _MODERN_ONLY_FIELDS,
+    _PERIOD_BASE_PROB,
+    SECTION_FIELDS,
+)
 
 
 def _level_from_score(score: float) -> str:
@@ -38,10 +44,14 @@ def _level_from_score(score: float) -> str:
     Bucket boundaries: 0-0.2 Not assessed, 0.2-0.4 Partial, 0.4-0.6 Meets minimum,
     0.6-0.8 Enhanced, 0.8-1.0 Verified.
     """
-    if score < 0.20: return "Not assessed"
-    if score < 0.40: return "Partial"
-    if score < 0.60: return "Meets minimum"
-    if score < 0.80: return "Enhanced"
+    if score < 0.20:
+        return "Not assessed"
+    if score < 0.40:
+        return "Partial"
+    if score < 0.60:
+        return "Meets minimum"
+    if score < 0.80:
+        return "Enhanced"
     return "Verified"
 
 

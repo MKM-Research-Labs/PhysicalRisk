@@ -39,6 +39,13 @@ import io
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
+from port.cdm.oed_export._helpers import (
+    _bri_user_defs,
+    _currency,
+    _lookup,
+    _perils_covered,
+    _street_address,
+)
 from port.cdm.oed_export._lookups import (
     _BUILDING_CONDITION,
     _CLADDING,
@@ -51,13 +58,6 @@ from port.cdm.oed_export._lookups import (
     _SOIL_TYPE,
     _TERRAIN_ROUGHNESS,
     _WINDOW_PROTECTION,
-)
-from port.cdm.oed_export._helpers import (
-    _bri_user_defs,
-    _currency,
-    _lookup,
-    _perils_covered,
-    _street_address,
 )
 
 __all__ = [

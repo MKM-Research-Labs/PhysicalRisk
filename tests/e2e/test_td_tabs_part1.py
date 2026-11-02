@@ -26,8 +26,7 @@ Covers: Market State, FS01 Risk, Aggregate Map.
 
 import pytest
 
-from tests.e2e.conftest import td_close_all_panels, td_open_trading_desk, td_close_trading_desk
-
+from tests.e2e.conftest import td_close_all_panels, td_close_trading_desk, td_open_trading_desk
 
 # ---------------------------------------------------------------------------
 # Market State tab

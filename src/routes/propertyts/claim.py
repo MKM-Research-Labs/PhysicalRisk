@@ -33,6 +33,7 @@ from flask import Response, jsonify
 
 import database
 from config import config
+
 from . import propertyts_bp
 
 logger = logging.getLogger(__name__)

@@ -28,12 +28,9 @@ import json
 
 import pytest
 
-from tests._dataset import full_dataset_only
-
 from config.port import NUM_BUSINESS_DAYS
-
-from tests.data.conftest import PRS_DIR, EOD_DIR, TRADE_MARKS
-
+from tests._dataset import full_dataset_only
+from tests.data.conftest import EOD_DIR, PRS_DIR, TRADE_MARKS
 
 # ---------------------------------------------------------------------------
 # PRS trade files (data/input/<catchment>/prs/)

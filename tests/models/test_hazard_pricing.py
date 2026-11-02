@@ -120,7 +120,7 @@ class TestHazardPointsToCreditCurve:
 class TestCreateCdsPricingEngines:
 
     def test_returns_dict_with_engines(self):
-        from models.hazard.pricing import hazard_points_to_credit_curve, create_cds_pricing_engines
+        from models.hazard.pricing import create_cds_pricing_engines, hazard_points_to_credit_curve
         date = _setup_date()
         credit_curve = hazard_points_to_credit_curve(
             [0.05] * 5, [1, 2, 3, 4, 5], date
@@ -133,7 +133,7 @@ class TestCreateCdsPricingEngines:
         assert "Midpoint" in engines
 
     def test_engines_not_none(self):
-        from models.hazard.pricing import hazard_points_to_credit_curve, create_cds_pricing_engines
+        from models.hazard.pricing import create_cds_pricing_engines, hazard_points_to_credit_curve
         date = _setup_date()
         credit_curve = hazard_points_to_credit_curve(
             [0.03] * 5, [1, 2, 3, 4, 5], date
@@ -173,8 +173,9 @@ class TestCreateHazardRateCurveApproach:
         assert sp2 < sp1
 
     def test_zero_hazard_near_full_survival(self):
-        from models.hazard.pricing import create_hazard_rate_curve_approach
         import math
+
+        from models.hazard.pricing import create_hazard_rate_curve_approach
         date = _setup_date()
         # Very small hazard
         curve = create_hazard_rate_curve_approach(

@@ -20,13 +20,13 @@
 
 """Tests for SequenceGenerator (sequence_generator.py)."""
 
-import pytest
 import numpy as np
+import pytest
 
-from port.src.storm_multi.generators.sequence_generator import SequenceGenerator
-from port.src.storm_multi.core.data_structures import SequenceType, StormSequence
-from catch.thames.storm import BASE_PRECIPITATION_MM as THAMES_BASE_PRECIP
 from catch.halong.storm import BASE_PRECIPITATION_MM as HALONG_BASE_PRECIP
+from catch.thames.storm import BASE_PRECIPITATION_MM as THAMES_BASE_PRECIP
+from port.src.storm_multi.core.data_structures import SequenceType, StormSequence
+from port.src.storm_multi.generators.sequence_generator import SequenceGenerator
 
 
 class TestSequenceGeneratorInit:

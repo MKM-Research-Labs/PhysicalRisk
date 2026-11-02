@@ -26,7 +26,6 @@ and factory functions for portfolio VaR / risk tests.
 
 import json
 
-
 STORM_ID = "STORM-0001"
 SEQ_ID = "STORM-seq0001"
 PROP_ID = "PROP-001"

@@ -22,8 +22,8 @@
 Tests for PropertyLayer._get_flood_frequency_label and _get_property_icon.
 """
 
-import pytest
 import folium
+import pytest
 
 from visual.layer.property_layer.layer import PropertyLayer
 

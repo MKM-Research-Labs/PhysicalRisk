@@ -19,9 +19,11 @@
 # SOFTWARE.
 
 """Shared fixtures for PropertyPopupBuilder tests."""
-import pytest
 import folium
+import pytest
+
 from visual.popups.property_popup.builder import PropertyPopupBuilder
+
 
 @pytest.fixture
 def builder():

@@ -36,7 +36,6 @@ import numpy as np
 from config.typhoon import IntensityParams
 from models.typhoon.data_structures import TyphoonState
 
-
 __all__ = ["update_wind"]
 
 

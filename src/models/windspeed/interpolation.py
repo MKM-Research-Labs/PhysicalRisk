@@ -35,7 +35,6 @@ from typing import List
 from models.typhoon.data_structures import TyphoonState
 from models.typhoon.transitions.compass import signed_compass_delta
 
-
 __all__ = ["interpolate_state_at_hour"]
 
 

@@ -20,11 +20,11 @@
 
 """Tests for src/reports/port/generator.py — PortReportGenerator init and generate."""
 
-import pytest
 from pathlib import Path
 
-from reports.port.generator import PortReportGenerator
+import pytest
 
+from reports.port.generator import PortReportGenerator
 
 # ---------------------------------------------------------------------------
 # __init__

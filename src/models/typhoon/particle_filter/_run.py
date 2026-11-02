@@ -20,19 +20,13 @@
 
 """Particle filter top-level loop and trajectory extraction."""
 
-from datetime import datetime
 from typing import Callable, List, Optional
 
-import numpy as np
-
-from config.typhoon import CatchmentTyphoonConfig, ScenarioFamily
 from models.typhoon.data_structures import (
     TyphoonParticle,
     TyphoonState,
     TyphoonTrajectory,
 )
-from models.typhoon.genesis import sample_genesis, sample_scenario_family
-from models.typhoon.transitions import step
 
 
 class _RunMixin:

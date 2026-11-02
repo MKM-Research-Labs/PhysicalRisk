@@ -62,7 +62,6 @@ from port.rand.thames.property.property_random.resilience import (
     damage_modifier,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

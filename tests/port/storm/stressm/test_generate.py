@@ -23,20 +23,19 @@
 import json
 
 import pytest
+from db_helpers import file_backend_only
 
 import database
-
-from port.src.stressm import (
-    GAUGE_SUMMARY_DIR,
-    SCHEMA_VERSION_SPATIAL,
-    generate_stressm,
-)
 from port.src.storm_multi.utils.serialization import (
     SEQUENCES_FILENAME,
     SUMMARY_FILENAME,
     load_sequences,
 )
-
+from port.src.stressm import (
+    GAUGE_SUMMARY_DIR,
+    SCHEMA_VERSION_SPATIAL,
+    generate_stressm,
+)
 
 # ---------------------------------------------------------------------------
 # generate_stressm — summary dict
@@ -168,6 +167,7 @@ class TestMissingGaugeJson:
 # Lines 198-199: gauge.json exists but all records are invalid (n_all == 0)
 # ---------------------------------------------------------------------------
 
+@file_backend_only("gauges with no ID; Postgres keys gauges on it")
 class TestNoValidGauges:
 
     def test_returns_gracefully_when_all_gauges_invalid(self, tmp_path):

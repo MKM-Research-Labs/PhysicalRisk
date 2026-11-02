@@ -24,8 +24,7 @@ Storm Portfolio panel -- e2e tests: Panel open, Table, Sim, Visual tabs.
 
 import pytest
 
-from .conftest import close_all_storm_panels, open_storm_portfolio, close_storm_portfolio
-
+from .conftest import close_all_storm_panels, close_storm_portfolio, open_storm_portfolio
 
 # ---------------------------------------------------------------------------
 # Panel-level tests

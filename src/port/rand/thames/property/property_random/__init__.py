@@ -35,18 +35,18 @@ Usage:
     value = generators['PropertyValue'](location_info)
 """
 
-from .helpers import _deterministic_prop_id, _ea_zone_from_elevation
-from .metadata import generate_property_metadata
-from .generators import generate_field_value, get_field_generators
+from ..property_location import generate_bedrooms  # noqa: F401
 
 # Re-export functions that consumers access as module attributes
-from ..property_utils import generate_postcode, generate_construction_year  # noqa: F401
-from ..property_location import generate_bedrooms  # noqa: F401
+from ..property_utils import generate_construction_year, generate_postcode  # noqa: F401
 from ..property_valuation import (  # noqa: F401
-    calculate_property_value,
-    calculate_property_area,
     calculate_insurance_premium,
+    calculate_property_area,
+    calculate_property_value,
 )
+from .generators import generate_field_value, get_field_generators
+from .helpers import _deterministic_prop_id, _ea_zone_from_elevation
+from .metadata import generate_property_metadata
 
 __all__ = [
     '_deterministic_prop_id',

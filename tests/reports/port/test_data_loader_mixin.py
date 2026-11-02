@@ -21,8 +21,9 @@
 """Tests for src/reports/port/data_loader.py — DataLoaderMixin._load_all() and _load_gaugehd_baselines()."""
 
 import json
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from reports.port.data_loader import DataLoaderMixin
 
@@ -31,7 +32,6 @@ from .test_data_loader_primitives import (
     _write_minimal_data,
     input_dir,  # re-export fixture
 )
-
 
 # ---------------------------------------------------------------------------
 # DataLoaderMixin._load_all()

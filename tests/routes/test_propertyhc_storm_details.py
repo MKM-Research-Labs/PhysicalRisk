@@ -31,7 +31,6 @@ import pytest
 
 from config import config
 
-
 SAMPLE_WITH_STORM_DETAILS = {
     "metadata": {
         "generated_at": "2026-01-01T00:00:00",

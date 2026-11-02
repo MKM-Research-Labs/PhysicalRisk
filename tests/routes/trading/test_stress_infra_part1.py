@@ -127,6 +127,7 @@ class TestRunStressEdgeCases:
 # Coverage expansion — _helpers.py lines 37-38, 67, 86-97
 # ===========================================================================
 
+@pytest.mark.usefixtures("trading_catchment")
 class TestLoadStressStormsViaSeam:
     """_load_stress_storms reads the current stress index through the seam."""
 

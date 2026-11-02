@@ -33,12 +33,12 @@ def register_blueprints(app: Flask) -> None:
     from .gauges import gauges_bp
     from .guides import guides_bp
     from .health import health_bp
-    from .theme import theme_bp
     from .perils import perils_bp
     from .properties import properties_bp
     from .propertyhc import propertyhc_bp
     from .propertyts import propertyts_bp
     from .prs import prs_bp
+    from .theme import theme_bp
     from .trading import trading_bp
     from .visualization import visualization_bp
 

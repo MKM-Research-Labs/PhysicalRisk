@@ -28,7 +28,6 @@ from reports.port.sections import AnalysisSectionsMixin
 from reports.port.sections_portfolio import PortfolioSectionsMixin
 from reports.port.styles import StylesMixin
 
-
 # ---------------------------------------------------------------------------
 # Concrete helper that mixes StylesMixin + both section mixins
 # ---------------------------------------------------------------------------

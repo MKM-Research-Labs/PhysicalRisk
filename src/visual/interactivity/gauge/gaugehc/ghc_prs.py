@@ -31,7 +31,7 @@ Sub-modules:
 - ghc_prs_commit: Trade commit API call
 """
 
-from . import ghc_prs_rates, ghc_prs_controls, ghc_prs_pricer, ghc_prs_commit
+from . import ghc_prs_commit, ghc_prs_controls, ghc_prs_pricer, ghc_prs_rates
 
 
 def get_js() -> str:

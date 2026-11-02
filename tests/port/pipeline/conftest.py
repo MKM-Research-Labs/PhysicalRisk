@@ -26,7 +26,6 @@ import pytest
 from config import config
 
 
-
 @pytest.fixture
 def port_admin_pw(monkeypatch, tmp_path):
     """Point cmd_port's input directory at tmp_path.
@@ -88,18 +87,19 @@ HISTORY_YEARS = 5
 
 def _run_pipeline(output_dir):
     """Execute all pipeline steps with small counts."""
+    from db_helpers import tmp_catchment
+
+    from port.src.counterparty import CounterpartyPortfolioGenerator
     from port.src.gauge import GaugePortfolioGenerator
-    from port.src.property import PropertyPortfolioGenerator
-    from port.src.mortgage import MortgagePortfolioGenerator
+    from port.src.gauge.gaugehd import generate_all_gauge_histories
     from port.src.gauge.gaugets import GaugeTimeSeriesGenerator
+    from port.src.hazard import build_hazard_curves
+    from port.src.mortgage import MortgagePortfolioGenerator
+    from port.src.property import PropertyPortfolioGenerator
+    from port.src.property.propertyhc import PropertyHazardCurveGenerator
+    from port.src.property.propertyts import PropertyTimeSeriesGenerator
     from port.src.storm_multi.generators.batch_generator import generate_event_set
     from port.src.storm_multi.utils.serialization import save_sequences, save_summary
-    from port.src.gauge.gaugehd import generate_all_gauge_histories
-    from port.src.hazard import build_hazard_curves
-    from port.src.property.propertyts import PropertyTimeSeriesGenerator
-    from port.src.property.propertyhc import PropertyHazardCurveGenerator
-    from port.src.counterparty import CounterpartyPortfolioGenerator
-    from db_helpers import tmp_catchment
 
     # The migrated gauge + property + loan writers persist through ``database``; root a
     # scratch backend at ``output_dir`` (catchment "thames") so their saves land

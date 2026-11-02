@@ -22,8 +22,8 @@
 
 import pytest
 
-from models.loan.pricer import LoanPricer
 from models.loan.portfolio import calculate_portfolio_metrics
+from models.loan.pricer import LoanPricer
 
 
 class TestPriceMortgage:

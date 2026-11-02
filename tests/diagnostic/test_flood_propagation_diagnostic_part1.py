@@ -28,7 +28,6 @@ Run: pytest tests/diagnostic/test_flood_propagation_diagnostic_part1.py -v -s
 
 import pytest
 
-
 # -----------------------------------------------------------------------
 # 1. Gauge-level: do storms actually produce high WSE at gauges?
 # -----------------------------------------------------------------------

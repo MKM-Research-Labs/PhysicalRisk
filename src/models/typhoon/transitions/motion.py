@@ -37,7 +37,6 @@ from models.typhoon.transitions.compass import (
     wrap_compass_degrees,
 )
 
-
 __all__ = [
     "RECURVATURE_REGIMES",
     "update_motion",

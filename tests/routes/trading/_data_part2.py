@@ -28,11 +28,15 @@ Provides:
 """
 
 from ._data_part1 import (
-    GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH,
-    GAUGE_VAUXHALL, GAUGE_WATERLOO, GAUGE_BLACKFRIARS, GAUGE_LONDON,
+    GAUGE_BLACKFRIARS,
+    GAUGE_CHELSEA,
+    GAUGE_LAMBETH,
+    GAUGE_LONDON,
+    GAUGE_VAUXHALL,
+    GAUGE_WATERLOO,
+    GAUGE_WESTMINSTER,
     make_trade,
 )
-
 
 # =============================================================================
 # Test Trades — 16 trades across 7 Thames Central gauges

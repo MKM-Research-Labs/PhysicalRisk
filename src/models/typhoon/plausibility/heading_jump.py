@@ -34,7 +34,6 @@ import math
 from models.typhoon.data_structures import TyphoonState
 from models.typhoon.transitions.compass import signed_compass_delta
 
-
 __all__ = ["heading_jump_score"]
 
 

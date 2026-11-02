@@ -29,18 +29,15 @@ import pathlib
 
 import pytest
 
-from tests._dataset import full_dataset_only
-
 from config import config as _config
-
+from tests._dataset import full_dataset_only
 from tests.data.conftest import (
+    GAUGE_REQUIRED_FIELDS,
     GAUGEHC_PATH,
     MARKET_STATE,
-    GAUGE_REQUIRED_FIELDS,
     MARKET_STATE_REQUIRED_KEYS,
     YIELD_CURVE_TENORS,
 )
-
 
 # ---------------------------------------------------------------------------
 # Gauge hazard curves (gaugehc.json)

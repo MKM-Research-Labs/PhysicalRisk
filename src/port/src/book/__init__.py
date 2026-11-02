@@ -41,8 +41,8 @@ from .book_common import (  # noqa: F401
 )
 from .book_property import generate_property_book  # noqa: F401
 from .book_thames import (  # noqa: F401
-    THAMES_CENTRAL_AREAS,
     _AREA_TO_GAUGE_NAME,
     _THAMES_TRADE_SPECS,
+    THAMES_CENTRAL_AREAS,
     generate_thames_central_book,
 )

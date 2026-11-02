@@ -23,9 +23,9 @@
 import numpy as np
 
 from config.models import (
+    DEFAULT_IMPERV_FRACTION,
     INFILTRATION_RATE_PER_HOUR,
     INFILTRATION_YMAX_REF_M,
-    DEFAULT_IMPERV_FRACTION,
 )
 
 

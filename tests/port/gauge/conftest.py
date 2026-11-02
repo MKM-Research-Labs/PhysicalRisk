@@ -35,6 +35,16 @@ def make_gauge_file(gauge_id: str, responses: list) -> dict:
     }
 
 
+def write_gauge(path: Path, text: str) -> None:
+    """Save a gauge timeseries document through the database seam.
+
+    Stands in for ``path.write_text(text)``: on the file backend the record lands
+    at the same ``gaugets/GAUGE-*.json`` path, and on Postgres it becomes a row,
+    which a raw file write would never reach."""
+    import database
+    database.save_gauge_timeseries(database.active_catchment(), path.stem, json.loads(text))
+
+
 def make_response(storm_id: str, *, alert=False, warning=False, severe=False,
                   base=1.0, peak=1.5) -> dict:
     return {

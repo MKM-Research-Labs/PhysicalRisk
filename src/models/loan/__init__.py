@@ -20,7 +20,7 @@
 
 """Loan pricing models."""
 
-from .pricer import LoanPricer  # noqa: F401
 from .portfolio import calculate_portfolio_metrics  # noqa: F401
+from .pricer import LoanPricer  # noqa: F401
 
 __all__ = ['LoanPricer', 'calculate_portfolio_metrics']

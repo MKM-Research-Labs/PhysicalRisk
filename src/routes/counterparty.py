@@ -26,8 +26,8 @@ Provides endpoints for counterparty data used in PRS trading.
 
 from flask import Blueprint, jsonify
 
-from config import config
 import database
+from config import config
 from models.xva.counterparty_credit import credit_of
 from models.xva.counterparty_credit import summary as credit_summary
 

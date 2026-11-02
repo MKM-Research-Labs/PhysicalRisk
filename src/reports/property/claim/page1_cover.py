@@ -27,7 +27,6 @@ from reportlab.lib import colors
 from reportlab.platypus import HRFlowable, Paragraph, Spacer, Table, TableStyle
 
 from config.format import property_title_py
-from .formatters import fmt_gbp
 from reports.theme_pdf import pdf_colour
 
 

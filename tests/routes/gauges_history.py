@@ -30,7 +30,6 @@ from pathlib import Path
 
 import pytest
 
-
 # ===========================================================================
 # Fixtures
 # ===========================================================================
@@ -211,7 +210,7 @@ class TestGetGaugeHistory:
 class TestGetGaugets:
 
     def test_gauge_not_found_returns_404(self, empty_gauge_env):
-        r = empty_gauge_env.get(f"/api/v1/gauges/GAUGE-GHOST/timeseries")
+        r = empty_gauge_env.get("/api/v1/gauges/GAUGE-GHOST/timeseries")
         assert r.status_code == 404
         assert r.get_json()["status"] == "error"
 
@@ -237,7 +236,7 @@ class TestGetGaugets:
 class TestGetGaugeStatistics:
 
     def test_gauge_not_found_returns_404(self, empty_gauge_env):
-        r = empty_gauge_env.get(f"/api/v1/gauges/GAUGE-GHOST/statistics")
+        r = empty_gauge_env.get("/api/v1/gauges/GAUGE-GHOST/statistics")
         assert r.status_code == 404
         assert r.get_json()["status"] == "error"
 

@@ -26,6 +26,7 @@ import traceback
 from flask import jsonify, request
 
 import routes.properties as _pp
+
 from . import properties_bp
 
 logger = logging.getLogger(__name__)

@@ -23,11 +23,11 @@
 import json
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
 from port.src.mortgage import generate_mortgages
 from tests.port.mortgage.conftest import make_generator, write_property_portfolio
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)

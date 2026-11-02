@@ -26,10 +26,10 @@ import json
 import re
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
 from port.src.property import PropertyPortfolioGenerator
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)
@@ -122,8 +122,9 @@ class TestPropertyUtils:
 
     def test_generate_past_date_range(self):
         """Custom days_range is respected (result is a past date)."""
-        from port.rand.thames.property.property_utils import generate_past_date
         from datetime import datetime, timedelta
+
+        from port.rand.thames.property.property_utils import generate_past_date
         result = generate_past_date(days_range=(10, 20))
         dt = datetime.strptime(result, "%Y-%m-%d")
         assert dt < datetime.now()
@@ -154,6 +155,7 @@ class TestDateTimeEncoder:
         """Line 60-61: datetime → isoformat string."""
         import json
         from datetime import datetime
+
         from port.src.property.main import DateTimeEncoder
         dt = datetime(2024, 1, 1, 12, 0, 0)
         result = json.dumps(dt, cls=DateTimeEncoder)
@@ -162,7 +164,9 @@ class TestDateTimeEncoder:
     def test_numpy_integer(self):
         """Lines 62-63: np.integer → int."""
         import json
+
         import numpy as np
+
         from port.src.property.main import DateTimeEncoder
         result = json.dumps(np.int64(42), cls=DateTimeEncoder)
         assert result == "42"
@@ -170,7 +174,9 @@ class TestDateTimeEncoder:
     def test_numpy_floating(self):
         """Lines 64-65: np.floating → float."""
         import json
+
         import numpy as np
+
         from port.src.property.main import DateTimeEncoder
         result = json.dumps(np.float64(3.14), cls=DateTimeEncoder)
         assert "3.14" in result
@@ -178,7 +184,9 @@ class TestDateTimeEncoder:
     def test_numpy_ndarray(self):
         """Lines 66-67: np.ndarray → list."""
         import json
+
         import numpy as np
+
         from port.src.property.main import DateTimeEncoder
         result = json.loads(json.dumps(np.array([1, 2, 3]), cls=DateTimeEncoder))
         assert result == [1, 2, 3]
@@ -186,6 +194,7 @@ class TestDateTimeEncoder:
     def test_unknown_type_raises(self):
         """Line 68: super().default() raises TypeError for unknown type."""
         import json
+
         from port.src.property.main import DateTimeEncoder
         with pytest.raises(TypeError):
             json.dumps(object(), cls=DateTimeEncoder)
@@ -241,6 +250,7 @@ class TestGenerateLocationsFallback:
     def test_fallback_with_get_elevation(self, tmp_path):
         """Lines 505-506: uses params.get_elevation if available."""
         from unittest.mock import MagicMock
+
         from port.src.property.main import PropertyPortfolioGenerator
         params = MagicMock()
         params.AREAS = ["Area1"]

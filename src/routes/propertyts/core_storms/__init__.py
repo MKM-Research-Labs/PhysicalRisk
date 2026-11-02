@@ -20,8 +20,10 @@
 
 """Core property timeseries endpoints — per-property storm analysis."""
 
+# isort: off
 from ._helpers import _load_typhoon_damage_for_property
 
 from . import _routes  # noqa: E402,F401  (registers property_storms on propertyts_bp)
+# isort: on
 
 __all__ = ["_load_typhoon_damage_for_property"]

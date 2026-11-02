@@ -30,7 +30,6 @@ fallback to the configured default when neither field is present.
 from config.damage import DEFAULT_WIND_THRESHOLD_KPH
 from models.winddamage.cdm import extract_wind_threshold_mps
 
-
 __all__ = ["KMH_TO_MS", "kph_to_ms", "resolve_threshold_ms", "is_prs_wind"]
 
 

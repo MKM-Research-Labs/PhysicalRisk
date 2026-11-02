@@ -20,16 +20,12 @@
 
 """Particle filter lifecycle: genesis sampling and propagation."""
 
-from datetime import datetime
-from typing import Callable, List, Optional
+from typing import List
 
-import numpy as np
-
-from config.typhoon import CatchmentTyphoonConfig, ScenarioFamily
+from config.typhoon import ScenarioFamily
 from models.typhoon.data_structures import (
     TyphoonParticle,
     TyphoonState,
-    TyphoonTrajectory,
 )
 from models.typhoon.genesis import sample_genesis, sample_scenario_family
 from models.typhoon.transitions import step

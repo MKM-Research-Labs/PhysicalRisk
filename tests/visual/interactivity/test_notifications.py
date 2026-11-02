@@ -34,6 +34,7 @@ import json
 from unittest.mock import MagicMock
 
 import pytest
+
 from config.theme import colour
 
 
@@ -95,9 +96,7 @@ class TestConfigure:
     """Lines 139-144: configure updates position, timeout, max_visible."""
 
     def test_configure_position(self):
-        from visual.interactivity.notifications import (
-            NotificationSystem, NotificationPosition
-        )
+        from visual.interactivity.notifications import NotificationPosition, NotificationSystem
         ns = NotificationSystem()
         ns.configure(position=NotificationPosition.BOTTOM_LEFT)
         assert ns.position == NotificationPosition.BOTTOM_LEFT
@@ -115,9 +114,7 @@ class TestConfigure:
         assert ns.max_visible == 10
 
     def test_configure_no_args_no_change(self):
-        from visual.interactivity.notifications import (
-            NotificationSystem, NotificationPosition
-        )
+        from visual.interactivity.notifications import NotificationPosition, NotificationSystem
         ns = NotificationSystem(
             position=NotificationPosition.TOP_LEFT,
             timeout=7000,
@@ -143,9 +140,7 @@ class TestGetStatistics:
         assert 'available_positions' in stats
 
     def test_statistics_reflect_config(self):
-        from visual.interactivity.notifications import (
-            NotificationSystem, NotificationPosition
-        )
+        from visual.interactivity.notifications import NotificationPosition, NotificationSystem
         ns = NotificationSystem(
             position=NotificationPosition.BOTTOM_CENTER,
             timeout=9000,

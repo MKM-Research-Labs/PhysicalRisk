@@ -21,10 +21,10 @@
 """Tests for synthetic gauge generation and GaugeHistoricalDaily class."""
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
-from tests.port.gauge.conftest import write_nrfa_csv, SAMPLE_GAUGE_ENTRY
+from tests.port.gauge.conftest import SAMPLE_GAUGE_ENTRY, write_nrfa_csv
 
 
 @pytest.fixture(autouse=True)
@@ -171,6 +171,7 @@ class TestGaugeHistoricalDaily:
     def test_calculate_statistics_from_levels(self):
         """calculate_statistics_from_levels via class."""
         from datetime import date, timedelta
+
         from port.src.gauge.gaugehd import GaugeHistoricalDaily
         ghd = GaugeHistoricalDaily()
         start = date(2020, 1, 1)

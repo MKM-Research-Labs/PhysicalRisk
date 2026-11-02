@@ -21,7 +21,9 @@
 """Tests for _business_days()."""
 
 from datetime import date, timedelta
+
 import pytest
+
 from .conftest import _business_days
 
 

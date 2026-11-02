@@ -19,12 +19,11 @@
 # SOFTWARE.
 
 from fixtures_files_advanced_part1 import (  # noqa: F401
-    sample_propertyts_dir,
     sample_propertyhc_file,
+    sample_propertyts_dir,
 )
-
 from fixtures_files_advanced_part2 import (  # noqa: F401
+    fully_populated_data_dir,
     sample_gaugehc_file,
     sample_storms_file,
-    fully_populated_data_dir,
 )

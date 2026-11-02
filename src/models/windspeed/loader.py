@@ -29,7 +29,6 @@ from typing import Union
 
 from models.typhoon.data_structures import TyphoonTrajectory
 
-
 __all__ = ["load_event"]
 
 

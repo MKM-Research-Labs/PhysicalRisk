@@ -21,7 +21,6 @@
 """Property data extraction utilities."""
 
 import logging
-from datetime import datetime
 from typing import Any, Dict, Optional, Union
 
 logger = logging.getLogger(__name__)

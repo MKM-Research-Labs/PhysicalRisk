@@ -34,7 +34,6 @@ import pytest
 
 from config import config
 
-
 # All catchments expected to expose the full storm+config symbol surface.
 # Add to this list when a new catchment is given a storm.py.
 CATCHMENTS_WITH_STORM = ["thames", "halong"]
@@ -93,6 +92,7 @@ def test_storm_constants_are_well_typed(catchment_id):
 @pytest.mark.parametrize("catchment_id", CATCHMENTS_WITH_STORM)
 def test_sequence_generator_reads_catchment_base_precip(catchment_id):
     import importlib
+
     from port.src.storm_multi.generators.sequence_generator import SequenceGenerator
 
     expected = importlib.import_module(f"catch.{catchment_id}.storm").BASE_PRECIPITATION_MM
@@ -170,8 +170,8 @@ def test_thames_and_halong_storms_diverge_with_same_seed():
 # ---------------------------------------------------------------------------
 
 def test_thames_and_halong_gauges_are_geographically_distinct():
-    from catch.thames import GAUGE_POINTS as T_GP
     from catch.halong import GAUGE_POINTS as H_GP
+    from catch.thames import GAUGE_POINTS as T_GP
 
     t_lats = [p[0] for p in T_GP]
     h_lats = [p[0] for p in H_GP]

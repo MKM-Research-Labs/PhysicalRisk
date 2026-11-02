@@ -27,7 +27,6 @@ Does NOT trigger actual classifier training (takes minutes per gauge).
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Helpers (same pattern as test_td_tabs.py)
 # ---------------------------------------------------------------------------

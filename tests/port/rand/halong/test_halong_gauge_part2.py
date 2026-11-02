@@ -136,6 +136,7 @@ class TestGaugetsRandom:
 
     def test_generate_gauge_reading_shape(self):
         from datetime import datetime
+
         from port.rand.halong.gauge.gaugets_random import generate_gauge_reading
         gauge = {
             "FloodGauge": {
@@ -154,6 +155,7 @@ class TestGaugetsRandom:
 
     def test_generate_timestep_readings_handles_errors(self):
         from datetime import datetime
+
         from port.rand.halong.gauge.gaugets_random import generate_timestep_readings
         # One valid gauge and one malformed → covers the except branch
         gauges = [

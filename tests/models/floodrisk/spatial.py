@@ -27,8 +27,9 @@ tests are skipped when geopandas is not installed.
 """
 
 import math
-import pytest
+
 import numpy as np
+import pytest
 
 try:
     import geopandas as gpd
@@ -39,12 +40,11 @@ except ImportError:
     HAS_GEO = False
 
 from models.floodrisk.spatial import (
-    haversine_distance,
     build_spatial_index,
+    haversine_distance,
     idw_interpolate_from_gauges,
     spatial_interpolate_wse,
 )
-
 
 # ===========================================================================
 # haversine_distance
@@ -96,8 +96,9 @@ class TestBuildSpatialIndex:
 
     @pytest.mark.skipif(not HAS_GEO, reason="geopandas not installed")
     def test_with_gauges_returns_kdtree(self):
-        from models.floodrisk.spatial import build_spatial_index
         from scipy.spatial import cKDTree
+
+        from models.floodrisk.spatial import build_spatial_index
         df = pd.DataFrame({'latitude': [51.5, 51.6], 'longitude': [-0.1, -0.2]})
         result = build_spatial_index(df)
         assert isinstance(result, cKDTree)
@@ -136,7 +137,7 @@ class TestBuildCorrelationMatrix:
     def test_off_diagonal_between_zero_and_one(self, props):
         from models.floodrisk.spatial import build_correlation_matrix
         mat = build_correlation_matrix(props, 1000, 0.4)
-        off_diag = mat[np.eye(len(props), dtype=bool) == False]
+        off_diag = mat[~np.eye(len(props), dtype=bool)]
         assert np.all(off_diag >= 0) and np.all(off_diag <= 1)
 
 

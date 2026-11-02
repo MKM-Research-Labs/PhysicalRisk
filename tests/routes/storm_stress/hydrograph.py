@@ -99,7 +99,7 @@ class TestActualHydrographFunction:
 
     def test_actual_function_returns_168_hours(self):
         """_synthesize_hydrograph default returns 168 hours (STORM_HOURS constant)."""
-        from routes.trading.stress._helpers import _synthesize_hydrograph, STORM_HOURS
+        from routes.trading.stress._helpers import STORM_HOURS, _synthesize_hydrograph
         assert STORM_HOURS == 168, \
             "STORM_HOURS constant must be 168 (7-day industry standard storm window)"
         levels = _synthesize_hydrograph(

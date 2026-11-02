@@ -114,7 +114,8 @@ class TestKva:
     def test_funding_from_capital_nets_the_short_rate(self):
         trade, market, cfg, _ = case(capital_funding_fraction=1.0)
         grid = Grid(trade, market, cfg)
-        ones = lambda s: np.ones_like(s)
+        def ones(s):
+            return np.ones_like(s)
         net = kva(grid, "one_bond", ones)
         gross = kva(Grid(trade, market, replace(cfg, capital_funding_fraction=0.0)),
                     "one_bond", ones)

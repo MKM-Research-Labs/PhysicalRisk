@@ -31,13 +31,14 @@ Run `python phys.py port --stressm`  to retrain GBM flood classifiers.
 
 import json
 import pathlib
+import sys
+
 import pytest
 
 from tests._dataset import full_dataset_only
 
-import sys
 sys.path.insert(0, str(pathlib.Path(__file__).parents[2]))
-from config import PortfolioConfig, STRESS_STORMS_MIN_COUNT
+from config import STRESS_STORMS_MIN_COUNT, PortfolioConfig
 
 config = PortfolioConfig()
 
@@ -103,16 +104,16 @@ class TestStressStormsFilePart1:
         result = _load_storms_from_dir_or_file()
         if result is None:
             pytest.skip(
-                f"stress_storms data not generated — skipping. "
-                f"Run `python phys.py port --stressm` to create."
+                "stress_storms data not generated — skipping. "
+                "Run `python phys.py port --stressm` to create."
             )
         return result
 
     def test_file_exists(self):
         if not (STRESS_STORMS_INDEX.exists() or STRESS_STORMS_PATH.exists()):
             pytest.skip(
-                f"stress_storms data not generated — skipping. "
-                f"Run `python phys.py port --stressm` to create."
+                "stress_storms data not generated — skipping. "
+                "Run `python phys.py port --stressm` to create."
             )
 
     def test_has_storms(self):

@@ -37,11 +37,12 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer
 
+from reports.theme_pdf import pdf_colour
+
 from .eod_page_01_summary import EODSummaryPage
 from .eod_page_02_positions import EODPositionsPage
 from .eod_page_03_pnl_detail import EODPnLDetailPage
 from .eod_page_04_charts import EODChartsPage
-from reports.theme_pdf import pdf_colour
 
 logger = logging.getLogger(__name__)
 

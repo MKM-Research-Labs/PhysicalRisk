@@ -26,6 +26,7 @@ so a single ``alembic revision --autogenerate`` sees every table defined under
 ``src/database/_pg``.
 """
 
+# isort: off
 import sys
 from logging.config import fileConfig
 from pathlib import Path
@@ -43,6 +44,7 @@ for _p in (str(_ROOT), str(_ROOT / "src")):
 from config.database import get_database_url  # noqa: E402
 from database._pg._models import Base  # noqa: E402
 from database._pg import _auth_models  # noqa: E402,F401  (register RBAC tables on Base)
+# isort: on
 
 config = context.config
 config.set_main_option("sqlalchemy.url", get_database_url())

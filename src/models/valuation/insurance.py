@@ -32,7 +32,7 @@ Each factor table maps a categorical or banded input to a
 defines the factor structure.
 """
 
-from typing import Dict, Tuple
+from typing import Tuple
 
 from config.models import (
     AGE_PREMIUM_FACTORS,
@@ -108,3 +108,11 @@ def apply_insurance_factors(
                      * claims_factor)
     final_premium += contents_premium
     return max(MIN_PREMIUM, min(MAX_PREMIUM, round(final_premium, 2)))
+
+__all__ = [
+    "AGE_PREMIUM_FACTORS",
+    "BASE_RATE_RANGE",
+    "CONSTRUCTION_TYPE_FACTORS",
+    "FLOOD_RISK_PREMIUM_FACTORS",
+    "PROPERTY_TYPE_PREMIUM_FACTORS",
+]

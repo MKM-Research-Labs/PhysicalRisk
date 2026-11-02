@@ -23,9 +23,8 @@
 from config.loan import (
     DEFAULT_CREDIT_RATING,
     DEFAULT_RISK_CATEGORY,
-    LOAN_PRICING_INPUT_DEFAULTS as _INPUT_DEFAULTS,
 )
-
+from config.loan import LOAN_PRICING_INPUT_DEFAULTS as _INPUT_DEFAULTS
 
 # Keys the panel is allowed to override. Anything else in the request body is
 # ignored so the form can't smuggle in unexpected price_loan kwargs.
@@ -125,3 +124,7 @@ _STANDALONE_DEFAULTS = {
     "flood_risk_category": DEFAULT_RISK_CATEGORY,
     "wind_risk_category": DEFAULT_RISK_CATEGORY,
 }
+
+__all__ = [
+    "_INPUT_DEFAULTS",
+]

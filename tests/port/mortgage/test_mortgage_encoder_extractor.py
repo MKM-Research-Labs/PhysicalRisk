@@ -29,7 +29,6 @@ import pytest
 from port.src.mortgage import DateTimeEncoder, MortgagePortfolioGenerator
 from tests.port.mortgage.conftest import make_generator
 
-
 # ===========================================================================
 # DateTimeEncoder
 # ===========================================================================

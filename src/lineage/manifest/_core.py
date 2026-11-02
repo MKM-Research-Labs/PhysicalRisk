@@ -62,12 +62,6 @@ def manifest_path(data_dir: Path | None = None) -> Path:
         return Path(data_dir) / LINEAGE_MANIFEST_FILE
     return _cfg.get_lineage_manifest_path()
 
-from lineage.manifest._topology import (
-    DEPENDENCY_GRAPH,
-    EXTERNAL_INPUTS,
-    OPTIONAL_STEPS,
-    STEP_IO,
-)
 
 # ---------------------------------------------------------------------------
 # Hashing helpers

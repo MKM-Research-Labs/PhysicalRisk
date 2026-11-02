@@ -22,15 +22,14 @@
 Unit tests for lineage manifest operations — hashing, loading, saving, recording (part 1).
 """
 
+import hashlib
 import json
 import os
-import hashlib
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # manifest.py tests
@@ -69,7 +68,7 @@ class TestHashDirectory:
     """hash_directory: aggregate hash over sorted files."""
 
     def test_hash_single_file(self, tmp_path):
-        from lineage.manifest import hash_file, hash_directory
+        from lineage.manifest import hash_directory, hash_file
         p = tmp_path / "a.json"
         p.write_text('{"a": 1}')
         digest, count = hash_directory(tmp_path)
@@ -133,7 +132,7 @@ class TestSaveManifest:
     """save_manifest: atomic write with temp + rename."""
 
     def test_save_creates_file(self, tmp_path):
-        from lineage.manifest import save_manifest, load_manifest
+        from lineage.manifest import load_manifest, save_manifest
         fake_path = tmp_path / "lineage.json"
         data = {"runs": {}, "steps": {"gauges": {"status": "ok"}}}
         with patch("lineage.manifest._core.LINEAGE_PATH", fake_path):
@@ -142,7 +141,7 @@ class TestSaveManifest:
         assert result == data
 
     def test_save_overwrites_existing(self, tmp_path):
-        from lineage.manifest import save_manifest, load_manifest
+        from lineage.manifest import load_manifest, save_manifest
         fake_path = tmp_path / "lineage.json"
         fake_path.write_text('{"old": true}')
         new_data = {"runs": {}, "steps": {}}

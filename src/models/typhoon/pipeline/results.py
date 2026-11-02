@@ -31,7 +31,6 @@ risk consumers.
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
-
 __all__ = [
     "PropertyPeakWindSummary",
     "TyphoonEventEnsemble",

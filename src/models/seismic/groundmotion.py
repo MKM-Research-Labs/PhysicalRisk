@@ -55,7 +55,6 @@ from models.seismic.datastructures import (
     GroundMotionSample,
     OccurrenceResult,
 )
-from models.seismic.occurrence import resolve_site_class
 
 __all__ = [
     "regime_for_zone",

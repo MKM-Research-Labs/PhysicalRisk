@@ -22,7 +22,7 @@
 
 import base64
 import logging
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 from flask import jsonify, request
 

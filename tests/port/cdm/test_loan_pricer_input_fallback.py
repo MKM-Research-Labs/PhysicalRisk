@@ -33,7 +33,6 @@ import pytest
 
 from port.cdm.asset.loan.cdm import LoanCDM
 
-
 _MORTGAGE = {
     "Mortgage": {
         "Header": {"MortgageID": "RLOAN-TEST", "PropertyID": "PROP-TEST"},
@@ -53,11 +52,12 @@ def test_the_fallback_matches_the_configured_values():
     insurance rate in config and leaves the literal behind, a run that could
     not import config would price on the stale number and say nothing.
     """
+    import inspect
+
     from config.models import (
         LOAN_DEFAULT_INSURANCE_RATE,
         LOAN_DEFAULT_RECOVERY_HAIRCUT,
     )
-    import inspect
 
     source = inspect.getsource(LoanCDM.to_pricer_inputs)
     assert f"LOAN_DEFAULT_INSURANCE_RATE = {LOAN_DEFAULT_INSURANCE_RATE}" in source

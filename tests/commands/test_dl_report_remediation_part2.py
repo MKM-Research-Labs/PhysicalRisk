@@ -30,7 +30,6 @@ from tests.commands.data_lineage_helpers import (
     SAMPLE_MANIFEST,
 )
 
-
 # ---------------------------------------------------------------------------
 # Executive summary verdict badge
 # ---------------------------------------------------------------------------

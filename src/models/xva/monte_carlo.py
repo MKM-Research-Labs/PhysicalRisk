@@ -44,8 +44,7 @@ from .curves import HazardCurve, ZeroCurve
 from .inputs import Market
 from .integrals import kernel
 from .netting import NettingSet
-from .paths import (alive_value, factor_paths, grid, lookup, simulation_times, trade_values,
-                    triggers_for)
+from .paths import alive_value, factor_paths, grid, lookup, simulation_times, trade_values, triggers_for
 
 
 def _exposures(net: np.ndarray, pos: np.ndarray, neg: np.ndarray,

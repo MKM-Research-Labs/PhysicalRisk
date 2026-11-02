@@ -35,7 +35,6 @@ from port.rand.halong.property.property_location import (
     generate_council_tax_band,
 )
 
-
 # ---------------------------------------------------------------------------
 # Lines 60-63: generate_bathrooms — house with 3 and 4+ bedrooms
 # ---------------------------------------------------------------------------

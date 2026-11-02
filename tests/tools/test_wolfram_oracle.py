@@ -33,13 +33,19 @@ from fractions import Fraction
 
 import mpmath as mp
 import pytest
-
-from config.models import ORACLE_FIT_LL_TOL, ORACLE_REL_TOL
+from tools.wolfram_oracle._wl import (
+    load_wolfram,
+    rel_err,
+    wl_exact,
+    wl_gev,
+    wl_machine,
+    wl_number,
+    write_wl,
+)
 from tools.wolfram_oracle.gev import fit, return_levels
 from tools.wolfram_oracle.gev._code import load_gev_fitter
-from tools.wolfram_oracle._wl import (
-    load_wolfram, rel_err, wl_exact, wl_gev, wl_machine, wl_number, write_wl,
-)
+
+from config.models import ORACLE_FIT_LL_TOL, ORACLE_REL_TOL
 
 ONE_SERIES = {"n30_xi0.1": (30, 3.0, 0.4, 0.1)}
 

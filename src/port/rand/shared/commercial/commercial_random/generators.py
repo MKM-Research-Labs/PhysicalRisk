@@ -41,7 +41,6 @@ from port.rand.shared.property.property_random import generators as _resi_random
 
 from .metadata import anchor_tenant, period_from_year  # noqa: F401
 
-
 # A neutral prototype used when the active profile disables commercial BRI
 # coding: every hazard threshold and code list reads empty.
 _BLANK_PROTOTYPE: Dict[str, Any] = {

@@ -33,6 +33,7 @@ sub-modules that all register on one shared blueprint:
 ``from .commercial import commercial_bp`` unchanged.
 """
 
+# isort: off
 from .blueprint import commercial_bp  # noqa: F401
 
 # Import sub-modules to register their routes on commercial_bp.
@@ -41,3 +42,4 @@ from . import pricing    # noqa: E402, F401
 from . import storms     # noqa: E402, F401
 from . import hazard     # noqa: E402, F401
 from . import portfolio  # noqa: E402, F401
+# isort: on

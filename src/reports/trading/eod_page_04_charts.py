@@ -20,16 +20,15 @@
 
 """EOD Report - Page 4: P&L Progression Charts."""
 
+from reportlab.graphics.charts.barcharts import VerticalBarChart
+from reportlab.graphics.charts.lineplots import LinePlot
+from reportlab.graphics.shapes import Drawing, Rect, String
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer
-from reportlab.graphics.shapes import Drawing, Line, Rect, String
-from reportlab.graphics.charts.lineplots import LinePlot
-from reportlab.graphics.charts.barcharts import VerticalBarChart
-from reportlab.graphics.widgets.markers import makeMarker
-from reports.theme_pdf import pdf_colour
+
 from config.theme import colour
+from reports.theme_pdf import pdf_colour
 
 
 class EODChartsPage:

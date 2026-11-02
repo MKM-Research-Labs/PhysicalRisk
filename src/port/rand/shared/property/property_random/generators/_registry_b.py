@@ -22,13 +22,7 @@
 
 import random
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict
 
-from ..helpers import (
-    _deterministic_prop_id,
-    _ea_zone_from_elevation,
-    _flood_hazard_class_from_offset,
-)
 from ...property_energy import (
     calculate_annual_energy,
     calculate_carbon_emissions,
@@ -43,7 +37,6 @@ from ...property_location import (
     generate_bedrooms,
     generate_council_tax_band,
     generate_floor_level,
-    generate_postcode_for_area,
     generate_street_name,
 )
 from ...property_utils import (
@@ -53,9 +46,7 @@ from ...property_utils import (
     get_property_period,
 )
 from ...property_valuation import (
-    calculate_insurance_premium,
     calculate_monthly_rent,
-    calculate_property_area,
     calculate_property_value,
     calculate_sale_price,
 )

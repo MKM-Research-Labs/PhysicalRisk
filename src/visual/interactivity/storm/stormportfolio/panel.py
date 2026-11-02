@@ -25,8 +25,9 @@ from typing import Any, Dict
 import folium
 
 from visual.interactivity._jsbundle import js_static
-from .. import sp_table, sp_var, sp_visual, sp_sim, sp_control
-from . import utilities, chrome, control
+
+from .. import sp_control, sp_sim, sp_table, sp_var, sp_visual
+from . import chrome, control, utilities
 
 # CDN dependencies for the Chart.js portfolio panel.
 _CHARTJS_CDN = (

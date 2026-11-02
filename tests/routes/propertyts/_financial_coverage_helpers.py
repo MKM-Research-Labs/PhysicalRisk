@@ -44,7 +44,6 @@ import pytest
 
 from tests.routes.propertyts._helpers import PROP_ID, SEQ_ID, STORM_ID
 
-
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------

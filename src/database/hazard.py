@@ -24,8 +24,8 @@ from __future__ import annotations
 
 from config.data_layout import DEFAULT_MODE
 
-from .backend import active_backend
 from ._helpers import load_or
+from .backend import active_backend
 
 
 def get_gauge_hazard_curves(catchment):

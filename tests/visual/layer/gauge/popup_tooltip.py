@@ -22,11 +22,10 @@
 Tests for GaugeLayer._create_gauge_popup and _create_gauge_tooltip.
 """
 
-import pytest
 import folium
+import pytest
 
 from visual.layer.gauge_layer import GaugeLayer
-
 
 # ===========================================================================
 # Helpers

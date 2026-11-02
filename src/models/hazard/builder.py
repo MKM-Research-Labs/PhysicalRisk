@@ -37,7 +37,6 @@ from config.frequency import (
     config_hash,
     load_frequency_config,
 )
-
 from models.floodrisk.depth_damage import scalar_depth_damage
 from models.frequency import (
     annual_exceedance_probability,

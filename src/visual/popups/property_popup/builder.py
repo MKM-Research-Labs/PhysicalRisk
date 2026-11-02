@@ -25,10 +25,10 @@ from typing import Any, Dict, Optional
 import folium
 
 from config.format import property_title_py
+
 from ..popup_builder import PopupBuilder
-from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_payment
-from .sections import (create_property_section, create_flood_info_section,
-                       create_rloan_section)
+from .helpers import calculate_ltv_ratio, calculate_monthly_payment, extract_term_years
+from .sections import create_flood_info_section, create_property_section, create_rloan_section
 
 
 class PropertyPopupBuilder(PopupBuilder):

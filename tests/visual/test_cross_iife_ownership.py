@@ -24,8 +24,7 @@ import re
 
 import pytest
 
-from tests.visual.conftest import iife_src_file, iife_has_node, iife_node_check, STARTUP_CACHE_VARS
-
+from tests.visual.conftest import STARTUP_CACHE_VARS, iife_has_node, iife_node_check, iife_src_file
 
 # ---------------------------------------------------------------------------
 # CONTRACT A — startup.py must own all shared vars via window.*
@@ -206,7 +205,7 @@ class TestContractC_NoBareReads:
                 if 'window._tdPreloadDone' not in line:
                     bad_lines.append((i, stripped))
         assert not bad_lines, (
-            f'preloader.py has bare reads of _tdPreloadDone outside comments:\n'
+            'preloader.py has bare reads of _tdPreloadDone outside comments:\n'
             + '\n'.join(f'  L{ln}: {code}' for ln, code in bad_lines)
         )
 

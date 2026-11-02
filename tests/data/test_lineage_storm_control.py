@@ -36,7 +36,6 @@ import pytest
 
 from tests.data.conftest import make_manifest as _make_manifest
 
-
 # ---------------------------------------------------------------------------
 # STEP_IO registration
 # ---------------------------------------------------------------------------
@@ -78,8 +77,8 @@ class TestStormControlFreshness:
 
     def test_fresh_when_hash_unchanged(self, tmp_path):
         """External input is fresh when disk hash matches recorded hash."""
-        from lineage.validation import freshness as _freshness_mod
         from lineage.manifest import hash_file
+        from lineage.validation import freshness as _freshness_mod
 
         # Write storm_control.json
         sc_path = tmp_path / "storm_control.json"
@@ -141,7 +140,7 @@ class TestStormControlFreshness:
         gaugehd.mkdir()
         (gaugehd / "g.json").write_text('{}')
 
-        from lineage.manifest import hash_file, hash_directory
+        from lineage.manifest import hash_directory, hash_file
         gauge_hash = hash_file(tmp_path / "gauge.json")
         gaugehd_hash, _ = hash_directory(gaugehd)
 
@@ -186,7 +185,7 @@ class TestStormControlFreshness:
         gaugehd = tmp_path / "gaugehd"
         gaugehd.mkdir()
         (gaugehd / "g.json").write_text('{}')
-        from lineage.manifest import hash_file, hash_directory
+        from lineage.manifest import hash_directory, hash_file
         gauge_hash = hash_file(tmp_path / "gauge.json")
         gaugehd_hash, _ = hash_directory(gaugehd)
 

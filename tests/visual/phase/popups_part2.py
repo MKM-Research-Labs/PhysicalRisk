@@ -21,6 +21,7 @@
 """Tests for popup builder modules — part 2: gauge popup, integration, error handling."""
 
 import pytest
+
 from config.theme import colour
 
 

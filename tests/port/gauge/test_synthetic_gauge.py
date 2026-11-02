@@ -28,8 +28,8 @@ import math
 
 import pytest
 
+import database
 from models.floodrisk.spatial import haversine_distance
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -103,14 +103,14 @@ def synth_env(tmp_path, monkeypatch):
         _make_gauge_cdm("GAUGE-CCC00003", 51.47, -0.10, 5.0, 4.5, 5.5, 7.0),
     ]
     gauge_data = {"flood_gauges": gauges}
-    (tmp_path / "gauge.json").write_text(json.dumps(gauge_data))
+    database.save_gauges(database.active_catchment(), gauge_data)
 
     properties = [
         _make_property_cdm("PROP-001", 51.455, -0.40),
         _make_property_cdm("PROP-002", 51.465, -0.20),
     ]
     prop_data = {"properties": properties}
-    (tmp_path / "property.json").write_text(json.dumps(prop_data))
+    database.save_properties(database.active_catchment(), prop_data)
 
     # Patch config to return our GAUGE_POINTS
     from unittest.mock import MagicMock
@@ -144,8 +144,7 @@ class TestSyntheticGaugeGenerator:
         gen = SyntheticGaugeGenerator(synth_env)
         gen.generate()
 
-        with open(synth_env / "gauge.json") as f:
-            data = json.load(f)
+        data = database.get_gauge_portfolio(database.active_catchment())
 
         # Original 3 + synthetic gauges
         assert len(data["flood_gauges"]) > 3
@@ -158,8 +157,7 @@ class TestSyntheticGaugeGenerator:
         gen = SyntheticGaugeGenerator(synth_env)
         gen.generate()
 
-        with open(synth_env / "gauge.json") as f:
-            data = json.load(f)
+        data = database.get_gauge_portfolio(database.active_catchment())
 
         synth = [g for g in data["flood_gauges"]
                  if g["FloodGauge"]["Header"]["GaugeID"].startswith("SYNTH")]
@@ -188,8 +186,7 @@ class TestSyntheticGaugeGenerator:
         gen = SyntheticGaugeGenerator(synth_env)
         gen.generate()
 
-        with open(synth_env / "gauge.json") as f:
-            data = json.load(f)
+        data = database.get_gauge_portfolio(database.active_catchment())
 
         synth = [g for g in data["flood_gauges"]
                  if g["FloodGauge"]["Header"]["GaugeID"].startswith("SYNTH")]
@@ -219,8 +216,7 @@ class TestSyntheticGaugeGenerator:
         gen = SyntheticGaugeGenerator(synth_env)
         gen.generate()
 
-        with open(synth_env / "gauge.json") as f:
-            data = json.load(f)
+        data = database.get_gauge_portfolio(database.active_catchment())
 
         synth = [g for g in data["flood_gauges"]
                  if g["FloodGauge"]["Header"]["GaugeID"].startswith("SYNTH")]
@@ -234,8 +230,7 @@ class TestSyntheticGaugeGenerator:
         gen = SyntheticGaugeGenerator(synth_env)
         gen.generate()
 
-        with open(synth_env / "gauge.json") as f:
-            data = json.load(f)
+        data = database.get_gauge_portfolio(database.active_catchment())
 
         synth = [g for g in data["flood_gauges"]
                  if g["FloodGauge"]["Header"]["GaugeID"].startswith("SYNTH")]
@@ -265,7 +260,8 @@ class TestSyntheticGaugeGenerator:
 
     def test_no_property_json_still_generates(self, synth_env):
         """Generator no longer needs property.json — generates random positions on river."""
-        (synth_env / "property.json").unlink()
+        from database.backend import active_backend
+        active_backend().delete("property", database.active_catchment())
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
         result = SyntheticGaugeGenerator(synth_env).generate()
         assert result["count"] > 0

@@ -41,12 +41,10 @@ import port.rand.halong.property.property_random.resilience as halong_resilience
 from port.rand.halong.property.property_random.resilience import (
     RESILIENCE_LEVEL_CREDIT,
     TARGET_DISTRIBUTION_THAMES,
-    compute_bri_rating,
-)
-from port.rand.halong.property.property_random.resilience import (
     _field_credit,
     _level_from_score,
     _synthetic_property,
+    compute_bri_rating,
     generate_resilience,
     recalibrate_thresholds_from_scores,
     sanity_check_distribution,
@@ -54,7 +52,6 @@ from port.rand.halong.property.property_random.resilience import (
     score_section,
     validate_weights,
 )
-
 
 # ---------------------------------------------------------------------------
 # Behavioural bias checks

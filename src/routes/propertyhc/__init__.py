@@ -25,6 +25,7 @@ Provides access to property-level hazard curves, PRS pricing,
 and basis calculations against nearest gauge PRS prices.
 """
 
+# isort: off
 from flask import Blueprint
 
 propertyhc_bp = Blueprint('propertyhc', __name__)
@@ -34,3 +35,4 @@ propertyhc_bp = Blueprint('propertyhc', __name__)
 from ._helpers import _get_hazard_data, _load_or_404  # noqa: E402,F401
 
 from . import _summary, _perils  # noqa: E402,F401  (register routes)
+# isort: on

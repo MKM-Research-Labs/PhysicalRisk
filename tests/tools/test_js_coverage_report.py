@@ -27,6 +27,7 @@ normalisation. The browser-attached parts are exercised by the e2e run itself.
 import json
 
 import pytest
+from docs.models.js_coverage.report import build_report, load_sessions
 
 from tests.e2e._js_coverage import (
     covered_intervals,
@@ -36,7 +37,6 @@ from tests.e2e._js_coverage import (
     normalise_url,
     shipped_modules,
 )
-from docs.models.js_coverage.report import build_report, load_sessions
 
 
 class TestMergeIntervals:

@@ -24,8 +24,8 @@ Data formatting utilities for the visualization system.
 ``DataFormatter`` composes the value and physical-quantity formatter mixins.
 """
 
-from ._value import _ValueFormattersMixin
 from ._physical import _PhysicalFormattersMixin
+from ._value import _ValueFormattersMixin
 
 
 class DataFormatter(_ValueFormattersMixin, _PhysicalFormattersMixin):

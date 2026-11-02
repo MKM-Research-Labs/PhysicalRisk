@@ -28,7 +28,7 @@ Functions:
 """
 
 import math
-from typing import Dict, List, Optional
+from typing import Optional
 
 from config.models import (
     MIN_PRS_SPREAD_BPS,
@@ -130,3 +130,7 @@ def compute_prs_spread(
     fair_spread = protection_pv / annuity if annuity > 0 else 0.0
     spread_bps = fair_spread * 10000  # Convert to bps
     return max(spread_bps, min_spread_bps)
+
+__all__ = [
+    "RECOVERY_RATES",
+]

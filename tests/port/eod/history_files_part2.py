@@ -21,9 +21,9 @@
 """Tests for generate_trade_pnl_history_file — part 2."""
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 from port.src.historical_eod import generate_trade_pnl_history_file
 
 

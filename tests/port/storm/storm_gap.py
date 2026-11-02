@@ -23,7 +23,7 @@
 import numpy as np
 import pytest
 
-from port.src.storm_multi.core.data_structures import GapType, SequenceType
+from port.src.storm_multi.core.data_structures import GapType, SequenceStorm, SequenceType, StormSequence
 from port.src.storm_multi.generators.gap_sampler import GAP_PARAMS, get_gap_range, sample_gap
 from port.src.storm_multi.utils.validation import (
     EVENT_WINDOW_HOURS,
@@ -32,7 +32,6 @@ from port.src.storm_multi.utils.validation import (
     fits_in_window,
     validate_sequence,
 )
-from port.src.storm_multi.core.data_structures import SequenceStorm, StormSequence
 
 
 class TestGapParams:

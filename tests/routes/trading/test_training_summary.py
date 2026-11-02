@@ -31,7 +31,6 @@ import pytest
 
 from ._data import GAUGE_WESTMINSTER, SAMPLE_GAUGE_JSON
 
-
 # Gauge JSON in the Header.GaugeID format that training.py's parser expects.
 _TRAINING_GAUGE_JSON = {
     "flood_gauges": [
@@ -76,6 +75,7 @@ def training_client(training_env):
 # _update_training_summary
 # ===========================================================================
 
+@pytest.mark.usefixtures("trading_catchment")
 class TestUpdateTrainingSummary:
     """Tests for the _update_training_summary helper."""
 

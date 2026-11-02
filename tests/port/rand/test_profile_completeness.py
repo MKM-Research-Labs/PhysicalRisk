@@ -37,7 +37,6 @@ import pytest
 
 import port.rand.profiles as _profiles_pkg
 
-
 # ---------------------------------------------------------------------------
 # Contract
 # ---------------------------------------------------------------------------
@@ -180,7 +179,8 @@ class TestProfileDrivesGeneration:
     def test_commercial_metadata_and_fields(self, catchment, _active):
         _active(catchment)
         from port.rand.shared.commercial.commercial_random import (
-            generate_commercial_metadata, generate_field_value,
+            generate_commercial_metadata,
+            generate_field_value,
         )
         # One asset of every allocated type, exercising the per-type tables.
         n = len(_profile(catchment).COMMERCIAL_TYPE_ALLOCATION)

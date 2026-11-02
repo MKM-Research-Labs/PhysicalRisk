@@ -28,10 +28,9 @@ or on-disk fixtures are assumed.
 import json
 
 import pytest
-
 from db_helpers import active_test_backend
-from routes.propertyts import wind_impact as wi
 
+from routes.propertyts import wind_impact as wi
 
 # ---------------------------------------------------------------------------
 # Helpers: monkeypatch config to a tmp catchment dir
@@ -39,8 +38,9 @@ from routes.propertyts import wind_impact as wi
 
 @pytest.fixture
 def cfg_tmp(tmp_path, monkeypatch):
-    from config import config
     from db_helpers import tmp_catchment
+
+    from config import config
     monkeypatch.setattr(config, "get_input_dir", lambda: tmp_path)
     monkeypatch.setattr(config, "get_input_path", lambda fname: tmp_path / fname)
     # Bind a tmp-rooted backend so the lookups (which read commercial/property via

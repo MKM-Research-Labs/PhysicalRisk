@@ -32,7 +32,6 @@ import pytest
 from visual.layer import CommercialLayer
 from visual.layer.commercial_layer.layer import _ICON_BY_TYPE, _MARKER_COLOR
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

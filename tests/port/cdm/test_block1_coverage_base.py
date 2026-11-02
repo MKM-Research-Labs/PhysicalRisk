@@ -29,12 +29,11 @@ Targets missing lines in:
 import pytest
 
 from port.cdm.asset.loan import LoanCDM
-from port.cdm.prs import PhysicalRiskSwapCDM
-from port.cdm.asset.residential.validator import validate as property_validate
 from port.cdm.asset.residential.validator import get_required_fields as property_required
-from port.cdm.gauge.validate import validate_gauge
+from port.cdm.asset.residential.validator import validate as property_validate
 from port.cdm.base import BaseCDM
-
+from port.cdm.gauge.validate import validate_gauge
+from port.cdm.prs import PhysicalRiskSwapCDM
 
 # ---------------------------------------------------------------------------
 # Property validator — location validation + exception (lines 60,62,65,69-70)

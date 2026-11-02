@@ -33,10 +33,13 @@ Sub-modules:
 - trading/: Trading desk panels
 """
 
-from .manager import InteractivityManager  # noqa: F401
-
 from .backend_handler import BackendHandler  # noqa: F401
 from .context_menus import ContextMenuHandler  # noqa: F401
+from .gauge.gaugeha import GaugeGraphInteraction  # noqa: F401
+from .gauge.gaugehc import GaugeHazardCurve  # noqa: F401
+from .gauge.gaugepdf import GaugePDFPanel  # noqa: F401
+from .gauge.gaugesa import GaugeStormAnalysis  # noqa: F401
+from .manager import InteractivityManager  # noqa: F401
 from .notifications import (  # noqa: F401
     NotificationPosition,
     NotificationSystem,
@@ -44,19 +47,14 @@ from .notifications import (  # noqa: F401
     add_notifications_to_map,
     create_notification_system,
 )
-from .startup import StartupPreloader  # noqa: F401
-
-from .storm.stormportfolio import StormPortfolioPanel  # noqa: F401
-from .gauge.gaugeha import GaugeGraphInteraction  # noqa: F401
-from .gauge.gaugehc import GaugeHazardCurve  # noqa: F401
-from .gauge.gaugepdf import GaugePDFPanel  # noqa: F401
-from .gauge.gaugesa import GaugeStormAnalysis  # noqa: F401
-from .property.rloandetail import RLoanDetailPanel  # noqa: F401
 from .property.propertyhc import PropertyHazardCurvePanel  # noqa: F401
 from .property.propertypdf import PropertyPDFPanel  # noqa: F401
 from .property.propertysa import PropertyStormAnalysis  # noqa: F401
-from .trading.tradingdesk import TradingDeskPanel  # noqa: F401
+from .property.rloandetail import RLoanDetailPanel  # noqa: F401
+from .startup import StartupPreloader  # noqa: F401
+from .storm.stormportfolio import StormPortfolioPanel  # noqa: F401
 from .trading.td_main_map import MainMapFS01  # noqa: F401
+from .trading.tradingdesk import TradingDeskPanel  # noqa: F401
 
 __all__ = [
     "StartupPreloader",

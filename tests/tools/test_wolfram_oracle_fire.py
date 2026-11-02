@@ -30,11 +30,11 @@ import re
 
 import mpmath as mp
 import pytest
-
-from config.models import ORACLE_FIRE_REL_TOL, ORACLE_FIRE_Z_LIMIT
 from tools.wolfram_oracle import __main__ as cli
 from tools.wolfram_oracle._wl import save_wolfram, wl_number
 from tools.wolfram_oracle.fire import cases, claims, exact
+
+from config.models import ORACLE_FIRE_REL_TOL, ORACLE_FIRE_Z_LIMIT
 
 
 @pytest.fixture(scope="module")

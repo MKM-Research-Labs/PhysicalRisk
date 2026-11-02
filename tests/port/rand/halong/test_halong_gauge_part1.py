@@ -31,7 +31,6 @@ import random
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Imports — exercise module-load paths
 # ---------------------------------------------------------------------------
@@ -148,6 +147,7 @@ class TestGenerateDateValue:
     ])
     def test_returns_iso_date(self, field, gauge_metadata):
         from datetime import datetime
+
         from port.rand.halong.gauge.gauge_field_generators import generate_date_value
         s = generate_date_value(field, {}, 0, gauge_metadata)
         # Parseable as YYYY-MM-DD

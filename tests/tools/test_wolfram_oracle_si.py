@@ -32,11 +32,12 @@ import re
 
 import mpmath as mp
 import pytest
-
-from config.models import ORACLE_SI_EXC_TOL, ORACLE_SI_INV_TOL, ORACLE_SI_PACKAGE
 from tools.wolfram_oracle import __main__ as cli
 from tools.wolfram_oracle._wl import save_wolfram, wl_number
-from tools.wolfram_oracle.intensity import claims, distribution as dist
+from tools.wolfram_oracle.intensity import claims
+from tools.wolfram_oracle.intensity import distribution as dist
+
+from config.models import ORACLE_SI_EXC_TOL, ORACLE_SI_INV_TOL, ORACLE_SI_PACKAGE
 
 PKG = importlib.import_module(ORACLE_SI_PACKAGE)
 BASELINE = PKG.SCENARIO_FAMILIES["baseline"]

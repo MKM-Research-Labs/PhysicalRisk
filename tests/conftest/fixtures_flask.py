@@ -21,7 +21,6 @@
 """Fixtures for Flask test app and client instances."""
 
 import pytest
-
 from fixtures_admin import AuthenticatedTestClient
 
 

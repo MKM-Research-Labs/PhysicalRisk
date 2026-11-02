@@ -30,9 +30,10 @@ from typing import Any, Dict, Optional
 
 import folium
 
+from config.theme import colour
+
 from ..utils.color_schemes import ColorSchemes
 from .popup_builder import PopupBuilder
-from config.theme import colour
 
 
 class GaugePopupBuilder(PopupBuilder):

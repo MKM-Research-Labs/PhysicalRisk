@@ -25,7 +25,6 @@ import uuid
 from typing import Any, Dict
 
 from config import config
-
 from port.src.counterparty._data import (
     _ADDRESSES,
     _CONTACTS,

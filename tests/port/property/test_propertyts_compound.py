@@ -25,7 +25,7 @@ _compute_property_flood (v2.2 per-pulse superposition).
 
 from unittest.mock import patch
 
-from .conftest import make_generator, make_gaugets
+from .conftest import make_gaugets, make_generator
 
 
 def _pulse(peak_m, start_hour=0, duration_hours=24):

@@ -25,8 +25,8 @@ import statistics as stats_mod
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, Spacer
 
-from .styles import ALT_ROWS_AMBER, ALT_ROWS_GREEN  # noqa: F401
 from .sections_portfolio import PortfolioSectionsMixin  # noqa: F401
+from .styles import ALT_ROWS_AMBER, ALT_ROWS_GREEN  # noqa: F401
 
 
 class AnalysisSectionsMixin:

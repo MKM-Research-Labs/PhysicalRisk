@@ -29,11 +29,11 @@ run, leaves every other netting set as it was, and recomputes the totals.
 from datetime import date, timedelta
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
 from config import config
 from config.port import DEFAULT_YIELD_CURVE
-from db_helpers import tmp_catchment
 from models.xva import service
 
 STATE = {"yield_curve": DEFAULT_YIELD_CURVE, "risk_free_rate": 0.03}

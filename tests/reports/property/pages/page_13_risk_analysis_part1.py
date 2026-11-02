@@ -25,7 +25,7 @@ Basics, LTV branches, payment performance, and credit risk branches.
 
 from reportlab.platypus import Paragraph, Table
 
-from .conftest import make_property, make_mortgage
+from .conftest import make_mortgage, make_property
 
 
 class TestRiskAnalysisPageBasics:

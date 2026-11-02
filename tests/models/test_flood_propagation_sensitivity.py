@@ -35,15 +35,13 @@ import pytest
 from models.floodrisk.velocity import (
     build_property_hydrograph,
     compute_retention,
-    compute_travel_time,
     compute_slope,
+    compute_travel_time,
 )
-
 from tests.models._flood_propagation_helpers import (
-    _triangular_gauge_readings,
     _compute_flood_depth,
+    _triangular_gauge_readings,
 )
-
 
 # ---------------------------------------------------------------------------
 # Distance sensitivity

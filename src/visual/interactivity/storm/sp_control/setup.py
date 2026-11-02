@@ -20,7 +20,7 @@
 
 """Compose all Control tab sub-module JavaScript."""
 
-from . import setup_dom, setup_data
+from . import setup_data, setup_dom
 
 
 def get_js() -> str:

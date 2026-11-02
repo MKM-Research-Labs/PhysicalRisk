@@ -36,10 +36,9 @@ from pathlib import Path
 
 import pytest
 
-from tests._dataset import full_dataset_only
-
 from config import config
 from config.models import EA_FLOOD_ZONE_RATES
+from tests._dataset import full_dataset_only
 
 
 def _input_dir() -> Path:

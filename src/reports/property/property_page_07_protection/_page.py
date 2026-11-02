@@ -25,7 +25,7 @@ Handles flood protection, resilience measures, and risk mitigation systems.
 
 from typing import Any, Dict, List
 
-from reportlab.platypus import Paragraph, Spacer, Table
+from reportlab.platypus import Paragraph
 
 from ..property_page_00_base import PropertyBasePage
 from ._sections_a import _SectionsAMixin

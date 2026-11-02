@@ -45,7 +45,6 @@ from models.typhoon.wind_field.radial import (
 )
 from models.typhoon.wind_field.surface import surface_factor
 
-
 __all__ = [
     "PointWind",
     "evaluate_point",

@@ -43,7 +43,6 @@ from models.typhoon.transitions.position import update_position
 from models.typhoon.transitions.size import update_size
 from models.typhoon.transitions.wind import update_wind
 
-
 __all__ = ["step", "advance"]
 
 

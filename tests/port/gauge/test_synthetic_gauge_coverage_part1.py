@@ -28,6 +28,7 @@ import math
 
 import pytest
 
+import database
 
 # ---------------------------------------------------------------------------
 # Helpers (same CDM builders as test_synthetic_gauge.py)
@@ -98,13 +99,13 @@ def synth_env(tmp_path, monkeypatch):
         _make_gauge_cdm("GAUGE-BBB00002", 51.46, -0.30, 4.0, 4.0, 5.0, 6.0),
         _make_gauge_cdm("GAUGE-CCC00003", 51.47, -0.10, 5.0, 4.5, 5.5, 7.0),
     ]
-    (tmp_path / "gauge.json").write_text(json.dumps({"flood_gauges": gauges}))
+    database.save_gauges(database.active_catchment(), {"flood_gauges": gauges})
 
     properties = [
         _make_property_cdm("PROP-001", 51.455, -0.40),
         _make_property_cdm("PROP-002", 51.465, -0.20),
     ]
-    (tmp_path / "property.json").write_text(json.dumps({"properties": properties}))
+    database.save_properties(database.active_catchment(), {"properties": properties})
 
     from unittest.mock import MagicMock
     mock_params = MagicMock()
@@ -159,8 +160,9 @@ class TestRiverPolylineCacheHit:
 
     def test_load_river_polyline_from_cache_file(self, synth_env, monkeypatch, tmp_path):
         """Lines 39-40 of geometry.py: cache file exists → loaded and returned."""
+        from unittest.mock import mock_open, patch
+
         import port.src.gauge.synthetic.geometry as geom_mod
-        from unittest.mock import patch, mock_open
 
         # Reset cache
         geom_mod._RIVER_POLYLINE_CACHE = None
@@ -168,7 +170,7 @@ class TestRiverPolylineCacheHit:
         polyline_data = [[51.45, -0.50], [51.46, -0.30], [51.47, -0.10]]
 
         # Mock Path.exists to return True, and open to return our polyline JSON
-        with patch.object(geom_mod.Path, 'exists', return_value=True):
+        with patch('pathlib.Path.exists', return_value=True):
             with patch('builtins.open', mock_open(read_data=json.dumps(polyline_data))):
                 result = geom_mod._load_river_polyline()
 
@@ -210,6 +212,7 @@ class TestInsufficientGaugePoints:
     def test_empty_gauge_points_returns_zero(self, synth_env, monkeypatch):
         """generate() returns count=0 when GAUGE_POINTS has < 2 entries."""
         from unittest.mock import MagicMock
+
         from config import config as cfg
 
         mock_params = MagicMock()
@@ -224,6 +227,7 @@ class TestInsufficientGaugePoints:
     def test_none_gauge_points_returns_zero(self, synth_env, monkeypatch):
         """generate() returns count=0 when GAUGE_POINTS is None."""
         from unittest.mock import MagicMock
+
         from config import config as cfg
 
         mock_params = MagicMock()
@@ -244,7 +248,8 @@ class TestRandomPositionGeneration:
 
     def test_generates_without_property_json(self, synth_env):
         """Generator no longer needs property.json — uses random positions on river."""
-        (synth_env / "property.json").unlink()
+        from database.backend import active_backend
+        active_backend().delete("property", database.active_catchment())
         from port.src.gauge.synthetic import SyntheticGaugeGenerator
         result = SyntheticGaugeGenerator(synth_env).generate(count=10)
         assert result["count"] > 0

@@ -27,7 +27,6 @@ from typing import Any, Dict, Optional
 import database
 from config import config
 from port.cdm.ctpy import CounterpartyCDM
-
 from port.src.counterparty._credit import with_credit_curve
 from port.src.counterparty._credit_support import with_credit_support
 from port.src.counterparty._data import _ALL_COUNTERPARTIES

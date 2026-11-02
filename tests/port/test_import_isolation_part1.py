@@ -31,10 +31,9 @@ import sys
 import pytest
 
 from tests.port.conftest_import_isolation import (
-    _simulate_no_quantlib,
     _drop_port_src_cache,
+    _simulate_no_quantlib,
 )
-
 
 # ---------------------------------------------------------------------------
 # Tests: package __init__ does not import book
@@ -45,6 +44,7 @@ class TestPackageDoesNotEagerlyImportBook:
     def test_port_src_init_source_has_no_book_import(self):
         """The package __init__.py must not contain `from .book import`."""
         import inspect
+
         import port.src as _pkg
         src = inspect.getsource(_pkg)
         assert "from .book import" not in src, (
@@ -168,8 +168,8 @@ class TestBookRequiresQuantLib:
         """When QuantLib IS available, book must export its public API."""
         from port.src.book import (  # noqa: F401
             THAMES_CENTRAL_AREAS,
-            generate_thames_central_book,
             generate_market_making_book,
+            generate_thames_central_book,
             generate_trade_pdfs,
             print_book_summary,
         )

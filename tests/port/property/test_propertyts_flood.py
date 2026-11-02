@@ -23,8 +23,7 @@ Tests for _process_property flood path, _compute_property_flood, and
 _build_flood_event.
 """
 
-from .conftest import make_prop, make_gauge_lookup, make_gaugets, make_generator
-
+from .conftest import make_gauge_lookup, make_gaugets, make_generator, make_prop
 
 # ===========================================================================
 # _process_property — full flood path (lines 291-370)

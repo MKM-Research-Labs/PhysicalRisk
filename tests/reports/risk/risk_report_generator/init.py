@@ -21,7 +21,9 @@
 """Tests for RiskReportGenerator.__init__, _auto_select_pages and _generate_filename."""
 
 from pathlib import Path
+
 import pytest
+
 from .conftest import _make_generator
 
 

@@ -31,7 +31,7 @@ stressm, gaugehc, and propertyts as first-class entities.
 import logging
 import random
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import database
 from config import config

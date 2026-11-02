@@ -22,7 +22,6 @@
 
 import json
 
-
 GAUGE_ID = "GAUGE-001"
 
 GAUGE_DATA = {

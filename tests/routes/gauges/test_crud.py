@@ -22,7 +22,7 @@
 
 import json
 
-from .conftest import GAUGE_ID, GAUGE_DATA, make_client
+from .conftest import GAUGE_DATA, GAUGE_ID, make_client
 
 
 class TestCrudListGauges:

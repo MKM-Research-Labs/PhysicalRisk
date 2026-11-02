@@ -22,7 +22,7 @@
 
 from unittest.mock import patch
 
-from .conftest import minimal_property, minimal_mortgage, mock_generator
+from .conftest import minimal_mortgage, minimal_property, mock_generator
 
 _PROP = minimal_property()
 _MORT = minimal_mortgage()

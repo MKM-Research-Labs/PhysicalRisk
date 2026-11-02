@@ -253,8 +253,7 @@ class CommercialPortfolioGenerator(LocationsMixin):
         ``CommercialAsset`` but ProtectionMeasures is a sibling of
         ``CommercialAsset``, so both must be reached from the root.
         """
-        from models.floodrisk.depth_damage import (
-            bri_adjusted_floor_level, flood_rating_to_score)
+        from models.floodrisk.depth_damage import bri_adjusted_floor_level, flood_rating_to_score
 
         construction = asset_data.get('CommercialAsset', {}).get('Construction', {})
         floor_level = construction.get('FloorLevelMeters')

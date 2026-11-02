@@ -106,8 +106,9 @@ class TestRiskReportEdgeCases:
 
     def test_generate_elements_exception_continues(self, sample_portfolio_data, output_dir):
         """Lines 162-164: page raises → continue to next."""
-        from reports.risk import RiskReportGenerator
         from unittest.mock import MagicMock
+
+        from reports.risk import RiskReportGenerator
         gen = RiskReportGenerator(output_dir)
         bad = MagicMock()
         bad.generate_elements.side_effect = RuntimeError("page crash")

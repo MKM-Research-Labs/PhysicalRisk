@@ -47,7 +47,11 @@ def test_import_mortgage_subpackage():
 
 def test_import_all_modules():
     from port.rand.halong.mortgage import (
-        constants, financials, generators, mortgage_random, quality,
+        constants,
+        financials,
+        generators,
+        mortgage_random,
+        quality,
     )
     assert constants.UK_LENDERS
     assert hasattr(financials, "generate_financial_data")
@@ -84,8 +88,8 @@ class TestDetermineMortgageType:
         )
 
     def test_default_path(self):
-        from port.rand.halong.mortgage.financials import determine_mortgage_type
         from port.rand.halong.mortgage.constants import MORTGAGE_TYPES
+        from port.rand.halong.mortgage.financials import determine_mortgage_type
         result = determine_mortgage_type({})
         assert result in MORTGAGE_TYPES
 

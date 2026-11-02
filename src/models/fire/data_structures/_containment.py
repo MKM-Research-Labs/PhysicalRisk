@@ -25,7 +25,6 @@ from typing import Any, Dict, List, Optional
 
 from config.fire import FireState
 
-
 # ===========================================================================
 # Stage-2 structures — response effectiveness (Model C)
 # ===========================================================================

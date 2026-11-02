@@ -20,9 +20,11 @@
 
 """Tests for layer init, interactivity init, _add_layer and _add_interactivity."""
 
-import pytest
-import folium
 from unittest.mock import MagicMock, patch
+
+import folium
+import pytest
+
 from .conftest import _make_loaded_data
 
 

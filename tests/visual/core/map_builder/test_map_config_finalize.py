@@ -23,9 +23,8 @@ Tests for MapBuilder configuration, finalize_map, and add_bounds_rectangle
 from visual.core.map_builder.
 """
 
-import pytest
 import folium
-
+import pytest
 
 # ===========================================================================
 # MapBuilder setters and configuration

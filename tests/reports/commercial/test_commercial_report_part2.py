@@ -65,6 +65,7 @@ def first_commercial_id(commercial_input_dir):
 @pytest.fixture
 def app(commercial_input_dir):
     from flask import Flask
+
     from routes import register_blueprints
     a = Flask(__name__)
     register_blueprints(a)

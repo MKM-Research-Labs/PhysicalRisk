@@ -28,7 +28,6 @@ import pytest
 
 from tests.data.conftest import make_manifest as _make_manifest
 
-
 # ===========================================================================
 # Coverage: completeness — config fallback
 # ===========================================================================
@@ -37,8 +36,9 @@ class TestCheckPipelineCompleteConfigFallback:
     """Cover the ImportError fallback in check_pipeline_complete."""
 
     def test_fallback_when_config_missing(self, monkeypatch):
-        from lineage.validation.completeness import check_pipeline_complete
         import builtins
+
+        from lineage.validation.completeness import check_pipeline_complete
         real_import = builtins.__import__
         def fake_import(name, *args, **kwargs):
             if name == "config":
@@ -125,9 +125,10 @@ class TestFreshnessExternalInputs:
     def test_external_input_consumer_never_ran(self):
         """stressm consumes storm_control.json; if stressm never ran, the
         external-input branch should report 'has never run'."""
-        from lineage.validation import check_inputs_fresh
         from unittest.mock import patch as _patch
+
         import lineage.validation as _val
+        from lineage.validation import check_inputs_fresh
 
         # Manifest where stressm's upstream dependencies have run but
         # stressm itself has not → the external-input check should fire
@@ -146,9 +147,10 @@ class TestFreshnessExternalInputs:
 
     def test_external_input_changed_on_disk(self, tmp_path):
         """External input recorded hash differs from on-disk hash → stale."""
-        from lineage.validation import check_inputs_fresh
         from unittest.mock import patch as _patch
+
         import lineage.validation as _val
+        from lineage.validation import check_inputs_fresh
 
         (tmp_path / "storm_control.json").write_text('{"hours": 168}')
         manifest = _make_manifest({
@@ -174,9 +176,10 @@ class TestFreshnessExternalInputs:
     def test_external_input_no_recorded_hash_is_tolerated(self, tmp_path):
         """Consumer entry exists but no recorded hash for storm_control →
         skip silently (line 56-57)."""
-        from lineage.validation import check_inputs_fresh
         from unittest.mock import patch as _patch
+
         import lineage.validation as _val
+        from lineage.validation import check_inputs_fresh
 
         manifest = _make_manifest({
             "gauges": {"outputs": {"gauge.json": {"hash": "a"}}},
@@ -202,9 +205,10 @@ class TestFreshnessProducerNullHashMissing:
     also None (artifact missing) → reports 'missing on disk'."""
 
     def test_producer_null_hash_and_disk_missing(self, tmp_path):
-        from lineage.validation import check_inputs_fresh
         from unittest.mock import patch as _patch
+
         import lineage.validation as _val
+        from lineage.validation import check_inputs_fresh
 
         manifest = _make_manifest({
             "gauges": {"outputs": {"gauge.json": {"hash": "a"}}},
@@ -232,9 +236,10 @@ class TestFreshnessConsumerNeverRan:
     consumer step has no manifest entry."""
 
     def test_consumer_step_has_no_manifest_entry(self):
-        from lineage.validation import check_inputs_fresh
         from unittest.mock import patch as _patch
+
         import lineage.validation as _val
+        from lineage.validation import check_inputs_fresh
 
         # Producer exists with concrete hash; consumer (mortgages) absent
         manifest = _make_manifest({
@@ -257,9 +262,10 @@ class TestFreshnessConsumerExplicitNullDiskMissing:
     hash returns None → reports 'no recorded hash ... missing on disk'."""
 
     def test_consumer_null_hash_and_disk_missing(self, tmp_path):
-        from lineage.validation import check_inputs_fresh
         from unittest.mock import patch as _patch
+
         import lineage.validation as _val
+        from lineage.validation import check_inputs_fresh
 
         manifest = _make_manifest({
             "gauges": {"outputs": {"gauge.json": {"hash": "abc"}}},

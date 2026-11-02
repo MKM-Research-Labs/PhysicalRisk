@@ -27,6 +27,17 @@ Tests the shared functionality inherited by all entity loaders.
 import json
 
 import pytest
+from db_helpers import file_backend_only
+
+import database
+
+# The loose shapes below (a bare list, a single object, alternative container
+# keys) are the file backend's parsing of a JSON file; Postgres stores records.
+file_format_only = file_backend_only("parses loosely shaped JSON files")
+
+
+def _save_properties(payload):
+    database.save_properties(database.active_catchment(), payload)
 
 
 class TestBaseLoaderInterface:
@@ -70,6 +81,7 @@ class TestBaseLoaderInterface:
 class TestBaseLoaderJsonLoading:
     """Test JSON loading and normalization."""
 
+    @file_format_only
     def test_load_list_format(self, temp_data_dir):
         """Load data when JSON is a direct list."""
         from loaders.property_loader import PropertyLoader
@@ -86,6 +98,7 @@ class TestBaseLoaderJsonLoading:
         assert len(result) == 1
         assert result[0]['PropertyHeader']['Header']['PropertyID'] == 'P1'
 
+    @file_format_only
     def test_load_dict_with_container_key(self, temp_data_dir):
         """Load data when JSON has container key."""
         from loaders.property_loader import PropertyLoader
@@ -103,6 +116,7 @@ class TestBaseLoaderJsonLoading:
 
         assert len(result) == 2
 
+    @file_format_only
     def test_load_alternative_container_key(self, temp_data_dir):
         """Load data with alternative container key (portfolio)."""
         from loaders.property_loader import PropertyLoader
@@ -119,6 +133,7 @@ class TestBaseLoaderJsonLoading:
 
         assert len(result) == 1
 
+    @file_format_only
     def test_load_single_object(self, temp_data_dir):
         """Load data when JSON is single object."""
         from loaders.property_loader import PropertyLoader
@@ -149,14 +164,14 @@ class TestBaseLoaderCaching:
         """Verify data is cached after first load."""
         from loaders.property_loader import PropertyLoader
 
+        _save_properties(json.loads(sample_property_file.read_text()))
         loader = PropertyLoader(data_dir=temp_data_dir)
 
         # First load
         result1 = loader.load_all()
 
-        # Modify the file
-        with open(sample_property_file, 'w') as f:
-            json.dump({"properties": []}, f)
+        # Replace the portfolio
+        _save_properties({"properties": []})
 
         # Second load should return cached data
         result2 = loader.load_all()
@@ -167,15 +182,15 @@ class TestBaseLoaderCaching:
         """Verify force_reload bypasses cache."""
         from loaders.property_loader import PropertyLoader
 
+        _save_properties(json.loads(sample_property_file.read_text()))
         loader = PropertyLoader(data_dir=temp_data_dir)
 
         # First load
         result1 = loader.load_all()
         assert len(result1) == 3
 
-        # Modify the file
-        with open(sample_property_file, 'w') as f:
-            json.dump({"properties": []}, f)
+        # Replace the portfolio
+        _save_properties({"properties": []})
 
         # Force reload
         result2 = loader.load_all(force_reload=True)

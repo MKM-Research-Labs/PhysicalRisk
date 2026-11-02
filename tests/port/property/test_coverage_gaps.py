@@ -35,11 +35,11 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
 from port.src.property.main import PropertyPortfolioGenerator
 from port.src.property.main.locations import _zone_from_offset
-from db_helpers import tmp_catchment
 
 from .conftest import GAUGE_POINTS, make_portfolio_gen, make_portfolio_params
 

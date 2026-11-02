@@ -29,16 +29,15 @@ from pathlib import Path
 import pytest
 
 from tests.data._id_consistency_helpers import (
-    ROOT,
     INPUT_DIR,
     OUTPUT_DIR,
+    ROOT,
     _load_gauge_ids,
-    _load_hazard_curve_ids,
-    _load_trade_gauge_ids,
     _load_gaugets_ids,
+    _load_hazard_curve_ids,
     _load_property_ids,
+    _load_trade_gauge_ids,
 )
-
 
 # =========================================================================
 # Gauge ID consistency

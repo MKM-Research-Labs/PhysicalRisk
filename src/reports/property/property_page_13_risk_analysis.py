@@ -30,10 +30,10 @@ from reportlab.platypus import Paragraph, Spacer, Table
 from .property_page_00_base import PropertyBasePage
 from .property_page_13_scoring import (
     comprehensive_risk_assessment,
-    property_risk_assessment,
-    identify_key_factors,
-    generate_recommendations,
     generate_monitoring_schedule,
+    generate_recommendations,
+    identify_key_factors,
+    property_risk_assessment,
 )
 
 

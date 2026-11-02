@@ -21,9 +21,9 @@
 """Tests for routes.gauges.history — error paths (500 responses)."""
 
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from .conftest import GAUGE_ID, GAUGE_DATA, make_client
+from .conftest import GAUGE_DATA, GAUGE_ID, make_client
 
 
 class TestHistoryErrorPaths:

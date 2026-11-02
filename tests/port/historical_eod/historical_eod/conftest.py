@@ -20,8 +20,8 @@
 
 """Shared loader, module-level symbols, and helper functions for historical_eod tests."""
 
-from pathlib import Path
 import importlib.util
+from pathlib import Path
 
 import database
 

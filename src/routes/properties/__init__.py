@@ -22,6 +22,7 @@
 Property endpoints for MKM Research Labs PRS Platform.
 """
 
+# isort: off
 from flask import Blueprint
 
 properties_bp = Blueprint('properties', __name__)
@@ -31,3 +32,4 @@ properties_bp = Blueprint('properties', __name__)
 from ._routes import _get_registry, _parse_property_request  # noqa: E402,F401
 
 from . import _loan_routes  # noqa: E402,F401  (registers loan/pricer routes)
+# isort: on

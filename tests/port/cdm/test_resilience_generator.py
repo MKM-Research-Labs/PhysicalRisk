@@ -40,15 +40,12 @@ import pytest
 from port.rand.thames.property.property_random.resilience import (
     RESILIENCE_LEVEL_CREDIT,
     TARGET_DISTRIBUTION_THAMES,
-    compute_bri_rating,
-)
-from port.rand.thames.property.property_random.resilience import (
     _level_from_score,
     _synthetic_property,
+    compute_bri_rating,
     generate_resilience,
     sanity_check_distribution,
 )
-
 
 # ---------------------------------------------------------------------------
 # _level_from_score

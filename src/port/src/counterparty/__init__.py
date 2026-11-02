@@ -59,4 +59,14 @@ from port.src.counterparty._generator import (
 __all__ = [
     "CounterpartyPortfolioGenerator",
     "generate_counterparties",
+    "_ADDRESSES",
+    "_ALL_COUNTERPARTIES",
+    "_BANK_NAMES",
+    "_CONTACTS",
+    "_INSURER_NAMES",
+    "_OTHER_NAMES",
+    "_RATINGS",
+    "_RATING_AGENCIES",
+    "_REINSURER_NAMES",
+    "_SORT_CODES",
 ]

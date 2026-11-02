@@ -23,7 +23,6 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-
 # ===========================================================================
 # CDM-derived input features
 # ===========================================================================

@@ -60,9 +60,10 @@ def batch_train_classifiers(
     Returns:
         Summary dict with counts and per-gauge status.
     """
-    from .classifier import train_gauge_stressm_classifier, _print_classifier_result
-    from .summary import load_gauge_training_context, update_training_summary
     from port.src.storm_multi.utils.serialization import load_sequences
+
+    from .classifier import _print_classifier_result, train_gauge_stressm_classifier
+    from .summary import load_gauge_training_context, update_training_summary
 
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
@@ -87,7 +88,7 @@ def batch_train_classifiers(
     ]
     already_trained = len(all_gauges) - len(untrained)
 
-    print(f"\n  Batch Classifier Training")
+    print("\n  Batch Classifier Training")
     print(f"  {'=' * 50}")
     print(f"  Total gauges       : {len(all_gauges)}")
     print(f"  Already trained    : {already_trained}")
@@ -184,7 +185,7 @@ def batch_train_classifiers(
     # ------------------------------------------------------------------
     elapsed_total = time.time() - t_start
     print(f"\n  {'=' * 50}")
-    print(f"  Batch training complete")
+    print("  Batch training complete")
     print(f"  Trained  : {n_trained}")
     print(f"  Failed   : {n_failed}")
     print(f"  Elapsed  : {elapsed_total / 60:.1f} min")

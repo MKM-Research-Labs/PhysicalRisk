@@ -26,8 +26,8 @@ Targets uncovered lines: 42-47 (build_spatial_index with data),
 163 (idw_interpolate_from_gauges total_weight==0).
 """
 
-import pytest
 import numpy as np
+import pytest
 
 try:
     import geopandas as gpd
@@ -43,7 +43,6 @@ from models.floodrisk.spatial import (
     idw_interpolate_from_gauges,
     spatial_interpolate_wse,
 )
-
 
 # ---------------------------------------------------------------------------
 # build_spatial_index — with valid gauge data (lines 42-47)

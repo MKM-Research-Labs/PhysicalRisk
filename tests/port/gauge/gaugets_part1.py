@@ -26,9 +26,9 @@ generate() output structure.
 """
 
 import pytest
+from db_helpers import active_test_backend, tmp_catchment
 
 import database
-from db_helpers import active_test_backend, tmp_catchment
 
 
 @pytest.fixture(autouse=True)
@@ -60,6 +60,7 @@ class TestGaugeTimeSeriesDefaults:
     def test_generate_default_argument_is_168(self):
         """generate(simulation_hours) default parameter must be 168."""
         import inspect
+
         from port.src.gauge.gaugets import GaugeTimeSeriesGenerator
         sig = inspect.signature(GaugeTimeSeriesGenerator.generate)
         default = sig.parameters["simulation_hours"].default
@@ -68,6 +69,7 @@ class TestGaugeTimeSeriesDefaults:
     def test_generate_gaugets_function_default_is_168(self):
         """Convenience function generate_gaugets() default must be 168."""
         import inspect
+
         from port.src.gauge.gaugets import generate_gaugets
         sig = inspect.signature(generate_gaugets)
         default = sig.parameters["simulation_hours"].default

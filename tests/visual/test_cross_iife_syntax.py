@@ -25,8 +25,7 @@ import sys
 
 import pytest
 
-from tests.visual.conftest import iife_src_file, iife_has_node, iife_node_check, STARTUP_CACHE_VARS, _IIFE_SRC
-
+from tests.visual.conftest import _IIFE_SRC, STARTUP_CACHE_VARS, iife_has_node, iife_node_check, iife_src_file
 
 # ---------------------------------------------------------------------------
 # CONTRACT D — JS syntax valid (node --check) for all major panels

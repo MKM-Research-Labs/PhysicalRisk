@@ -18,6 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from .batch_generator import (  # noqa: F401
+    DEFAULT_INTENSITY_WEIGHTS,
+    generate_event_set,
+)
 from .duration_sampler import (  # noqa: F401
     DURATION_PARAMS,
     get_duration_range,
@@ -38,7 +42,3 @@ from .intensity_sampler import (  # noqa: F401
     should_generate_sequence,
 )
 from .sequence_generator import SequenceGenerator  # noqa: F401
-from .batch_generator import (  # noqa: F401
-    DEFAULT_INTENSITY_WEIGHTS,
-    generate_event_set,
-)

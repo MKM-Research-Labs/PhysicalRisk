@@ -23,7 +23,7 @@
 import json
 
 import pytest
-from db_helpers import tmp_catchment
+from db_helpers import file_backend_only, tmp_catchment
 
 from port.src.property.propertyhc import PropertyHazardCurveGenerator
 
@@ -241,6 +241,7 @@ class TestEdgeCases:
             with pytest.raises(FileNotFoundError):
                 PropertyHazardCurveGenerator(clean, verbose=False).generate()
 
+    @file_backend_only("an empty propertyts folder; Postgres has no empty collection")
     def test_empty_propertyts_dir(self, tmp_path):
         # Collection exists but is empty -> 0 properties, no raise.
         clean = tmp_path / "emptyprop"

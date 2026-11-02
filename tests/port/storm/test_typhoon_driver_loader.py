@@ -32,7 +32,6 @@ import json
 from types import SimpleNamespace
 
 import pytest
-
 from app.commands.port.stages.typhoon import (
     _load_storm_event_drivers,
     _severity_quantiles,

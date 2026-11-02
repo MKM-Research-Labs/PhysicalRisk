@@ -28,9 +28,9 @@ All in build_hazard_curves(): missing files, verbose logging branches.
 import logging
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)
@@ -179,6 +179,7 @@ class TestLoadEdgeCases:
     def test_load_storms_reads_the_legacy_document(self, tmp_path):
         """The legacy flat storms.json path, still reachable from the CLI."""
         import json as _json
+
         from models.hazard.io import load_storms
 
         path = tmp_path / "storms.json"

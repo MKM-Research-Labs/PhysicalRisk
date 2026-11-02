@@ -26,9 +26,9 @@ the database seam, storm_responses are attached, and it is saved again.
 from unittest.mock import MagicMock, patch
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture

@@ -21,8 +21,8 @@
 """Tests for CounterpartyCDM (ctpy.py) validate/create_mapping/get_required_fields."""
 
 import pytest
-from port.cdm.ctpy import CounterpartyCDM
 
+from port.cdm.ctpy import CounterpartyCDM
 
 _VALID_CTPY = {
     "CounterpartySet": {

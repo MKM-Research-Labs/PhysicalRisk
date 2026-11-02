@@ -38,7 +38,6 @@ from typing import Tuple
 
 from models.typhoon.data_structures import TyphoonState
 
-
 __all__ = ["basin_boundary_score"]
 
 

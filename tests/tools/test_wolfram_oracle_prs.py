@@ -32,13 +32,13 @@ import re
 
 import mpmath as mp
 import pytest
-
-from config.models import MIN_PRS_SPREAD_BPS, ORACLE_PRS_REL_TOL, ORACLE_PRS_SOURCE
-from config.port import DEFAULT_YIELD_CURVE
 from tools.wolfram_oracle import __main__ as cli
 from tools.wolfram_oracle._model import load_module, provenance
 from tools.wolfram_oracle._wl import save_wolfram
 from tools.wolfram_oracle.prs import claims, latex, spread
+
+from config.models import MIN_PRS_SPREAD_BPS, ORACLE_PRS_REL_TOL, ORACLE_PRS_SOURCE
+from config.port import DEFAULT_YIELD_CURVE
 
 
 @pytest.fixture(scope="module")

@@ -22,13 +22,15 @@
 error handling, closed trades, hydrograph paths, threshold classification."""
 
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from tests.routes.trading.conftest import (
-    STORM_PORT_SEVERE, STORM_PORT_ALERT,
-    GAUGE_WESTMINSTER, GAUGE_CHELSEA,
+    GAUGE_CHELSEA,
+    GAUGE_WESTMINSTER,
+    STORM_PORT_ALERT,
+    STORM_PORT_SEVERE,
 )
 
 

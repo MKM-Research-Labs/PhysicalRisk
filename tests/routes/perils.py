@@ -26,7 +26,21 @@ missing file → empty object, malformed file → empty object.
 
 import json
 
+import pytest
 from flask import Flask
+
+
+@pytest.fixture(autouse=True)
+def _empty_catchment(tmp_path):
+    """Start each test from an empty catchment rooted at tmp_path.
+
+    Without it the Postgres run reads the imported portfolio's fire and seismic
+    results, so "missing file" is never missing. The corrupt files the tests
+    write afterwards exist only for the file backend; Postgres has no file to
+    corrupt and returns the same empty payload."""
+    from db_helpers import tmp_catchment
+    with tmp_catchment(tmp_path):
+        yield
 
 
 def _client(input_dir, monkeypatch):
@@ -48,8 +62,9 @@ def _write(input_dir, subdir, filename, payload):
 class TestFire:
 
     def test_returns_fire_json(self, tmp_path, monkeypatch):
-        import database
         from db_helpers import tmp_catchment
+
+        import database
         with tmp_catchment(tmp_path):
             database.save_fire_results(database.active_catchment(),
                 {"metadata": {"model": "MKM-FIRE-001"},
@@ -74,8 +89,9 @@ class TestFire:
 class TestSeismic:
 
     def test_returns_seismic_json(self, tmp_path, monkeypatch):
-        import database
         from db_helpers import tmp_catchment
+
+        import database
         with tmp_catchment(tmp_path):
             database.save_seismic_results(database.active_catchment(),
                 {"metadata": {"model": "MKM-SEIS-001"},

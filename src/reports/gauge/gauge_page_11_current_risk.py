@@ -31,8 +31,9 @@ from typing import Any, Dict, List
 from reportlab.lib.units import inch
 from reportlab.platypus import Image, Paragraph, Spacer, Table
 
-from .gauge_page_00_base import GaugeBasePage
 from config.theme import colour
+
+from .gauge_page_00_base import GaugeBasePage
 
 
 class GaugeCurrentRiskPage(GaugeBasePage):

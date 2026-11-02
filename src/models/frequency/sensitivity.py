@@ -33,9 +33,8 @@ against the stationary baseline. Nothing here is wired into pricing; it is a
 diagnostic a validation report or the MRC calls, not a production path.
 """
 
-from typing import Dict, Sequence
-
 import math
+from typing import Dict, Sequence
 
 from .annualise import annual_exceedance_probability
 from .rate_process import ConstantRate, rate_process_for, term_exceedance_probability

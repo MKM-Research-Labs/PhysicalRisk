@@ -33,7 +33,6 @@ import pytest
 
 from routes.propertyts import core_storms as cs
 
-
 PROP_ID = "PROP-0001"
 
 
@@ -69,8 +68,9 @@ def test_damage_loader_bad_json_skipped(cfg_tmp):
 
 
 def test_damage_loader_indexes_property(cfg_tmp):
-    import database
     from db_helpers import tmp_catchment
+
+    import database
     from config import config
     with tmp_catchment(cfg_tmp, catchment=config.catchment_id):
         database.save_typhoon_event(database.active_catchment(), "EVT-0001", {
@@ -90,8 +90,9 @@ def test_damage_loader_indexes_property(cfg_tmp):
 
 
 def test_damage_loader_event_id_from_stem(cfg_tmp):
-    import database
     from db_helpers import tmp_catchment
+
+    import database
     from config import config
     with tmp_catchment(cfg_tmp, catchment=config.catchment_id):
         database.save_typhoon_event(database.active_catchment(), "EVT-0002", {
@@ -102,8 +103,9 @@ def test_damage_loader_event_id_from_stem(cfg_tmp):
 
 def test_damage_loader_skips_non_evt_files(cfg_tmp):
     """A stray non-``EVT-`` keyed record in the damage collection is skipped."""
-    import database
     from db_helpers import tmp_catchment
+
+    import database
     from config import config
     with tmp_catchment(cfg_tmp, catchment=config.catchment_id):
         catchment = database.active_catchment()

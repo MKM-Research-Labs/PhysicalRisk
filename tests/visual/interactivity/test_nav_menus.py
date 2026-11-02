@@ -40,8 +40,8 @@ class TestNavMenuGaugeDataContract:
 
     def test_gauge_loader_returns_gaugeId_field(self):
         """GaugeLoader.get_entity_summary must produce 'gaugeId' key."""
-        from loaders.gauge_loader import GaugeLoader
         from config import config
+        from loaders.gauge_loader import GaugeLoader
 
         gauge_path = config.get_input_dir()
         if not gauge_path.exists():
@@ -62,8 +62,8 @@ class TestNavMenuGaugeDataContract:
 
     def test_gauge_loader_has_synth_gauges(self):
         """Loader should return both real and synthetic gauges."""
-        from loaders.gauge_loader import GaugeLoader
         from config import config
+        from loaders.gauge_loader import GaugeLoader
 
         gauge_path = config.get_input_dir()
         if not gauge_path.exists():
@@ -150,8 +150,7 @@ class TestNavMenuActionLineage:
 
     def test_gauge_nav_actions_match_context_menu(self):
         """Gauge nav menu must use the same actions as the right-click menu."""
-        from visual.interactivity.context_menus import (
-            ContextMenuHandler, DEFAULT_GAUGE_MENU)
+        from visual.interactivity.context_menus import DEFAULT_GAUGE_MENU, ContextMenuHandler
 
         handler = ContextMenuHandler()
         js = handler._build_nav_menus_js()
@@ -163,8 +162,7 @@ class TestNavMenuActionLineage:
 
     def test_property_nav_actions_match_context_menu(self):
         """Property nav menu must use the same actions as the right-click menu."""
-        from visual.interactivity.context_menus import (
-            ContextMenuHandler, DEFAULT_PROPERTY_MENU)
+        from visual.interactivity.context_menus import DEFAULT_PROPERTY_MENU, ContextMenuHandler
 
         handler = ContextMenuHandler()
         js = handler._build_nav_menus_js()
@@ -176,8 +174,7 @@ class TestNavMenuActionLineage:
 
     def test_nav_menu_items_serialized_from_python(self):
         """Menu items must be serialized from Python lists, not hardcoded in JS."""
-        from visual.interactivity.context_menus import (
-            ContextMenuHandler, DEFAULT_GAUGE_MENU, DEFAULT_PROPERTY_MENU)
+        from visual.interactivity.context_menus import DEFAULT_GAUGE_MENU, DEFAULT_PROPERTY_MENU, ContextMenuHandler
 
         handler = ContextMenuHandler()
         js = handler._build_nav_menus_js()

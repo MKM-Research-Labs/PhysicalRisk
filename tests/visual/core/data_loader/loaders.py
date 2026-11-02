@@ -22,7 +22,7 @@
 
 import json
 
-from .conftest import write_hazard, write_property_hazard, write_storms, write_counterparty
+from .conftest import write_counterparty, write_hazard, write_property_hazard, write_storms
 
 
 class TestLoadHazardCurves:
@@ -40,16 +40,16 @@ class TestLoadHazardCurves:
         assert dl.loaded_data.property_hazard_data is None
 
     def test_corrupt_hazard_file_leaves_hazard_data_none(self, tmp_path):
-        from visual.core.data_loader import DataLoader
         from jsonfiles import JSONFileConfig
+        from visual.core.data_loader import DataLoader
         (tmp_path / JSONFileConfig.HAZARD_CURVES).write_text("NOT VALID JSON {{")
         dl = DataLoader(input_dir=tmp_path)
         dl._load_hazard_curves()
         assert dl.loaded_data.hazard_data is None
 
     def test_corrupt_property_hazard_file_leaves_phc_none(self, tmp_path):
-        from visual.core.data_loader import DataLoader
         from jsonfiles import JSONFileConfig
+        from visual.core.data_loader import DataLoader
         (tmp_path / JSONFileConfig.PROPERTY_HAZARD_CURVES).write_text("NOT VALID JSON {{")
         dl = DataLoader(input_dir=tmp_path)
         dl._load_hazard_curves()
@@ -73,8 +73,8 @@ class TestLoadStormData:
         assert dl.loaded_data.storm_data is None
 
     def test_corrupt_storm_file_leaves_storm_data_none(self, tmp_path):
-        from visual.core.data_loader import DataLoader
         from jsonfiles import JSONFileConfig
+        from visual.core.data_loader import DataLoader
         (tmp_path / JSONFileConfig.STORM_EVENTS).write_text("NOT VALID JSON {{")
         dl = DataLoader(input_dir=tmp_path)
         dl._load_storm_data()
@@ -88,8 +88,8 @@ class TestLoadStormData:
         assert dl.loaded_data.storm_data is not None
 
     def test_storms_list_format(self, tmp_path):
-        from visual.core.data_loader import DataLoader
         from jsonfiles import JSONFileConfig
+        from visual.core.data_loader import DataLoader
         (tmp_path / JSONFileConfig.STORM_EVENTS).write_text(
             json.dumps([{"storm_id": "EVT-A"}, {"storm_id": "EVT-B"}])
         )
@@ -98,8 +98,8 @@ class TestLoadStormData:
         assert dl.loaded_data.storm_data is not None
 
     def test_storms_other_type(self, tmp_path):
-        from visual.core.data_loader import DataLoader
         from jsonfiles import JSONFileConfig
+        from visual.core.data_loader import DataLoader
         (tmp_path / JSONFileConfig.STORM_EVENTS).write_text(json.dumps("scalar"))
         dl = DataLoader(input_dir=tmp_path)
         dl._load_storm_data()
@@ -115,8 +115,8 @@ class TestLoadCounterpartyData:
         assert dl.loaded_data.counterparty_data is None
 
     def test_corrupt_counterparty_file_leaves_data_none(self, tmp_path):
-        from visual.core.data_loader import DataLoader
         from jsonfiles import JSONFileConfig
+        from visual.core.data_loader import DataLoader
         (tmp_path / JSONFileConfig.COUNTERPARTY_PORTFOLIO).write_text("NOT VALID JSON {{")
         dl = DataLoader(input_dir=tmp_path)
         dl._load_counterparty_data()

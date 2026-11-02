@@ -23,7 +23,7 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from .conftest import _minimal_property, _minimal_mortgage
+from .conftest import _minimal_mortgage, _minimal_property
 
 
 def _mock_generator(tmp_path: Path):

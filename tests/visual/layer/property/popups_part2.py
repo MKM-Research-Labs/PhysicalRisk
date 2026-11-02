@@ -30,7 +30,6 @@ from visual.layer.property_layer.layer import PropertyLayer
 
 from .conftest import make_mortgage_info
 
-
 # ===========================================================================
 # _create_rloan_section
 # ===========================================================================

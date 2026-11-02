@@ -27,10 +27,10 @@ Covers:
 """
 
 import json
+
 import pytest
 
 from .conftest import SAMPLE_PROPERTYHC
-
 
 # ---------------------------------------------------------------------------
 # GET /api/v1/propertyhc/summary

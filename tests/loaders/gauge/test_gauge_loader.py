@@ -21,6 +21,7 @@
 """Tests for GaugeLoader."""
 
 import pytest
+
 from tests.loaders.conftest import gauge_json, write_json
 
 

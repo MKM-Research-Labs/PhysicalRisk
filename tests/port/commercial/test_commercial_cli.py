@@ -30,7 +30,6 @@ tests). The point is to catch regressions like the one where
 import argparse
 
 import pytest
-
 from app.commands.port import register_parser
 
 

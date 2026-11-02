@@ -30,7 +30,6 @@ from pathlib import Path
 
 import pytest
 
-
 # ===========================================================================
 # Fixtures
 # ===========================================================================
@@ -197,8 +196,9 @@ class TestGenerateGaugeReport:
 
     def test_with_gaugehd_file_present(self, tmp_path, monkeypatch):
         """gaugehd file exists → exercises lines 62-69."""
-        from config import config
         import json as j
+
+        from config import config
 
         gauge_id = "GAUGE-001"
         gauge_data = {"flood_gauges": [{"FloodGauge": {
@@ -235,8 +235,9 @@ class TestGenerateGaugeReport:
 
     def test_with_hazard_file_present(self, tmp_path, monkeypatch):
         """gaugehc.json exists → exercises lines 76-82."""
-        from config import config
         import json as j
+
+        from config import config
 
         gauge_id = "GAUGE-001"
         gauge_data = {"flood_gauges": [{"FloodGauge": {

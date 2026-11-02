@@ -28,10 +28,9 @@ _extract_property_value, and PropertyDataExtractor class.
 import pytest
 
 from visual.utils.data_extractors.property_extractor import (
-    extract_property_info,
     PropertyDataExtractor,
+    extract_property_info,
 )
-
 
 # ===========================================================================
 # Helpers

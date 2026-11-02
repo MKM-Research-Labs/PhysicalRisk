@@ -32,13 +32,12 @@ import sys
 import types
 
 import pytest
-
 from tools.wolfram_oracle import __main__ as cli
 from tools.wolfram_oracle import _run
+from tools.wolfram_oracle._wl import evaluate_live, save_wolfram, write_wl
 from tools.wolfram_oracle.gev import fit, latex, return_levels
 from tools.wolfram_oracle.gev._code import gev_provenance as provenance
 from tools.wolfram_oracle.gev._code import load_gev_fitter
-from tools.wolfram_oracle._wl import evaluate_live, save_wolfram, write_wl
 
 ONE_SERIES = {"n30_xi0.1": (30, 3.0, 0.4, 0.1)}
 _SYNTHETIC = fit.synthetic_series

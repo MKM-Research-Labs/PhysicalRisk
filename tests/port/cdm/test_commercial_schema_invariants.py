@@ -42,7 +42,6 @@ from port.cdm.asset.resilience import (
     RESILIENCE_MEASURES_SCHEMA,
 )
 
-
 _VALID_TYPES = {"string", "text", "text[]", "menu", "decimal", "integer", "boolean", "date"}
 
 

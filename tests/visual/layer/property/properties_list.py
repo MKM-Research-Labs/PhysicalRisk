@@ -22,8 +22,9 @@
 Tests for PropertyLayer._get_properties_list — all key format variants.
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from visual.layer.property_layer.layer import PropertyLayer
 

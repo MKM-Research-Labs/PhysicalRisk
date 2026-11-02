@@ -34,7 +34,6 @@ import math
 
 from models.typhoon.transitions.position import EARTH_RADIUS_KM
 
-
 __all__ = [
     "haversine_distance_km",
     "bearing_deg",

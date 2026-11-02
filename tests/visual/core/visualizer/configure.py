@@ -20,8 +20,9 @@
 
 """Tests for configure_map_settings, configure_interactivity, get_statistics."""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 class TestConfigureMapSettings:

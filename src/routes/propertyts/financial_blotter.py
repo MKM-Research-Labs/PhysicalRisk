@@ -23,7 +23,7 @@
 from flask import jsonify, request
 
 from .blueprint import propertyts_bp
-from .financial_loaders import _load_rloan_lookup, _load_property_details
+from .financial_loaders import _load_property_details, _load_rloan_lookup
 
 
 @propertyts_bp.route('/propertyts/blotter', methods=['GET', 'OPTIONS'])

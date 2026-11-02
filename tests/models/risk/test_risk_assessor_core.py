@@ -29,7 +29,6 @@ import pytest
 
 from models.risk.risk_assessor.assessor import RiskAssessor
 
-
 # ===========================================================================
 # assess_flood_risk_level
 # ===========================================================================

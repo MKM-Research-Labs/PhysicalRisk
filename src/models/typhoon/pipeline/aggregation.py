@@ -33,7 +33,6 @@ from config.typhoon import PropertyPoint
 from models.typhoon.data_structures import WindFieldOutput
 from models.typhoon.pipeline.results import PropertyPeakWindSummary
 
-
 __all__ = ["aggregate_property_winds", "summarise_property_winds"]
 
 

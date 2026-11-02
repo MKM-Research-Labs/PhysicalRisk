@@ -30,7 +30,6 @@ import pytest
 from port.cdm.asset.loan import LoanCDM
 from port.cdm.prs import PhysicalRiskSwapCDM
 
-
 # ---------------------------------------------------------------------------
 # LoanCDM — validate() error paths (lines 259-283)
 # ---------------------------------------------------------------------------

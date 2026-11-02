@@ -141,8 +141,9 @@ def small_gauge_portfolio(tmp_path):
     The WP2.4 gauge writer persists through ``database``; ``tmp_catchment`` roots a
     scratch backend at ``tmp_path`` so the write is isolated and the backend stays
     bound for the consuming test (read back via ``database.get_gauge_portfolio``)."""
-    from port.src.gauge import GaugePortfolioGenerator
     from db_helpers import tmp_catchment
+
+    from port.src.gauge import GaugePortfolioGenerator
     with tmp_catchment(tmp_path):
         gen = GaugePortfolioGenerator(verbose=False)
         yield gen.generate(count=5)
@@ -155,8 +156,9 @@ def small_property_portfolio(tmp_path):
     The WP2.4 property writer persists through ``database``; ``tmp_catchment`` roots a
     scratch backend at ``tmp_path`` so the write is isolated and the backend stays bound
     for the consuming test (read back via ``database.get_property_portfolio``)."""
-    from port.src.property import PropertyPortfolioGenerator
     from db_helpers import tmp_catchment
+
+    from port.src.property import PropertyPortfolioGenerator
     with tmp_catchment(tmp_path):
         gen = PropertyPortfolioGenerator(verbose=False)
         yield gen.generate(count=5)

@@ -27,10 +27,9 @@ Covers: load, save, get_defaults, apply (patching config modules), edge cases.
 import json
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -191,6 +190,7 @@ class TestEnumKeyConversion:
         """If GapType import fails, returns string-keyed dict with tuples."""
         import sys
         from unittest.mock import patch
+
         from config.storm_control import _str_keys_to_gap_type
         # Setting the module to None in sys.modules makes the inner
         # `from ... import GapType` raise ImportError, exercising the

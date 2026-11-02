@@ -50,8 +50,8 @@ from config import config
 
 from .base_loader import BaseLoader
 from .gauge_loader import GaugeLoader
-from .rloan_loader import RLoanLoader
 from .property_loader import PropertyLoader
+from .rloan_loader import RLoanLoader
 from .storm_loader import StormLoader
 from .timeseries_loader import TimeseriesLoader
 

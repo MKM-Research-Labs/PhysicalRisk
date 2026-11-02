@@ -29,7 +29,6 @@ import json
 
 import pytest
 
-from tests.routes.propertyts._helpers import PROP_ID, SEQ_ID, STORM_ID
 from tests.routes.propertyts._financial_coverage_helpers import (
     _build_client,
     _make_mortgage,
@@ -37,7 +36,7 @@ from tests.routes.propertyts._financial_coverage_helpers import (
     _make_prop_flood,
     _make_prs_trade,
 )
-
+from tests.routes.propertyts._helpers import PROP_ID, SEQ_ID, STORM_ID
 
 # ===========================================================================
 # _match_prs_to_properties — gauge matching + dedup

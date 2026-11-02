@@ -31,7 +31,7 @@ import json
 
 import pytest
 
-from tests.port.gauge.conftest import make_gauge_file, make_response
+from tests.port.gauge.conftest import make_gauge_file, make_response, write_gauge
 
 # ---------------------------------------------------------------------------
 # _derive_intensity_category — warning>=3 branch (lines 78-80)
@@ -81,7 +81,7 @@ class TestCorruptStormsJson:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -108,7 +108,7 @@ class TestCorruptGaugeFile:
         gaugets.mkdir()
         # Write one valid gauge file
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -225,7 +225,7 @@ class TestEmptyStormIdSkip:
                 ],
             },
         }
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(gauge_data))
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(gauge_data))
         out = tmp_path / "stress_storms"
         result = generate_stress_storms(gaugets, out)
         data = json.loads((out / "_index.json").read_text())
@@ -254,7 +254,7 @@ class TestEmptyStormIdSkip:
                 ],
             },
         }
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(gauge_data))
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(gauge_data))
         out = tmp_path / "stress_storms"
         result = generate_stress_storms(gaugets, out)
         assert result["total_storms"] == 1

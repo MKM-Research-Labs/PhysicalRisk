@@ -48,10 +48,16 @@ def test_import_property_subpackage():
 
 def test_import_all_modules():
     from port.rand.halong.property import (
-        property_energy, property_location, property_utils, property_valuation,
+        property_energy,
+        property_location,
+        property_utils,
+        property_valuation,
     )
     from port.rand.halong.property.property_random import (
-        generators, helpers, metadata, resilience,
+        generators,
+        helpers,
+        metadata,
+        resilience,
     )
     # spot-check public API present
     assert hasattr(generators, "get_field_generators")

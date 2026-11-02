@@ -25,6 +25,7 @@ from typing import Any, Dict, List
 
 from reportlab.lib.units import inch
 from reportlab.platypus import Image, Paragraph, Spacer, Table
+
 from config.theme import colour
 
 

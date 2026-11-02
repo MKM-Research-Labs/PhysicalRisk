@@ -40,7 +40,7 @@ def _print_classifier_result(result: dict) -> None:
     fi = result.get("feature_importance", {})
     label = result.get("label_threshold", "severe_warning")
     label_m = result.get("label_level_m", result.get("severe_level", 0))
-    print(f"  Status      : trained")
+    print("  Status      : trained")
     print(f"  Label       : {label} (≥ {label_m:.2f} m)")
     print(f"  Samples     : {result['n_samples']:,}  "
           f"(train: {result['n_samples']-result['test_size']:,}  "
@@ -52,7 +52,7 @@ def _print_classifier_result(result: dict) -> None:
     print(f"  Brier score : {m['brier_score']:.4f}")
     print(f"  Log loss    : {m['log_loss']:.4f}")
     print()
-    print(f"  Feature importance:")
+    print("  Feature importance:")
     for fname, fval in sorted(fi.items(), key=lambda x: -x[1]):
         bar = "█" * int(fval * 40)
         print(f"    {fname:<18} {fval:.4f}  {bar}")

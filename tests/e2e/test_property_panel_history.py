@@ -24,7 +24,6 @@ Property panel e2e tests — flood history, mortgage impact, and insurance repor
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Flood History tab (idx 3)
 # ---------------------------------------------------------------------------

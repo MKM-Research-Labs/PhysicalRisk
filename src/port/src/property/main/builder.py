@@ -26,7 +26,6 @@ from typing import Dict
 from config import config
 from port.utils.schema import build_section
 
-
 # --- Cross-field consistency lookup tables ---------------------------------
 
 # TownCity → County map for Thames-area locations. Falls back to "Greater
@@ -58,11 +57,16 @@ _ZONE_TO_FLOOD_RISK = {
 
 # Construction year → PropertyPeriod mapping (mirrors property_utils.get_property_period).
 def _period_from_year(year: int) -> str:
-    if year < 1919: return "Pre-1919"
-    if year < 1945: return "1919-1944"
-    if year < 1976: return "1945-1975"
-    if year < 2000: return "1976-1999"
-    if year < 2009: return "2000-2008"
+    if year < 1919:
+        return "Pre-1919"
+    if year < 1945:
+        return "1919-1944"
+    if year < 1976:
+        return "1945-1975"
+    if year < 2000:
+        return "1976-1999"
+    if year < 2009:
+        return "2000-2008"
     return "2009-Present"
 
 

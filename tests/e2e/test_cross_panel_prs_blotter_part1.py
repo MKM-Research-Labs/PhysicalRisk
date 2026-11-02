@@ -39,7 +39,6 @@ from tests.e2e.helpers import (
     switch_gauge_tab,
 )
 
-
 CLOSE_ALL_JS = """() => {
     ['trading-desk-panel', 'hazard-curve-panel', 'property-hc-panel',
      'prop-storm-panel', 'mortgage-detail-panel'].forEach(id => {

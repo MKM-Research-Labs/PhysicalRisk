@@ -22,10 +22,9 @@
 
 from flask import jsonify, request
 
+import database
 from config import config
 from config.data_layout import PROPERTY_HAZARD_FILES
-
-import database
 
 # filename -> scenario mode (inverse of the config data-layout map)
 _FILE_TO_MODE = {fname: mode for mode, fname in PROPERTY_HAZARD_FILES.items()}

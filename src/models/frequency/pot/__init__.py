@@ -25,13 +25,13 @@ contains no function definitions — only re-exports.
 """
 
 from ._decluster import decluster, parse_date
-from ._rate import ExceedanceRate, exceedance_rate
 from ._extract import (
     annual_counts,
     extract_pot,
     record_span_years,
     to_peaks,
 )
+from ._rate import ExceedanceRate, exceedance_rate
 from ._threshold import (
     candidate_thresholds,
     quantile,

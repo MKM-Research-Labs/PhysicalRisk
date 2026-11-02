@@ -65,6 +65,7 @@ def first_commercial_id(commercial_input_dir):
 @pytest.fixture
 def app(commercial_input_dir):
     from flask import Flask
+
     from routes import register_blueprints
     a = Flask(__name__)
     register_blueprints(a)
@@ -102,6 +103,7 @@ def test_load_loan_record_returns_none_when_id_not_in_file(
     """``_load_cloan_record`` returns None when the file exists but no
     record matches the given PropertyID."""
     from pathlib import Path
+
     from reports.commercial.commercial_report import _load_cloan_record
     assert _load_cloan_record("CPROP-NOTREAL", commercial_input_dir) is None
 
@@ -184,8 +186,8 @@ def test_generate_loan_report_open_pdf_failure_is_swallowed(
 def test_commercial_generator_default_output_dir(commercial_input_dir):
     """``CommercialReportGenerator()`` with no output_dir uses
     config.get_reports_dir('commercial')."""
-    from reports.commercial import CommercialReportGenerator
     from config import config as _cfg
+    from reports.commercial import CommercialReportGenerator
     gen = CommercialReportGenerator()  # no output_dir
     assert gen.output_dir == _cfg.get_reports_dir("commercial")
 
@@ -205,8 +207,9 @@ def test_loan_overview_page_renders_placeholder_for_no_loan():
     """``CLoanOverviewPage`` emits a 'No loan record linked' placeholder
     paragraph when cloan_data is None — the only branch in the page
     not exercised by the happy-path PDF tests."""
-    from reports.commercial.pages.loan_overview import CLoanOverviewPage
     from reportlab.platypus import Paragraph
+
+    from reports.commercial.pages.loan_overview import CLoanOverviewPage
     page = CLoanOverviewPage()
     flowables = page.generate_elements(commercial_data={}, cloan_data=None)
     paragraphs = [f for f in flowables if isinstance(f, Paragraph)]

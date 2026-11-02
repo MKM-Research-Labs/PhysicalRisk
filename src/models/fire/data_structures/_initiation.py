@@ -25,7 +25,6 @@ from typing import Any, Dict, List, Optional
 
 from config.fire import InitiationClass
 
-
 # ===========================================================================
 # Stage-1 outputs
 # ===========================================================================

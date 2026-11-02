@@ -26,17 +26,17 @@ from pathlib import Path
 import pytest
 
 from tests.data._id_consistency_helpers import (
+    CATCHMENT_LAT_BOUNDS,
+    CATCHMENT_LON_BOUNDS,
     INPUT_DIR,
+    _load_counterparty_ids,
     _load_gauge_ids,
     _load_property_ids,
-    _load_counterparty_ids,
-    _load_trade_counterparty_ids,
-    _load_trade_ids,
     _load_propertyhc_ids,
     _load_propertyshd_ids,
     _load_propertyshe_ids,
-    CATCHMENT_LAT_BOUNDS,
-    CATCHMENT_LON_BOUNDS,
+    _load_trade_counterparty_ids,
+    _load_trade_ids,
 )
 
 

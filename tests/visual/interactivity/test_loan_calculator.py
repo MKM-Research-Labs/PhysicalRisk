@@ -50,8 +50,7 @@ class TestLoanCalculatorMenuItems:
         assert actions.count("openLoanCalculator") == 1
 
     def test_property_and_commercial_calculator_actions_disjoint(self):
-        from visual.interactivity.context_menus import (
-            DEFAULT_PROPERTY_MENU, DEFAULT_COMMERCIAL_MENU)
+        from visual.interactivity.context_menus import DEFAULT_COMMERCIAL_MENU, DEFAULT_PROPERTY_MENU
         prop = {i["action"] for i in DEFAULT_PROPERTY_MENU}
         com = {i["action"] for i in DEFAULT_COMMERCIAL_MENU}
         assert prop.isdisjoint(com)

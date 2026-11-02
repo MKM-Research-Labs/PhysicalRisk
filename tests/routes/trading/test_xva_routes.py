@@ -221,8 +221,9 @@ class TestPortHook:
     """The port pipeline's blotter stage runs XVA on the new book (XVA_IN_PORT)."""
 
     def test_runs_and_reports(self, trading_env, monkeypatch, capsys):
-        import config.xva as xva_config
         from app.commands.port.stages import trading as stage
+
+        import config.xva as xva_config
         from models.xva import service
         monkeypatch.setattr(xva_config, 'XVA_IN_PORT', True)
         monkeypatch.setattr(service, 'run_and_save', lambda: {'summary': {
@@ -231,15 +232,17 @@ class TestPortHook:
         assert '3 trades in 2 netting sets' in capsys.readouterr().out
 
     def test_off_clears_a_stale_run(self, trading_env, monkeypatch):
-        import database
         from app.commands.port.stages import trading as stage
+
+        import database
         database.save_xva_run(database.active_catchment(), {'as_of': 'old', 'trades': []})
         stage._run_xva()
         assert not database.get_xva_run(database.active_catchment())
 
     def test_a_failure_never_stops_the_pipeline(self, trading_env, monkeypatch, capsys):
-        import config.xva as xva_config
         from app.commands.port.stages import trading as stage
+
+        import config.xva as xva_config
         from models.xva import service
         monkeypatch.setattr(xva_config, 'XVA_IN_PORT', True)
         monkeypatch.setattr(service, 'run_and_save',

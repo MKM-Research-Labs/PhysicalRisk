@@ -28,7 +28,6 @@ so these tests exercise the HTTP/branching layer only.
 
 import pytest
 
-
 PROP_ID = "PROP-0001"
 
 

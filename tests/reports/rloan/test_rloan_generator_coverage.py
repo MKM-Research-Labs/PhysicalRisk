@@ -28,11 +28,12 @@ Covers:
 - Lines 125-126: exception in _generate_filename (fallback to 'unknown')
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
-from tests.reports.pdf.conftest import sample_property_data, sample_mortgage_data
+import pytest
+
+from tests.reports.pdf.conftest import sample_mortgage_data, sample_property_data
 
 
 class TestMortgageGeneratorDefaultOutputDir:

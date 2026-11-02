@@ -29,8 +29,8 @@ schema populated; real terms come from the executed CSA.
 
 from typing import Any, Dict
 
-from config.port import NETTING_SET_PREFIX, SYNTHETIC_CSA_TERMS
 from config import config
+from config.port import NETTING_SET_PREFIX, SYNTHETIC_CSA_TERMS
 
 _FINANCIAL_TYPES = ("Bank", "Insurer", "Reinsurer")
 

@@ -21,9 +21,9 @@
 """Shared fixtures for PnL engine tests."""
 
 import pytest
+from db_helpers import tmp_catchment
 
 from models.trading.pnl_engine import PnLEngine
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture

@@ -26,8 +26,8 @@ Covers:
 """
 
 import json
-import pytest
 
+import pytest
 
 # ---------------------------------------------------------------------------
 # GET /api/v1/propertyhc/basis

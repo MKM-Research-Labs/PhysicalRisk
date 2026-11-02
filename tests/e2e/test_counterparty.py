@@ -27,7 +27,6 @@ in the PRS pricing tab of gauge and property hazard curve panels.
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # API endpoint tests
 # ---------------------------------------------------------------------------

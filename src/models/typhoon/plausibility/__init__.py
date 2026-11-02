@@ -50,7 +50,6 @@ from models.typhoon.plausibility.score import (
 )
 from models.typhoon.plausibility.speed_jump import speed_jump_score
 
-
 __all__ = [
     # components
     "heading_jump_score",

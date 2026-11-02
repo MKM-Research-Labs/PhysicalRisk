@@ -83,4 +83,5 @@ __all__ = [
     "sample_scenario_family",
     "sample_genesis",
     "sample_genesis_ensemble",
+    "_categorical",
 ]

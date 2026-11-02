@@ -31,7 +31,6 @@ from pathlib import Path
 
 import pytest
 
-
 GAUGE_ID = "GAUGE-001"
 
 _GAUGE_DATA = {

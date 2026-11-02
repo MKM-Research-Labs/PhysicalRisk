@@ -224,8 +224,9 @@ def test_enrich_flood_events_swallows_malformed_sequences(cfg_tmp):
 def test_enrich_flood_events_reads_storms_metadata(cfg_tmp):
     """storms.py _enrich_flood_events: a storm_sequences doc with the 'storms' key
     supplies per-storm name/category metadata (build_storm_lookups line 68 branch)."""
-    import database
     from db_helpers import tmp_catchment
+
+    import database
     from config import config
     from routes.commercial.storms import _enrich_flood_events
     with tmp_catchment(cfg_tmp, catchment=config.catchment_id):

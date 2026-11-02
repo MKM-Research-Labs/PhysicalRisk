@@ -22,12 +22,12 @@
 
 from ._core import (
     DataFormatter,
-    safe_format_float,
-    format_currency,
-    format_percentage,
-    format_coordinates,
-    format_date,
     format_address,
+    format_coordinates,
+    format_currency,
+    format_date,
+    format_percentage,
+    safe_format_float,
 )
 
 __all__ = [

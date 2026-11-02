@@ -41,7 +41,6 @@ from models.valuation.insurance import (
     get_area_premium_factor_range,
 )
 
-
 # ===========================================================================
 # Factor table structure sanity checks
 # ===========================================================================

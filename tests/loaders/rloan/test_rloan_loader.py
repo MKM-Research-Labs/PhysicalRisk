@@ -21,6 +21,7 @@
 """Tests for RLoanLoader."""
 
 import json
+
 from tests.loaders.conftest import mortgage_json, write_json
 
 

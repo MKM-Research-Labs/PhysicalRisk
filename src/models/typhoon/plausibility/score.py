@@ -35,7 +35,6 @@ from models.typhoon.plausibility.heading_jump import heading_jump_score
 from models.typhoon.plausibility.regime_consistency import regime_consistency_score
 from models.typhoon.plausibility.speed_jump import speed_jump_score
 
-
 __all__ = ["plausibility_score", "make_particle_plausibility"]
 
 

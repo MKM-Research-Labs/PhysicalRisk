@@ -31,6 +31,7 @@ Submodules are in tests/conftest/:
   helpers.py          — assertion helpers and file utilities
 """
 
+# isort: off
 import sys
 from pathlib import Path
 
@@ -112,3 +113,4 @@ from db_helpers import (  # noqa: F401, E402
 # Also after `helpers`, for the same reason: it imports `config`.
 from fixtures_catchment import thames_catchment  # noqa: F401, E402
 from fixtures_xva import xva_hooks_off  # noqa: F401, E402 -- autouse
+# isort: on

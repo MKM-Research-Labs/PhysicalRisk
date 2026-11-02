@@ -35,7 +35,7 @@ sub-tab's absence is precisely the regression these tests exist to catch.
 
 import pytest
 
-from .conftest import close_all_storm_panels, open_storm_portfolio, close_storm_portfolio
+from .conftest import close_all_storm_panels, close_storm_portfolio, open_storm_portfolio
 
 # Residential blotter columns after mortgage/LTV/Remaining moved to the
 # Loan/Mortgage tab: Property | Address | Value | River Dist | Elevation | Zone.

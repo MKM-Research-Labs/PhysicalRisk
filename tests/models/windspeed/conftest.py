@@ -41,7 +41,6 @@ from config.typhoon import (
     WindFieldParams,
 )
 
-
 # Same neutral geography as tests/models/typhoon/conftest.py — see that
 # file for the rationale (no real cyclone basin, model catchment-agnostic).
 TEST_BBOX = (0.0, 0.0, 10.0, 10.0)

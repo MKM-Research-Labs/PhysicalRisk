@@ -49,7 +49,7 @@ Usage:
 """
 
 from datetime import datetime
-from typing import Callable, List, Optional
+from typing import List, Optional
 
 import numpy as np
 
@@ -57,17 +57,11 @@ from config.typhoon import CatchmentTyphoonConfig, ScenarioFamily
 from models.typhoon.data_structures import (
     TyphoonParticle,
     TyphoonState,
-    TyphoonTrajectory,
 )
-from models.typhoon.genesis import sample_genesis, sample_scenario_family
-from models.typhoon.transitions import step
-
-
-from models.typhoon.particle_filter._resample import systematic_resample
 from models.typhoon.particle_filter._lifecycle import _LifecycleMixin
-from models.typhoon.particle_filter._weights import _WeightsMixin
+from models.typhoon.particle_filter._resample import systematic_resample
 from models.typhoon.particle_filter._run import _RunMixin
-
+from models.typhoon.particle_filter._weights import _WeightsMixin
 
 __all__ = [
     "ParticleFilter",

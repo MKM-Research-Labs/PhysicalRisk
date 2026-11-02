@@ -51,7 +51,6 @@ from pathlib import Path
 
 import pytest
 
-
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -61,14 +60,14 @@ def _read(rel: str) -> str:
 
 
 from tests.naming_conventions._audit_display_data import (
-    _STORM_COMPLIANT,
-    _STORM_HARDCODED,
+    _COUNTERPARTY_HARDCODED,
     _GAUGE_COMPLIANT,
     _GAUGE_HARDCODED,
     _PROPERTY_COMPLIANT_JS,
     _PROPERTY_COMPLIANT_PY,
     _PROPERTY_HARDCODED,
-    _COUNTERPARTY_HARDCODED,
+    _STORM_COMPLIANT,
+    _STORM_HARDCODED,
 )
 
 
@@ -127,8 +126,8 @@ class TestStormDisplayAudit:
                 if pattern.search(src):
                     violations.append(rel)
         assert not violations, (
-            f"New storm display violations found — add to "
-            f"_STORM_COMPLIANT or _STORM_HARDCODED:\n"
+            "New storm display violations found — add to "
+            "_STORM_COMPLIANT or _STORM_HARDCODED:\n"
             + '\n'.join(sorted(violations))
         )
 
@@ -232,7 +231,7 @@ class TestGaugeDisplayAudit:
                 if pattern.search(src):
                     violations.append(rel)
         assert not violations, (
-            f"New gauge display violations found — add to "
-            f"_GAUGE_COMPLIANT or _GAUGE_HARDCODED:\n"
+            "New gauge display violations found — add to "
+            "_GAUGE_COMPLIANT or _GAUGE_HARDCODED:\n"
             + '\n'.join(sorted(violations))
         )

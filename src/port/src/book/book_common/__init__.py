@@ -26,6 +26,7 @@ counterparty loading used by both market-making and Thames Central styles.
 """
 
 from ._constants import (  # noqa: F401
+    _REIT_PARTY_ID,
     DEFAULT_YIELD_CURVE,
     NOTIONALS,
     RECOVERY,
@@ -34,10 +35,9 @@ from ._constants import (  # noqa: F401
     TENORS,
     TRIGGER_RATE_KEY,
     TRIGGERS,
-    _REIT_PARTY_ID,
 )
-from ._records import _build_cdm_record, _load_counterparties
 from ._pricing import _compute_leg_pvs, _price_and_save_trade
+from ._records import _build_cdm_record, _load_counterparties
 
 __all__ = [
     "DEFAULT_YIELD_CURVE",

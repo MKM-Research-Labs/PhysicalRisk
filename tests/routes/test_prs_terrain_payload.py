@@ -22,8 +22,8 @@
 
 import pytest
 
-from visual.interactivity.property import phc_prs
 from routes.prs.blueprint import prs_bp
+from visual.interactivity.property import phc_prs
 
 
 class TestCommitPayloadJS:
@@ -63,21 +63,24 @@ class TestCDMRecordTerrainFields:
         assert '"EAFloodZone"' in source
 
     def test_blueprint_source_has_ea_flood_zone_actual(self):
-        from routes.prs import blueprint
         import inspect
+
+        from routes.prs import blueprint
         source = inspect.getsource(blueprint)
         assert '"EAFloodZoneActual"' in source
 
     def test_blueprint_source_has_terrain_delta_bps(self):
-        from routes.prs import blueprint
         import inspect
+
+        from routes.prs import blueprint
         source = inspect.getsource(blueprint)
         assert '"TerrainDeltaBps"' in source
 
     def test_terrain_fields_use_data_get(self):
         """Terrain fields should use data.get() with defaults for backward compat."""
-        from routes.prs import blueprint
         import inspect
+
+        from routes.prs import blueprint
         source = inspect.getsource(blueprint)
         assert 'data.get("ea_flood_zone", "")' in source
         assert 'data.get("ea_flood_zone_actual", "")' in source

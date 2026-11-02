@@ -20,9 +20,8 @@
 
 """Panel data loading — loadHazardData() async function."""
 
-from visual.interactivity._jsbundle import js_static
-
 from config.format import gauge_title_js as _gauge_title_js
+from visual.interactivity._jsbundle import js_static
 
 _GAUGE_TITLE = _gauge_title_js('gName', 'gaugeId')
 

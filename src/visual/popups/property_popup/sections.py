@@ -22,8 +22,9 @@
 
 from typing import Any, Dict
 
-from .helpers import calculate_ltv_ratio, extract_term_years, calculate_monthly_payment
 from config.theme import colour
+
+from .helpers import calculate_ltv_ratio, calculate_monthly_payment, extract_term_years
 
 
 def create_property_section(builder, prop: Dict[str, Any], property_id: str,

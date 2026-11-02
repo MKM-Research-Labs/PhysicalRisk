@@ -49,7 +49,6 @@ from models.winddamage.extraction import EventWindts, load_event_peaks
 from models.winddamage.threshold import KMH_TO_MS, kph_to_ms, resolve_threshold_ms
 from models.winddamage.vulnerability import bri_peak_damage, scalar_peak_damage
 
-
 __all__ = [
     # vulnerability
     "scalar_peak_damage",

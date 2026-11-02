@@ -31,10 +31,13 @@ from typing import Dict, List
 import database
 from models.floodrisk.spatial import (
     haversine_distance as _haversine_shared,
+)
+from models.floodrisk.spatial import (
     nearest_point_on_polyline as _nearest_on_polyline_shared,
 )
 
 from ._geometry import GeometryMixin
+
 # Re-exported for backwards compatibility: these flood-zone helpers live in
 # ``_zones`` but are imported directly from this module by callers and tests.
 from ._zones import _zone_from_offset, _zone_seed_offsets

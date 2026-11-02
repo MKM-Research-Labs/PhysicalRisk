@@ -62,7 +62,6 @@ from port.rand.halong.property.property_random.resilience import (
     damage_modifier,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

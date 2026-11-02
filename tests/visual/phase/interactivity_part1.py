@@ -23,8 +23,8 @@ and InteractivityManager."""
 
 import json
 
-import pytest
 import folium
+import pytest
 
 
 class TestNotificationSystem:
@@ -32,7 +32,7 @@ class TestNotificationSystem:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        from visual.interactivity.notifications import NotificationSystem, NotificationPosition
+        from visual.interactivity.notifications import NotificationPosition, NotificationSystem
         self.NotificationSystem = NotificationSystem
         self.NotificationPosition = NotificationPosition
         self.ns = NotificationSystem()
@@ -191,11 +191,11 @@ class TestInteractivityManager:
     @pytest.fixture(autouse=True)
     def setup(self):
         from visual.interactivity import (
-            InteractivityManager,
-            ContextMenuHandler,
             BackendHandler,
-            NotificationSystem,
+            ContextMenuHandler,
+            InteractivityManager,
             NotificationPosition,
+            NotificationSystem,
         )
         self.InteractivityManager = InteractivityManager
         self.ContextMenuHandler = ContextMenuHandler

@@ -86,41 +86,37 @@ SAMPLE_PROPERTY_TX = {
     }
 }
 
-SAMPLE_MORTGAGE = {
-    "RLoanID": "RLOAN-001",
-    "PropertyID": "PROP-001",
-    "LoanAmount": 360000,
-    "InterestRate": 6.5,
-    "LoanType": "Conventional",
-    "Lender": "First National Bank",
-    "Status": "Active",
-    "OriginationDate": "2024-01-15",
-    "MaturityDate": "2054-01-15"
-}
+def _sample_rloan(loan_id, property_id, amount, rate, loan_type, lender, status,
+                  origination, maturity):
+    """A loan in the nested RLoan shape the generator writes. The Postgres backend
+    keys loans on RLoan.Header.RLoanID, so a flat record cannot be saved there."""
+    return {
+        "RLoan": {
+            "Header": {"RLoanID": loan_id, "PropertyID": property_id},
+            "Application": {"MortgageProvider": lender},
+            "Features": {"MortgageType": loan_type},
+            "FinancialTerms": {
+                "OriginalLoan": amount,
+                "OriginalLendingRate": rate,
+                "OriginationDate": origination,
+                "MaturityDate": maturity,
+            },
+            "CurrentStatus": {"AccountStatus": status},
+        }
+    }
 
-SAMPLE_MORTGAGE_2 = {
-    "RLoanID": "RLOAN-002",
-    "PropertyID": "PROP-002",
-    "LoanAmount": 1000000,
-    "InterestRate": 7.0,
-    "LoanType": "Commercial",
-    "Lender": "Regional Credit Union",
-    "Status": "Active",
-    "OriginationDate": "2023-06-01",
-    "MaturityDate": "2053-06-01"
-}
 
-SAMPLE_MORTGAGE_DELINQUENT = {
-    "RLoanID": "RLOAN-003",
-    "PropertyID": "PROP-003",
-    "LoanAmount": 280000,
-    "InterestRate": 5.5,
-    "LoanType": "FHA",
-    "Lender": "First National Bank",
-    "Status": "Delinquent",
-    "OriginationDate": "2022-03-01",
-    "MaturityDate": "2052-03-01"
-}
+SAMPLE_MORTGAGE = _sample_rloan(
+    "RLOAN-001", "PROP-001", 360000, 6.5, "Conventional", "First National Bank",
+    "Active", "2024-01-15", "2054-01-15")
+
+SAMPLE_MORTGAGE_2 = _sample_rloan(
+    "RLOAN-002", "PROP-002", 1000000, 7.0, "Commercial", "Regional Credit Union",
+    "Active", "2023-06-01", "2053-06-01")
+
+SAMPLE_MORTGAGE_DELINQUENT = _sample_rloan(
+    "RLOAN-003", "PROP-003", 280000, 5.5, "FHA", "First National Bank",
+    "Delinquent", "2022-03-01", "2052-03-01")
 
 SAMPLE_GAUGE = {
     "FloodGauge": {

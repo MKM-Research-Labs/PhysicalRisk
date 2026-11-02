@@ -21,6 +21,7 @@
 """Tests for TCEventVisualization.__init__ and validate_input_files."""
 
 import pytest
+
 from .conftest import _write_minimal_inputs
 
 

@@ -25,7 +25,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tests.routes.trading.conftest import STORM_PORT_SEVERE, STORM_PORT_ALERT, SAMPLE_PORT_STRESS_STORMS
+from tests.routes.trading.conftest import SAMPLE_PORT_STRESS_STORMS, STORM_PORT_ALERT, STORM_PORT_SEVERE
 
 
 class TestGetPortfolioStorms:

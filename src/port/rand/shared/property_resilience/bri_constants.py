@@ -23,7 +23,6 @@ rating thresholds, and per-hazard relevance maps."""
 
 from typing import Dict
 
-
 # Resilience sub-section weights (must sum to 1.0).
 # Thames calibration: flood-heavy, wind/seismic/fire deprioritised.
 SECTION_WEIGHTS: Dict[str, float] = {

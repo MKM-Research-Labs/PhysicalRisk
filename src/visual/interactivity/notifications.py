@@ -30,8 +30,8 @@ from typing import Any, Dict
 
 import folium
 
-from visual.interactivity._jsbundle import js_static
 from config.theme import colour
+from visual.interactivity._jsbundle import js_static
 
 
 class NotificationType(Enum):

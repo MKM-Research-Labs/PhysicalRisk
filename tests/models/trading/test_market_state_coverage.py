@@ -21,9 +21,9 @@
 """Coverage expansion tests for market_state.py — lines 280, 290, 296, 313, 336."""
 
 import pytest
+from db_helpers import seed_gauge_hazard_curves, tmp_catchment
 
 import database
-from db_helpers import seed_gauge_hazard_curves, tmp_catchment
 from models.trading.market_state import MarketStateManager
 
 

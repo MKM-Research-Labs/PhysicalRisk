@@ -53,7 +53,6 @@ from models.typhoon.pipeline.results import (
     TyphoonEventEnsemble,
 )
 
-
 __all__ = [
     "PropertyPeakWindSummary",
     "TyphoonEventEnsemble",

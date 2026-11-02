@@ -55,42 +55,75 @@ local BRI flag into ``apply_flood_resilience_score`` via ``bri_scores_enabled``.
 """
 
 from .bri_constants import (
-    SECTION_WEIGHTS, FIELD_WEIGHTS, RESILIENCE_LEVEL_CREDIT,
-    BASEMENT_FLOOD_STRATEGY_CREDIT, RATING_THRESHOLDS, RATING_ORDER,
-    HAZARD_RELEVANT_FIELDS, CONTINUITY_PLUS_THRESHOLD,
+    BASEMENT_FLOOD_STRATEGY_CREDIT,
+    CONTINUITY_PLUS_THRESHOLD,
+    FIELD_WEIGHTS,
+    HAZARD_RELEVANT_FIELDS,
+    RATING_ORDER,
+    RATING_THRESHOLDS,
+    RESILIENCE_LEVEL_CREDIT,
+    SECTION_WEIGHTS,
     TARGET_DISTRIBUTION_THAMES,
 )
 from .bri_rating import (
-    _field_credit, score_section, _map_score_to_rating, _flatten_resilience,
-    score_hazard, compute_bri_rating, distribution_summary,
-    recalibrate_thresholds_from_scores, validate_weights,
-)
-from .generator_constants import (
-    _PERIOD_BASE_PROB, _DEFAULT_PERIOD_PROB, _CONDITION_MULTIPLIER,
-    _DEFAULT_CONDITION_MULT, _MODERN_ONLY_FIELDS, _FLOOD_PROTECTION_FIELDS,
-    _FLOOD_ZONE_UPLIFT, _ALWAYS_LIKELY_TRUE, SECTION_FIELDS,
-    _RESILIENCE_LEVELS,
-)
-from .generator import (
-    _level_from_score, _field_probability, _basement_strategy,
-    _extract_metadata, generate_resilience, _PERIOD_WEIGHTS,
-    _CONDITION_WEIGHTS, _FLOOD_ZONE_WEIGHTS, _weighted_choice,
-    _synthetic_property, sanity_check_distribution,
-)
-from .flood_constants import (
-    FLOOD_SPEC_BASE_WEIGHTS, FLOOD_SPEC_REGIME_MULTIPLIERS,
-    LOWEST_FLOOR_ELEVATION_BANDS, HISTORIC_WATER_AREA_COMPLIANCE,
-    LOWER_LEVEL_DESIGN_COMPLIANCE, FLOOD_SPEC_SOFT_CAPS,
-    FLOOD_SPEC_ALPHA_BY_REGIME, REGIME_FROM_FLOOD_RISK_TYPE, DEFAULT_REGIME,
-    DEFAULT_MISSING_COMPLIANCE,
+    _field_credit,
+    _flatten_resilience,
+    _map_score_to_rating,
+    compute_bri_rating,
+    distribution_summary,
+    recalibrate_thresholds_from_scores,
+    score_hazard,
+    score_section,
+    validate_weights,
 )
 from .flood_compliance import (
-    _elevation_to_compliance, _ordinal_5level_compliance, _get,
-    compute_compliance, _apply_soft_caps,
+    _apply_soft_caps,
+    _elevation_to_compliance,
+    _get,
+    _ordinal_5level_compliance,
+    compute_compliance,
+)
+from .flood_constants import (
+    DEFAULT_MISSING_COMPLIANCE,
+    DEFAULT_REGIME,
+    FLOOD_SPEC_ALPHA_BY_REGIME,
+    FLOOD_SPEC_BASE_WEIGHTS,
+    FLOOD_SPEC_REGIME_MULTIPLIERS,
+    FLOOD_SPEC_SOFT_CAPS,
+    HISTORIC_WATER_AREA_COMPLIANCE,
+    LOWER_LEVEL_DESIGN_COMPLIANCE,
+    LOWEST_FLOOR_ELEVATION_BANDS,
+    REGIME_FROM_FLOOD_RISK_TYPE,
 )
 from .flood_score import (
-    compute_flood_resilience_score, damage_modifier,
     apply_flood_resilience_score,
+    compute_flood_resilience_score,
+    damage_modifier,
+)
+from .generator import (
+    _CONDITION_WEIGHTS,
+    _FLOOD_ZONE_WEIGHTS,
+    _PERIOD_WEIGHTS,
+    _basement_strategy,
+    _extract_metadata,
+    _field_probability,
+    _level_from_score,
+    _synthetic_property,
+    _weighted_choice,
+    generate_resilience,
+    sanity_check_distribution,
+)
+from .generator_constants import (
+    _ALWAYS_LIKELY_TRUE,
+    _CONDITION_MULTIPLIER,
+    _DEFAULT_CONDITION_MULT,
+    _DEFAULT_PERIOD_PROB,
+    _FLOOD_PROTECTION_FIELDS,
+    _FLOOD_ZONE_UPLIFT,
+    _MODERN_ONLY_FIELDS,
+    _PERIOD_BASE_PROB,
+    _RESILIENCE_LEVELS,
+    SECTION_FIELDS,
 )
 
 __all__ = [
@@ -116,4 +149,29 @@ __all__ = [
     # flood model
     "compute_compliance", "compute_flood_resilience_score", "damage_modifier",
     "apply_flood_resilience_score",
+    "_ALWAYS_LIKELY_TRUE",
+    "_CONDITION_MULTIPLIER",
+    "_CONDITION_WEIGHTS",
+    "_DEFAULT_CONDITION_MULT",
+    "_DEFAULT_PERIOD_PROB",
+    "_FLOOD_PROTECTION_FIELDS",
+    "_FLOOD_ZONE_UPLIFT",
+    "_FLOOD_ZONE_WEIGHTS",
+    "_MODERN_ONLY_FIELDS",
+    "_PERIOD_BASE_PROB",
+    "_PERIOD_WEIGHTS",
+    "_RESILIENCE_LEVELS",
+    "_apply_soft_caps",
+    "_basement_strategy",
+    "_elevation_to_compliance",
+    "_extract_metadata",
+    "_field_credit",
+    "_field_probability",
+    "_flatten_resilience",
+    "_get",
+    "_level_from_score",
+    "_map_score_to_rating",
+    "_ordinal_5level_compliance",
+    "_synthetic_property",
+    "_weighted_choice",
 ]

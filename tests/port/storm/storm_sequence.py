@@ -23,12 +23,12 @@
 import pytest
 
 from port.src.storm_multi.core.data_structures import (
+    SEQUENCE_GAP_TYPE,
+    SEQUENCE_TYPE_STORM_COUNTS,
     GapType,
     SequenceStorm,
     SequenceType,
     StormSequence,
-    SEQUENCE_GAP_TYPE,
-    SEQUENCE_TYPE_STORM_COUNTS,
     make_sequence_id,
     make_storm_id,
 )

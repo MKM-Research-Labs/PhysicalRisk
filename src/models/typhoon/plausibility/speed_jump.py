@@ -31,7 +31,6 @@ import math
 
 from models.typhoon.data_structures import TyphoonState
 
-
 __all__ = ["speed_jump_score"]
 
 

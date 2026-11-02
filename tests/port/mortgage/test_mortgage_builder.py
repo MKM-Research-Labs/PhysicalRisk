@@ -21,11 +21,11 @@
 """Tests for _build_section, _set_specific_mortgage_values, _quality_consistency_check."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
 from config import config
 from tests.port.mortgage.conftest import make_generator
-
 
 # ===========================================================================
 # _build_section

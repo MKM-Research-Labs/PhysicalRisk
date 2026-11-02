@@ -27,8 +27,7 @@ expected function names, DOM element IDs, and event handlers.
 
 import pytest
 
-from tests.visual.conftest import iife_src_file, iife_has_node, iife_node_check
-
+from tests.visual.conftest import iife_has_node, iife_node_check, iife_src_file
 
 # ---------------------------------------------------------------------------
 # Control tab JS — function exports

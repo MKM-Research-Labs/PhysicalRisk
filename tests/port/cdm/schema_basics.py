@@ -22,7 +22,6 @@
 
 import pytest
 
-
 ALL_CDM_FIXTURES = [
     "gauge_cdm", "property_cdm", "mortgage_cdm",
     "storm_cdm", "stormts_cdm", "prs_cdm",

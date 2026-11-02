@@ -20,9 +20,9 @@
 
 """GBM flood classifier training for the multi-storm stress pipeline."""
 
+from ._core import train_gauge_stressm_classifier
 from ._nearmiss import _generate_nearmiss_vectors
 from ._print import _print_classifier_result
-from ._core import train_gauge_stressm_classifier
 
 __all__ = [
     "train_gauge_stressm_classifier",

@@ -27,10 +27,10 @@ files + _index.json) that replaced the single stress_storms.json.
 """
 
 import json
+
 import pytest
 
-from tests.port.gauge.conftest import make_gauge_file, make_response
-
+from tests.port.gauge.conftest import make_gauge_file, make_response, write_gauge
 
 # ---------------------------------------------------------------------------
 # Core generation behaviour
@@ -45,6 +45,7 @@ class TestGenerateStressStorms:
         binding an empty tmp catchment makes that fallback empty too, so the legacy
         "nothing to scan" FileNotFoundError still fires."""
         from db_helpers import tmp_catchment
+
         from port.src.gauge.stress_storms import generate_stress_storms
         empty = tmp_path / "gaugets"
         empty.mkdir()
@@ -60,7 +61,7 @@ class TestGenerateStressStorms:
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
         gf = gaugets / "GAUGE-00000001.json"
-        gf.write_text(json.dumps(make_gauge_file(
+        write_gauge(gf, json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -75,7 +76,7 @@ class TestGenerateStressStorms:
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
         gf = gaugets / "GAUGE-00000001.json"
-        gf.write_text(json.dumps(make_gauge_file(
+        write_gauge(gf, json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -91,7 +92,7 @@ class TestGenerateStressStorms:
         gaugets.mkdir()
         for i, sid in enumerate(["STORM-aaaa0001", "STORM-aaaa0002"]):
             gf = gaugets / f"GAUGE-0000000{i}.json"
-            gf.write_text(json.dumps(make_gauge_file(
+            write_gauge(gf, json.dumps(make_gauge_file(
                 f"GAUGE-0000000{i}",
                 [make_response(sid, alert=True, peak=2.0)],
             )))
@@ -106,7 +107,7 @@ class TestGenerateStressStorms:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         gf = gaugets / "GAUGE-00000001.json"
-        gf.write_text(json.dumps(make_gauge_file(
+        write_gauge(gf, json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response("STORM-sub00001", alert=False, peak=0.5)],
         )))
@@ -115,12 +116,12 @@ class TestGenerateStressStorms:
         assert result["total_storms"] == 0
 
     def test_storm_id_prefix_uses_config_constant(self, tmp_path):
-        from port.src.gauge.stress_storms import generate_stress_storms
         from config.port import STORM_ID_PREFIX
+        from port.src.gauge.stress_storms import generate_stress_storms
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         gf = gaugets / "GAUGE-00000001.json"
-        gf.write_text(json.dumps(make_gauge_file(
+        write_gauge(gf, json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(f"{STORM_ID_PREFIX}-testonly", alert=True, peak=2.0)],
         )))
@@ -136,7 +137,7 @@ class TestGenerateStressStorms:
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
         gf = gaugets / "GAUGE-00000001.json"
-        gf.write_text(json.dumps(make_gauge_file(
+        write_gauge(gf, json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -154,7 +155,7 @@ class TestGenerateStressStorms:
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
         gf = gaugets / "GAUGE-00000001.json"
-        gf.write_text(json.dumps(make_gauge_file(
+        write_gauge(gf, json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -180,7 +181,7 @@ class TestGaugeIdInjection:
         gf = gaugets / "GAUGE-deadbeef.json"
         resp = make_response(sid, alert=True, peak=2.0)
         assert "gauge_id" not in resp  # pre-condition
-        gf.write_text(json.dumps(make_gauge_file("GAUGE-deadbeef", [resp])))
+        write_gauge(gf, json.dumps(make_gauge_file("GAUGE-deadbeef", [resp])))
         out_dir = tmp_path / "stress_storms"
         generate_stress_storms(gaugets, out_dir)
         storm = json.loads((out_dir / f"{sid}.json").read_text())
@@ -196,7 +197,7 @@ class TestGaugeIdInjection:
         sid = "STORM-aabbccdd"
         for gid in ["GAUGE-00000001", "GAUGE-00000002", "GAUGE-00000003"]:
             gf = gaugets / f"{gid}.json"
-            gf.write_text(json.dumps(make_gauge_file(gid, [make_response(sid, alert=True, peak=2.0)])))
+            write_gauge(gf, json.dumps(make_gauge_file(gid, [make_response(sid, alert=True, peak=2.0)])))
         out_dir = tmp_path / "stress_storms"
         generate_stress_storms(gaugets, out_dir)
         storm = json.loads((out_dir / f"{sid}.json").read_text())
@@ -215,7 +216,7 @@ class TestReturnValue:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))
@@ -230,7 +231,7 @@ class TestReturnValue:
         gaugets = tmp_path / "gaugets"
         gaugets.mkdir()
         sid = "STORM-aabbccdd"
-        (gaugets / "GAUGE-00000001.json").write_text(json.dumps(make_gauge_file(
+        write_gauge(gaugets / "GAUGE-00000001.json", json.dumps(make_gauge_file(
             "GAUGE-00000001",
             [make_response(sid, alert=True, peak=2.0)],
         )))

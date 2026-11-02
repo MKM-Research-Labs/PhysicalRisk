@@ -51,18 +51,21 @@ def _cleanup_worktree_data(project_root: str) -> None:
         if result.returncode != 0:
             return
 
-        # Parse worktree paths — each block starts with "worktree <path>"
+        # Parse worktree paths — each block starts with "worktree <path>".
+        # git lists the main working tree first. Drop it: run from a linked
+        # worktree, project_root is that worktree, so the main checkout would
+        # otherwise count as "another worktree" and lose its real data/input.
         worktree_paths = [
             line[len('worktree '):].strip()
             for line in result.stdout.splitlines()
             if line.startswith('worktree ')
-        ]
+        ][1:]
 
         freed_bytes = 0
         cleaned = []
         for wt_path in worktree_paths:
             if os.path.realpath(wt_path) == os.path.realpath(project_root):
-                continue  # skip main repo
+                continue  # skip the checkout this run belongs to
 
             # CRITICAL: a worktree's `data/` may be a symlink to shared
             # storage (e.g. an external SSD that every checkout points at).

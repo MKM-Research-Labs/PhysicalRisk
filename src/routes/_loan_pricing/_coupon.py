@@ -31,7 +31,6 @@ from config.loan import (
     wind_hazard_spread,
 )
 from models.hazard.prs_analytical import compute_prs_spread
-
 from routes._loan_pricing._constants import DEFAULT_CREDIT_RATING
 
 

@@ -21,7 +21,7 @@
 """CommercialLayer — adds commercial-asset markers to the Folium map."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import folium
 

@@ -31,14 +31,12 @@ from pathlib import Path
 import pytest
 
 from tests._dataset import full_dataset_only
-
 from tests.data._id_consistency_helpers import (
-    ROOT,
     INPUT_DIR,
     OUTPUT_DIR,
+    ROOT,
     _load_gauge_ids,
 )
-
 
 # Accepted lineage drift. A ratchet, not a permanent exemption: MORE
 # mismatches than this fails as new drift, FEWER also fails, asking for the
@@ -113,7 +111,7 @@ class TestDataLineage:
 
         # Import hash functions
         try:
-            from lineage.manifest import hash_file, hash_directory
+            from lineage.manifest import hash_directory, hash_file
         except ImportError:
             pytest.skip("lineage package not available")
 

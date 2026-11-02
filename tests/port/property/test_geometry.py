@@ -30,7 +30,6 @@ from port.src.property.main import PropertyPortfolioGenerator
 
 from .conftest import GAUGE_POINTS, make_portfolio_gen
 
-
 # ===========================================================================
 # _haversine
 # ===========================================================================

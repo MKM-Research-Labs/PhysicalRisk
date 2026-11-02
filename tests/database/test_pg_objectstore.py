@@ -24,6 +24,8 @@ The ``reachable``-false path needs no infrastructure (it points at a dead
 endpoint). The bucket-creation test needs a live MinIO and SKIPS otherwise.
 """
 
+from unittest.mock import MagicMock
+
 import pytest
 
 from database._pg import _objectstore
@@ -38,6 +40,45 @@ def test_reachable_false_when_unreachable(monkeypatch):
         assert _objectstore.reachable() is False
     finally:
         _objectstore.reset_client()
+
+
+@pytest.fixture
+def fake_minio(monkeypatch):
+    """A stand-in client, so the byte-moving paths run without a live MinIO."""
+    client = MagicMock()
+    client.bucket_exists.return_value = False
+    monkeypatch.setattr(_objectstore, "Minio", MagicMock(return_value=client))
+    _objectstore.reset_client()
+    yield client
+    _objectstore.reset_client()
+
+
+def test_first_use_creates_the_bucket_once(fake_minio):
+    _, bucket = _objectstore.get_client()
+    _objectstore.get_client()
+    fake_minio.make_bucket.assert_called_once_with(bucket)
+
+
+def test_put_stores_the_payload_length(fake_minio):
+    _objectstore.put_bytes("a/b", b"abc")
+    assert fake_minio.put_object.call_args.kwargs["length"] == 3
+
+
+def test_get_returns_the_body_and_releases_the_connection(fake_minio):
+    response = fake_minio.get_object.return_value
+    response.read.return_value = b"abc"
+    assert _objectstore.get_bytes("a/b") == b"abc"
+    response.close.assert_called_once()
+    response.release_conn.assert_called_once()
+
+
+def test_delete_removes_the_object(fake_minio):
+    _objectstore.delete_object("a/b")
+    assert fake_minio.remove_object.call_args.args[1] == "a/b"
+
+
+def test_reachable_true_when_the_store_answers(fake_minio):
+    assert _objectstore.reachable() is True
 
 
 def _minio_available() -> bool:

@@ -29,6 +29,7 @@ directory names differ.
 """
 
 from port.src.property.ts import DateTimeEncoder  # noqa: F401
+
 from ._generator import CommercialTimeSeriesGenerator
 
 __all__ = ["CommercialTimeSeriesGenerator", "DateTimeEncoder"]

@@ -28,8 +28,8 @@ from models.floodrisk.velocity import (
     MIN_SLOPE,
     build_property_hydrograph,
     compute_attenuation,
-    compute_retention,
     compute_manning_velocity,
+    compute_retention,
     compute_slope,
     compute_travel_time,
 )

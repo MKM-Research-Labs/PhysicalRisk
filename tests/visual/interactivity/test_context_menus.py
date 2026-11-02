@@ -29,8 +29,7 @@ class TestContextMenuInit:
     """Default and custom menu initialization."""
 
     def test_default_init(self):
-        from visual.interactivity.context_menus import (
-            ContextMenuHandler, DEFAULT_PROPERTY_MENU, DEFAULT_GAUGE_MENU)
+        from visual.interactivity.context_menus import DEFAULT_GAUGE_MENU, DEFAULT_PROPERTY_MENU, ContextMenuHandler
 
         handler = ContextMenuHandler()
         assert handler.property_menu == DEFAULT_PROPERTY_MENU
@@ -93,8 +92,7 @@ class TestConfigure:
         assert handler.gauge_menu == gm
 
     def test_configure_no_args_no_change(self):
-        from visual.interactivity.context_menus import (
-            ContextMenuHandler, DEFAULT_PROPERTY_MENU, DEFAULT_GAUGE_MENU)
+        from visual.interactivity.context_menus import DEFAULT_GAUGE_MENU, DEFAULT_PROPERTY_MENU, ContextMenuHandler
 
         handler = ContextMenuHandler()
         handler.configure()
@@ -123,8 +121,7 @@ class TestNavMenusJS:
         assert '_prePropertyTS' in js
 
     def test_nav_menus_js_includes_menu_actions(self):
-        from visual.interactivity.context_menus import (
-            ContextMenuHandler, DEFAULT_GAUGE_MENU, DEFAULT_PROPERTY_MENU)
+        from visual.interactivity.context_menus import DEFAULT_GAUGE_MENU, DEFAULT_PROPERTY_MENU, ContextMenuHandler
 
         handler = ContextMenuHandler()
         js = handler._build_nav_menus_js()
@@ -166,9 +163,11 @@ class TestGetStatistics:
 
     def test_default_statistics(self):
         from visual.interactivity.context_menus import (
-            ContextMenuHandler, DEFAULT_PROPERTY_MENU, DEFAULT_GAUGE_MENU)
-
-        from visual.interactivity.context_menus import DEFAULT_COMMERCIAL_MENU
+            DEFAULT_COMMERCIAL_MENU,
+            DEFAULT_GAUGE_MENU,
+            DEFAULT_PROPERTY_MENU,
+            ContextMenuHandler,
+        )
         handler = ContextMenuHandler()
         stats = handler.get_statistics()
         assert stats['property_menu_items'] == len(DEFAULT_PROPERTY_MENU)

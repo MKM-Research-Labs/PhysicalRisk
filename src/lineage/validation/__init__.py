@@ -35,10 +35,13 @@ from lineage.manifest import (  # noqa: F401
     hash_file,
     load_manifest,
 )
-
 from lineage.validation._helpers import (  # noqa: F401
     _find_producer,
     _outputs_exist,
+)
+from lineage.validation.completeness import (  # noqa: F401
+    check_pipeline_complete,
+    validate_full_chain,
 )
 from lineage.validation.freshness import (  # noqa: F401
     check_inputs_fresh,
@@ -46,7 +49,3 @@ from lineage.validation.freshness import (  # noqa: F401
     get_stale_downstream,
 )
 from lineage.validation.prerequisites import resolve_prerequisites  # noqa: F401
-from lineage.validation.completeness import (  # noqa: F401
-    check_pipeline_complete,
-    validate_full_chain,
-)

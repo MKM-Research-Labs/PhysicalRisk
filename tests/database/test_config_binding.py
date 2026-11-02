@@ -23,9 +23,9 @@
 import pytest
 
 import database
+from config import config
 from database import config_binding
 from database.file_repo import FileRepository
-from config import config
 
 
 def test_file_repo_requires_root_or_resolver():

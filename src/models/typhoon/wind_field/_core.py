@@ -69,7 +69,6 @@ from models.typhoon.wind_field.time_series import (
     evaluate_time_series,
 )
 
-
 __all__ = [
     # geometry
     "haversine_distance_km",

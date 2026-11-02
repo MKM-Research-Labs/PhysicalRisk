@@ -49,8 +49,9 @@ from typing import Any, Dict
 import folium
 
 from visual.interactivity._jsbundle import js_static
-from .. import client, blotter, market, fs01, aggregate, eod, curves, stress, port_stress, classifiers, preloader
-from . import panel_create, panel_tabs, panel_lifecycle
+
+from .. import aggregate, blotter, classifiers, client, curves, eod, fs01, market, port_stress, preloader, stress
+from . import panel_create, panel_lifecycle, panel_tabs
 
 # CDN dependencies for the Chart.js trading desk panel.
 _CHARTJS_CDN = (

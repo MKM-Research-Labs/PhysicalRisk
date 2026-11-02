@@ -23,6 +23,7 @@
 import re
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
 from config import config
@@ -33,7 +34,6 @@ from port.src.commercial_loan import (
     _build_commercial_loan,
     generate_commercial_loans,
 )
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)

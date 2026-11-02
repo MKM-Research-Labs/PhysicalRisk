@@ -23,14 +23,13 @@ and the WindSpeedModel class that caches loaded events for repeated queries.
 """
 
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, Union
 
 from config.typhoon import CatchmentTyphoonConfig, LandMask, WindFieldParams
 from models.typhoon.data_structures import TyphoonTrajectory
 from models.typhoon.wind_field import evaluate_point
 from models.windspeed.interpolation import interpolate_state_at_hour
 from models.windspeed.loader import load_event
-
 
 __all__ = ["windspeed", "WindSpeedModel"]
 

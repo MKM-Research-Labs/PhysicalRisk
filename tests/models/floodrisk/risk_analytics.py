@@ -26,8 +26,8 @@ analyze_spatial_concentration, calculate_advanced_metrics,
 and analyze_risk_clusters. GeoDataFrame tests skipped without geopandas.
 """
 
-import pytest
 import numpy as np
+import pytest
 
 try:
     import geopandas as gpd
@@ -38,7 +38,6 @@ except ImportError:
     HAS_GEO = False
 
 from models.floodrisk.risk_analytics import calculate_hhi
-
 
 # ===========================================================================
 # calculate_hhi  (pure NumPy — no geopandas needed)
@@ -200,9 +199,7 @@ class TestCalculateAdvancedMetrics:
         return props, depths, impacts
 
     def test_returns_required_keys(self, synthetic_data):
-        from models.floodrisk.risk_analytics import (
-            calculate_advanced_metrics, analyze_spatial_concentration
-        )
+        from models.floodrisk.risk_analytics import analyze_spatial_concentration, calculate_advanced_metrics
         props, depths, impacts = synthetic_data
         spatial = analyze_spatial_concentration(props, depths, impacts)
         result = calculate_advanced_metrics(props, depths, impacts, spatial)
@@ -212,18 +209,14 @@ class TestCalculateAdvancedMetrics:
             assert key in result
 
     def test_expected_loss_positive(self, synthetic_data):
-        from models.floodrisk.risk_analytics import (
-            calculate_advanced_metrics, analyze_spatial_concentration
-        )
+        from models.floodrisk.risk_analytics import analyze_spatial_concentration, calculate_advanced_metrics
         props, depths, impacts = synthetic_data
         spatial = analyze_spatial_concentration(props, depths, impacts)
         result = calculate_advanced_metrics(props, depths, impacts, spatial)
         assert result['expected_loss'] > 0
 
     def test_risk_bands_sum_to_affected(self, synthetic_data):
-        from models.floodrisk.risk_analytics import (
-            calculate_advanced_metrics, analyze_spatial_concentration
-        )
+        from models.floodrisk.risk_analytics import analyze_spatial_concentration, calculate_advanced_metrics
         props, depths, impacts = synthetic_data
         spatial = analyze_spatial_concentration(props, depths, impacts)
         result = calculate_advanced_metrics(props, depths, impacts, spatial)

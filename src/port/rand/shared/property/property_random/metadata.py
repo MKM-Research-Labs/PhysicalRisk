@@ -23,9 +23,9 @@
 import random
 from typing import Any, Dict
 
-from .helpers import _deterministic_prop_id
 from ..property_utils import generate_construction_year
 from ..property_valuation import calculate_property_area, calculate_property_value
+from .helpers import _deterministic_prop_id
 
 
 def generate_property_metadata(index: int, location: Dict[str, Any]) -> Dict[str, Any]:

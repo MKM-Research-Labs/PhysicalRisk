@@ -30,7 +30,6 @@ import math
 
 import pytest
 
-
 # -----------------------------------------------------------------------
 # 3. Flood propagation: trace the exact math for specific properties
 # -----------------------------------------------------------------------
@@ -184,7 +183,7 @@ class TestFloodPropagationMath:
         retention = math.exp(-ng['distance_m'] / 10000.0)
 
         # Compute travel time
-        from models.floodrisk.velocity import compute_travel_time, compute_slope
+        from models.floodrisk.velocity import compute_slope, compute_travel_time
         slope = compute_slope(g_elev, p['elevation_m'], ng['distance_m'])
         water_above = max(0, peak_wse - g_elev)
         water_at_prop = water_above * retention
@@ -195,7 +194,7 @@ class TestFloodPropagationMath:
         if travel_time == float('inf'):
             travel_time = 0
 
-        print(f"\n  Calling build_property_hydrograph:")
+        print("\n  Calling build_property_hydrograph:")
         print(f"    gauge readings: {len(mapped_readings)}")
         print(f"    peak_wse: {peak_wse:.3f}")
         print(f"    travel_time: {travel_time:.2f}hrs")
@@ -257,7 +256,7 @@ class TestPortfolioFloodStats:
             if flooded > 0:
                 props_with_floods += 1
 
-        print(f"\n  === FLOOD PORTFOLIO SUMMARY ===")
+        print("\n  === FLOOD PORTFOLIO SUMMARY ===")
         print(f"  Properties: {total_props}")
         print(f"  Properties with floods: {props_with_floods} ({props_with_floods/total_props*100:.1f}%)")
         print(f"  Total flood events: {total_events}")
@@ -269,7 +268,7 @@ class TestPortfolioFloodStats:
              for pid, p in properties.items()],
             key=lambda x: x[1], reverse=True
         )[:5]
-        print(f"\n  Top 5 most-flooded properties:")
+        print("\n  Top 5 most-flooded properties:")
         for pid, count in flood_counts:
             p = properties[pid]
             print(f"    {pid}: {count} floods, elev={p['elevation_m']}m, "

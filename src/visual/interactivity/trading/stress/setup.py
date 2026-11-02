@@ -29,7 +29,7 @@ On-demand classifier training UI is in training_ui.py.
 
 from config.format import percentile_apply_js as _pct_apply
 
-from . import setup_dom, setup_data, setup_charts
+from . import setup_charts, setup_data, setup_dom
 
 
 def get_js() -> str:

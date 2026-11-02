@@ -28,7 +28,7 @@ shared across the sub-modules (request parsing). Each sub-module imports
 
 import logging
 
-from flask import jsonify, request, Blueprint
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 

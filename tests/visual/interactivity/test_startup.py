@@ -40,8 +40,9 @@ class TestStartupPreloaderAddToMap:
         mock_html.add_child.assert_called_once()
 
     def test_add_to_map_output_contains_script(self):
-        from visual.interactivity.startup import StartupPreloader
         import folium
+
+        from visual.interactivity.startup import StartupPreloader
         preloader = StartupPreloader()
         mock_map = MagicMock()
         mock_root = MagicMock()

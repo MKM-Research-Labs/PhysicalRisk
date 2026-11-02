@@ -28,10 +28,9 @@ import pytest
 
 from tests.e2e.conftest import (
     ps_close_all_panels,
-    ps_open_trading_desk,
     ps_close_trading_desk,
+    ps_open_trading_desk,
 )
-
 
 # ---------------------------------------------------------------------------
 # Port Stress tab — structure

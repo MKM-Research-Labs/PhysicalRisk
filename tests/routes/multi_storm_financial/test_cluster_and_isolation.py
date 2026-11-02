@@ -32,7 +32,10 @@ import json
 import pytest
 
 from .conftest import (
-    _prop_flood_file, _property_json, _mortgage_json, make_test_client,
+    _mortgage_json,
+    _prop_flood_file,
+    _property_json,
+    make_test_client,
 )
 
 

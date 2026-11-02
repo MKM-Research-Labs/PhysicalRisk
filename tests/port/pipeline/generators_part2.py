@@ -83,6 +83,7 @@ class TestNostressFlag:
     def test_nostress_flag_exists_in_parser(self):
         """--nostress must be a registered argument on the port subparser."""
         import argparse
+
         from app.commands.port import register_parser
         parser = argparse.ArgumentParser()
         sub = parser.add_subparsers()
@@ -97,6 +98,7 @@ class TestNostressFlag:
         so a stray generator cannot write to real input data.
         """
         import unittest.mock as mock
+
         from app.commands.port import cmd_port
 
         args = self._make_args(all=True, nostress=True)
@@ -169,6 +171,7 @@ class TestNostressFlag:
         called (regression: 2026-05-04 incident).
         """
         import unittest.mock as mock
+
         from app.commands.port import cmd_port
 
         args = self._make_args(stressm=True, nostress=True)

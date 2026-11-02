@@ -29,8 +29,9 @@ from typing import Any
 
 import folium
 
-from ..utils.color_schemes import ColorSchemes
 from config.theme import colour
+
+from ..utils.color_schemes import ColorSchemes
 
 
 class PopupBuilder:

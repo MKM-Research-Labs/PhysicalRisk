@@ -68,8 +68,9 @@ class Ref:
         lo, hi = max(0.0, s - self.lag), min(s, self.T)
         if self.lag == 0 or hi <= lo:
             return 0.0
-        f = lambda u: (self.lam_e * math.exp(-self.lam_e * u)
-                       * self.w * self.n * self.df(u + self.lag) / self.df(s))
+        def f(u):
+            return (self.lam_e * math.exp(-self.lam_e * u)
+                    * self.w * self.n * self.df(u + self.lag) / self.df(s))
         return quad(f, lo, hi, epsabs=0, epsrel=1e-13, limit=200)[0]
 
     def exposure(self, s, kind):

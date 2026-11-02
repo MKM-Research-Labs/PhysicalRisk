@@ -27,8 +27,10 @@ from unittest.mock import patch
 import pytest
 
 from ._data import (
-    GAUGE_WESTMINSTER, GAUGE_CHELSEA, GAUGE_LAMBETH,
     ALL_TEST_GAUGE_IDS,
+    GAUGE_CHELSEA,
+    GAUGE_LAMBETH,
+    GAUGE_WESTMINSTER,
 )
 
 

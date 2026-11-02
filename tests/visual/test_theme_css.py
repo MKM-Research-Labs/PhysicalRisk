@@ -37,7 +37,11 @@ import pytest
 from config import config
 from config.theme import THEME, THEME_GROUPS
 from visual.theme_css import (
-    THEME_STYLE_ID, theme_css, theme_html, theme_status_js, token_names,
+    THEME_STYLE_ID,
+    theme_css,
+    theme_html,
+    theme_status_js,
+    token_names,
 )
 
 _DECLARATION = re.compile(r"^\s*--([a-z0-9-]+):\s*(.+);$", re.MULTILINE)

@@ -26,7 +26,7 @@ from unittest.mock import patch
 
 import pytest
 
-from .conftest import _minimal_property, _make_generator
+from .conftest import _make_generator, _minimal_property
 
 
 class TestFindPropertyById:

@@ -30,8 +30,8 @@ from config import config
 # commercial storms route; the implementations live in routes._storm_enrich.
 from routes._storm_enrich import (  # noqa: F401  (re-exported for _routes.py)
     build_storm_lookups as _build_storm_lookups,
-    enrich_nearest_gauges as _enrich_nearest_gauges,
 )
+from routes._storm_enrich import enrich_nearest_gauges as _enrich_nearest_gauges
 
 
 def _load_typhoon_damage_for_property(prop_id: str) -> Dict[str, Dict]:
@@ -166,3 +166,7 @@ def _lookup_property_address(prop_id: str) -> str:
     except Exception:
         pass
     return prop_address
+
+__all__ = [
+    "_enrich_nearest_gauges",
+]

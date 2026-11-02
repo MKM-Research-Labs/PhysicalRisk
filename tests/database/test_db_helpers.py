@@ -21,13 +21,12 @@
 """WP2.4 step 2 — self-test for the ``tmp_catchment`` / ``memory_catchment`` helpers."""
 
 import pytest
+from db_helpers import active_test_backend, memory_catchment, tmp_catchment
 
 import database
+from config import config
 from database import FileRepository, InMemoryRepository
 from database.backend import active_backend
-from config import config
-
-from db_helpers import tmp_catchment, memory_catchment, active_test_backend
 
 # These self-tests assert the file-backend behaviour of tmp_catchment and the
 # write-guard (a FileRepository rooted at the scratch dir, on-disk gauge.json, the

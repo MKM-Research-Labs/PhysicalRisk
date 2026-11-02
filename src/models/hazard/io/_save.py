@@ -25,6 +25,7 @@ from datetime import datetime
 from typing import Dict
 
 import database
+
 from ..data_structures import GaugeHazardCurve
 
 

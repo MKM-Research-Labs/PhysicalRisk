@@ -24,7 +24,6 @@ import pytest
 
 from cdm_edit import descriptor_at, field_spec, schema_specs, validate_value
 
-
 # ---------------------------------------------------------------------------
 # field_spec
 # ---------------------------------------------------------------------------

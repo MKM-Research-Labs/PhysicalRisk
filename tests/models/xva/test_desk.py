@@ -21,8 +21,8 @@
 """The desk adapter (WP4): blotter rows and the counterparty CDM in, netting
 sets, per-trade figures, the valuation KPI and an incremental quote out."""
 
-from datetime import date, timedelta
 from dataclasses import replace
+from datetime import date, timedelta
 
 import pytest
 

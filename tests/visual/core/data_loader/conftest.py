@@ -24,9 +24,9 @@ import json
 from pathlib import Path
 
 import pytest
+from db_helpers import tmp_catchment
 
 import database
-from db_helpers import tmp_catchment
 
 
 @pytest.fixture(autouse=True)
@@ -108,5 +108,6 @@ def write_storms(path: Path) -> None:
 
 
 def write_counterparty(path: Path) -> None:
-    data = {"counterparties": [{"id": "CTPY-001", "name": "Test Bank"}]}
+    data = {"counterparties": [{"CounterpartySet": {
+        "Party": {"PartyID": "CTPY-001", "PartyName": "Test Bank"}}}]}
     (path / "counterparty.json").write_text(json.dumps(data))

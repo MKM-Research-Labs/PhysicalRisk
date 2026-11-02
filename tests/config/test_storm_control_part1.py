@@ -27,10 +27,9 @@ Covers: load, save, get_defaults, apply (patching config modules), edge cases.
 import json
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -162,7 +161,7 @@ class TestSaveStormControl:
         """Save then load returns identical data."""
         from config import config
         monkeypatch.setattr(config, 'get_input_dir', lambda: tmp_path)
-        from config.storm_control import save_storm_control, load_storm_control
+        from config.storm_control import load_storm_control, save_storm_control
         save_storm_control(SAMPLE_CONTROL)
         loaded = load_storm_control()
         assert loaded == SAMPLE_CONTROL
@@ -191,8 +190,8 @@ class TestGetDefaults:
 
     def test_storm_generation_matches_config_port(self):
         """Default values should match config.port constants."""
-        from config.storm_control import get_defaults
         import config.port as cp
+        from config.storm_control import get_defaults
         d = get_defaults()
         sg = d["sections"]["storm_generation"]
         assert sg["event_window_hours"] == cp.EVENT_WINDOW_HOURS
@@ -203,8 +202,8 @@ class TestGetDefaults:
 
     def test_hydrograph_matches_config_models(self):
         """Default values should match config.models constants."""
-        from config.storm_control import get_defaults
         import config.models as cm
+        from config.storm_control import get_defaults
         d = get_defaults()
         hs = d["sections"]["hydrograph_synthesis"]
         assert hs["saturation_beta"] == cm.SATURATION_BETA
@@ -213,9 +212,9 @@ class TestGetDefaults:
 
     def test_gauge_propagation_matches_configs(self):
         """Gauge propagation pulls from both config.port and config.models."""
-        from config.storm_control import get_defaults
-        import config.port as cp
         import config.models as cm
+        import config.port as cp
+        from config.storm_control import get_defaults
         d = get_defaults()
         gp = d["sections"]["gauge_propagation"]
         assert gp["default_roughness"] == cm.DEFAULT_ROUGHNESS
@@ -223,16 +222,16 @@ class TestGetDefaults:
         assert gp["n_nearest_gauges"] == cp.N_NEAREST_GAUGES
 
     def test_spatial_correlation_matches_config_port(self):
-        from config.storm_control import get_defaults
         import config.port as cp
+        from config.storm_control import get_defaults
         d = get_defaults()
         sc = d["sections"]["spatial_correlation"]
         assert sc["spatial_corr_enabled"] == cp.SPATIAL_CORR_ENABLED
         assert sc["spatial_corr_base_range_km"] == cp.SPATIAL_CORR_BASE_RANGE_KM
 
     def test_stress_catalogue_matches_config_port(self):
-        from config.storm_control import get_defaults
         import config.port as cp
+        from config.storm_control import get_defaults
         d = get_defaults()
         st = d["sections"]["stress_catalogue"]
         assert st["stress_storms_min_count"] == cp.STRESS_STORMS_MIN_COUNT

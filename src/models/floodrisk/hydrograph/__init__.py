@@ -27,8 +27,18 @@ and flow-path infiltration.  Replaces the single-peak / single-shape approach
 in velocity.build_property_hydrograph() for multi-storm sequences.
 """
 
+from .compound import build_compound_property_hydrograph
 from .gamma import gamma_shape, gamma_shape_array
+from .infiltration import apply_infiltration
 from .pulse import build_pulse_gauge_hydrograph
 from .saturation import compute_saturation_factor, superimpose_pulses
-from .infiltration import apply_infiltration
-from .compound import build_compound_property_hydrograph
+
+__all__ = [
+    "apply_infiltration",
+    "build_compound_property_hydrograph",
+    "build_pulse_gauge_hydrograph",
+    "compute_saturation_factor",
+    "gamma_shape",
+    "gamma_shape_array",
+    "superimpose_pulses",
+]
