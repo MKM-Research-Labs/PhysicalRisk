@@ -31,6 +31,7 @@ from port.src.book.book_property import (
     generate_reit_layoff_book,
 )
 from port.src.book.book_property._core import LAYOFF_PURPOSE, _hedge_notional
+from port.src.book.book_property._select import _lookup_commercial_metadata
 
 _CATCHMENT = "thames"
 
@@ -103,6 +104,12 @@ class TestHedgeNotional:
 
     def test_never_below_one_step(self):
         assert _hedge_notional(10_000) == 50_000
+
+
+class TestCommercialMetadata:
+    def test_unknown_asset_gets_only_its_id(self):
+        assert _lookup_commercial_metadata([_commercial('CPROP-1', 1)], 'CPROP-9') == {
+            'PropertyID': 'CPROP-9'}
 
 
 class TestReitHedgeBook:
