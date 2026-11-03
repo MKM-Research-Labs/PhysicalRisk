@@ -1,8 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 
 \newcommand{\doctitle}{Flood Polynomial Model (MKM-FPO-001)}
-\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of v1.0 and its GBM Approximation}
-\newcommand{\docversion}{0.1}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of v2.0 and its GBM Approximation}
+\newcommand{\docversion}{0.2}
 \newcommand{\docdate}{03-November-2026}
 \newcommand{\docauthor}{David K Kelly}
 
@@ -38,45 +38,50 @@
 \mkmexecsummary
 % =========================================================================
 
-This document benchmarks the Flood Polynomial Model (MKM-FPO-001), v1.0, a closed-form
-approximation of the per-gauge GBM flood classifiers (MKM-FC-001) that the
-single-gauge stress scenario uses to price PRS trades hour by hour before a breach. It
-asks whether the code computes what its model document (\texttt{flood\_poly.pdf}, v1.0)
-says, whether the document's claims hold, and how well the polynomial approximates the
-classifiers it stands in for.
+This document benchmarks the Flood Polynomial Model (MKM-FPO-001), v2.0, a closed-form
+surrogate for the per-gauge GBM flood classifiers (MKM-FC-001) that the stress scenarios
+use to price $P(\text{flood})$ hour by hour. It asks whether the code computes what its
+model document (\texttt{flood\_poly\_v2.0.pdf}) says, whether the document's claims
+hold, and how well the model approximates the classifiers.
 
-\paragraph{The code computes its documented formula.} \texttt{p\_flood\_poly} agrees
-with a 50-digit implementation of Eqs.~1--4 and the printed coefficients, and so do
-\texttt{p\_flood\_series}, the copy in \texttt{stress.sensitivity} and its slope. The
-port stress screen's JavaScript holds the same coefficients
+Version~0.1 of this document benchmarked v1.0 and found it fell as the water rose, and
+that none of its document's tables or accuracy claims held. v2.0 is a new model, refitted
+to every gauge, and this is its benchmark.
+
+\paragraph{The code computes its documented model.} \texttt{p\_flood\_poly} agrees with
+a 50-digit implementation of the document's equations, printed coefficients and printed
+envelope, through the floor, the held hours and the step at severe; so do
+\texttt{p\_flood\_series}, the sensitivity module's evaluation and its slope. The port
+stress screen's JavaScript, run under node on the model the server sends it, agrees too
 (Table~\ref{tab:bm-checks}). \bmWolframConfirms
 
-\paragraph{But the document's evidence does not hold} (Table~\ref{tab:bm-claims}).
+\paragraph{The document's claims hold} (\bmClaimsMet{} of \bmClaims{},
+Table~\ref{tab:bm-claims}).
 \begin{itemize}[leftmargin=*,nosep]
-\item \textbf{Its tables have no source.} The code reproduces \bmTableOne{} of the 54
-  cells of Table~1 and none of Table~2. Nor does the GBM reproduce them. No generator
-  for either table ever existed.
-\item \textbf{At the severe level, $P$ does not rise from 0.42 to 0.97.} It is 0.00 at
-  hour~0 and 0.29 at hour~167, after peaking near 0.97 around hour~96.
-\item \textbf{The fit is not as stated.} On every real storm state of the fitted gauge,
-  $R^2$ is \bmFitRsq, not 0.9395. MAE is \bmFitMae, better than the stated 0.0456. The
-  claimed 0.05 accuracy is not met near severe.
+\item \textbf{Its tables come from the code.} The code reproduces \bmGridMatched{} of the
+  \bmGridCells{} cells of the probability table, and marks the same \bmHeld{} cells as
+  held. The coefficients and envelope are the code's.
+\item \textbf{The envelope is the data's.} Recomputed from the storm catalogue, every
+  printed knot is within \bmEnvWorst{} hours of where the storms first reach that level.
+\item \textbf{Rising water never lowers $P$.} The code over every hour finds no fall
+  (largest \bmDrop). Between the fit's grid levels, Wolfram's smallest rate of rise is
+  \bmMinFree{} at any whole hour where it runs free, and \bmMinEnv{} along the envelope
+  where it is held. The model's hours are whole; between hour~0 and hour~1 the kernel's
+  slope does dip below zero, as the document now says, but no hour falls there.
+\item \textbf{The accuracy table reproduces.} Recomputed with the document's model on the
+  fit's own held-out storms, every row matches.
 \end{itemize}
 
-\paragraph{The approximation, measured.} The comparison uses the \bmGauges{} gauges'
-classifiers on the real storm states they are trained on (Table~\ref{tab:bm-gauges}).
+\paragraph{The approximation, measured.} On every real storm state of the \bmGauges{}
+gauges (Table~\ref{tab:bm-gauges}):
 \begin{itemize}[leftmargin=*,nosep]
-\item Below severe, the polynomial is within \bmBelowMae{} of the GBM on average.
-\item Near severe (75--100\%), where stress P\&L is decided, the mean error is
-  \bmNearMae, and \bmNearOver\% of states are off by more than 0.10.
-\item The bias near severe ranges from \bmNearBias. It is right on average but
-  imprecise state by state.
-\item Early in a storm the surface is not monotone in the level: at hour~24, $P$ passes
-  $\tfrac12$ twice below severe and falls as the water rises between the two levels.
+\item below severe, the model is within \bmBelowMae{} of the GBM on average;
+\item near severe (75--100\%), the mean error is \bmNearMae, and \bmNearOver\% of states
+  are off by more than 0.10;
+\item the bias near severe ranges from \bmNearBias.
 \end{itemize}
-Two things production does are not in the document. The stress route latches $P=1$ once
-the level reaches severe. And \texttt{p\_flood\_simple}, which sets portfolio stress P\&L,
-is the ratio $\min(1,w/s)$, not a probability.
+That is the document's own account: close on average, imprecise state by state, because
+the GBMs see the rate of rise and the model does not.
 
 \paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
 (Table~\ref{tab:bm-checks}).
@@ -94,17 +99,21 @@ is the ratio $\min(1,w/s)$, not a probability.
 \subsection{What is benchmarked}
 \begin{itemize}[leftmargin=*,nosep]
 \item \texttt{src/models/stress/flood\_poly.py}: \texttt{p\_flood\_poly},
-  \texttt{p\_flood\_series} and \texttt{p\_flood\_simple}.
-\item The copy in \texttt{src/models/stress/sensitivity.py}.
-\item The coefficients hard-coded in the port stress screen.
-\item The polynomial against the production GBM classifier of every gauge that has one.
+  \texttt{p\_flood\_series}, \texttt{p\_flood\_simple} and the model the server sends
+  the browser.
+\item The sensitivity module's evaluation and slope, in
+  \texttt{src/models/stress/sensitivity.py}.
+\item The port stress screen's evaluation, in
+  \texttt{src/static/js/trading/port\_stress/setup.js}.
+\item The model against the production GBM classifier of every gauge that has one.
 \end{itemize}
 
 \subsection{What is not}
 \begin{itemize}[leftmargin=*,nosep]
 \item The classifiers themselves (MKM-FC-001).
-\item The stress scenarios' hydrographs.
-\item The P\&L built on $P$.
+\item The stress scenarios' hydrographs, and the P\&L built on $P$.
+\item Whether the fit is the best a cubic can do: the benchmark tests the fitted model
+  as documented, not the optimiser.
 \end{itemize}
 This is a benchmark of the implementation and of the approximation (validation question
 Q8), not independent validation (Q9).
@@ -115,38 +124,47 @@ Q8), not independent validation (Q9).
 
 The document's model is
 \begin{equation}
-P=\sigma(a h+b t+c h t+d h^2+e t^2+f),\quad h=\ln\max(w/s,10^{-8}),\quad
+P=\begin{cases}1 & w\ge s,\\ \sigma\big(z(h,\max(t,\tau(h)))\big) & w<s,\end{cases}
+\quad z=\sum_{k=1}^{10}c_k h^{i_k}t^{j_k},\quad h=\ln\max(w/s,0.2),\quad
 t=\ln\frac{\text{hour}+1}{168},
 \end{equation}
-with the exponent clamped to $\pm30$. The reference evaluates it at 50 digits from the
-printed coefficients.
+with the exponent clamped to $\pm30$, and $\tau$ the support envelope through the
+document's printed knots, linear in $t$ between them. The reference evaluates it at 50
+digits from the printed coefficients and knots.
 
 \paragraph{What the polynomial can know.} Each gauge's GBM also sees the rate of rise
 $\Delta h$ and its change. A function of $(h,t)$ alone can at best reproduce the GBM's
 average over the storm states that share a level and an hour. The approximation is
-therefore judged on those real states, as production meets them, not on a grid at
-$\Delta h=0$. A grid includes states storms do not produce, and states storms do produce
-are left out of it.
+therefore judged on those real states, as production meets them.
 
 % =========================================================================
 \section{Benchmark Method}
 % =========================================================================
 
 \paragraph{The code.} The code is checked against the reference over three severe
-thresholds, sixteen level ratios from zero to 1.5, and thirteen hours.
+thresholds, 21 level ratios from zero to 1.5 (through the floor, the envelope's knots and
+severe), and 19 hours (through the envelope). The screen's JavaScript is run under node
+on the same cases, with the model the server sends it.
 
-\paragraph{Wolfram.} From exact coefficients, Wolfram evaluates the clamped logistic at
-every cell of Table~1, the levels where $P=\tfrac12$ (by \texttt{NSolve} over the reals
-below severe), and $\partial P/\partial h$ symbolically.
+\paragraph{Wolfram.} From exact coefficients and knots, Wolfram evaluates $P$ at every
+cell of the document's probability table below severe, with the hold written as its own
+\texttt{Piecewise}; $\partial P/\partial h$ at a fixed hour symbolically, at held and free
+points; and, by \texttt{NMinimize}, the smallest $\partial z/\partial h$ at each of the 168
+whole hours over the levels that hour is not held at (Wolfram inverts the envelope
+itself), and the smallest rate along each segment of the envelope. The fit holds those
+rates positive only at grid points; this checks between them. Each minimum is checked
+against the reference at Wolfram's point, and against a dense grid, so a local minimum
+would not pass.
 
 \paragraph{The GBM comparison.}
 \begin{itemize}[leftmargin=*,nosep]
 \item For every gauge with a classifier, 2{,}000 storms are drawn once (seed 7) from the
-  catalogue. Each storm's states are rebuilt through production's training-vector
-  builder.
-\item The polynomial and the GBM are compared on the states below severe.
-\item For the fitted gauge, the fit metrics are recomputed on every state of the full
-  catalogue. The cubic of \S9.1 is fitted to the same states.
+  catalogue, and each storm's states are rebuilt through production's training-vector
+  builder. The model and the GBM are compared on the states below severe.
+\item The same states give the highest level any storm reached by each hour, and from it
+  the hour each printed envelope level is first reached.
+\item The document's held-out table is recomputed on the fit's own split, with the
+  document's model rather than the code.
 \end{itemize}
 
 % =========================================================================
@@ -168,13 +186,15 @@ below severe), and $\partial P/\partial h$ symbolically.
 \begin{enumerate}[leftmargin=*]
 \item \textbf{Benchmark, not validation.} The GBMs are the reference here; whether they
   are right is MKM-FC-001's question.
-\item \textbf{Remediation.} The coefficients are near the best this form can do on real
-  states: refitting the same six terms does not reduce the error near severe. The model
-  is refitted as v2.0, pooled across gauges, with a richer kernel constrained to rise
-  with the level and $P=1$ at or above severe. Its document is reissued with tables
-  generated from the code, and it is benchmarked as v0.2 of this document.
+\item \textbf{The accuracy is measured, not improved.} The document reports the error
+  near severe and its cause; the benchmark confirms the figures, which remain large
+  state by state.
+\item \textbf{The envelope is the catalogue's.} It is reproduced from the same storms it
+  was measured on. A storm faster than any in the catalogue is priced at the envelope,
+  as the document says.
 \end{enumerate}
 
-\mkmhistorypage{03-Nov-2026 & 0.1 & First issue: tests v1.0 & David K Kelly \\}
+\mkmhistorypage{03-Nov-2026 & 0.1 & First issue: tests v1.0 & David K Kelly \\
+03-Nov-2026 & 0.2 & Tests v2.0, the refitted model & David K Kelly \\}
 
 \end{document}

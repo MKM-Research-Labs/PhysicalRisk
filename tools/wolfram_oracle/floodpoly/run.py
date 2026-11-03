@@ -32,8 +32,8 @@ from config import config
 from config.models import (
     ORACLE_FPO_CSV,
     ORACLE_FPO_DOC,
-    ORACLE_FPO_GAUGE,
     ORACLE_FPO_OUT_DIR,
+    ORACLE_FPO_SCENARIO,
     ORACLE_FPO_SOURCES,
     ORACLE_FPO_WL,
 )
@@ -47,10 +47,11 @@ from tools.wolfram_oracle.floodpoly.latex import write_tables
 
 def evaluate(m):
     """The code checks, the GBM comparison and the claims."""
-    gauges = gbm.compare(claims.predict)
-    fit = gbm.fit_metrics(claims.predict, cubic=claims.fit_cubic)
-    c = claims.assess(m["poly"], gbm.classifier(ORACLE_FPO_GAUGE), gauges, fit)
-    return {"code": cases.run(m), "gauges": gauges}, c
+    gauges, top = gbm.compare(claims.predict)
+    held = gbm.heldout(claims.predict)
+    scenario = (config.get_project_root() / ORACLE_FPO_SCENARIO).read_text()
+    c = claims.assess(m["poly"], top, held, scenario)
+    return {"code": cases.run(m), "gauges": gauges, "held": held}, c
 
 
 def rows_for_csv(r):

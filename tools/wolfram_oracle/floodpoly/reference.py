@@ -19,9 +19,11 @@
 # SOFTWARE.
 """FPO-001's model, from its document, at 50 digits.
 
-P = sigma(z), z = sum_k c_k h^i t^j over the document's terms, h = ln max(w/s, eps),
-t = ln((hour + 1)/T), and z clamped to +/-30 before the logistic -- written from the
-document's equations and printed coefficients, not from the code or its config.
+v2.0, s3: P = 1 at or above severe. Below it P = sigma(z(h, max(t, tau(h)))), z the
+sum of c_k h^i t^j over the printed terms and coefficients, h = ln max(w/s, floor),
+t = ln((hour + 1)/T), tau the support envelope through the printed knots (linear in t
+between them, -inf below the first), z clamped to +/-30 before the logistic -- written
+from the document's equations and tables, not from the code or its config.
 """
 
 import mpmath as mp
@@ -29,17 +31,44 @@ import mpmath as mp
 from config.models import (
     ORACLE_FPO_DOC_CLAMP,
     ORACLE_FPO_DOC_COEFFS,
-    ORACLE_FPO_DOC_EPS,
+    ORACLE_FPO_DOC_ENVELOPE,
+    ORACLE_FPO_DOC_FLOOR,
     ORACLE_FPO_DOC_HOURS,
     ORACLE_FPO_DOC_TERMS,
 )
 
 
+def log_time(hour):
+    return mp.log(mp.mpf(hour + 1) / ORACLE_FPO_DOC_HOURS)
+
+
+def knots():
+    """The envelope's knots as (h, t)."""
+    return [(mp.log(mp.mpf(r)), log_time(mp.mpf(hr))) for r, hr in ORACLE_FPO_DOC_ENVELOPE]
+
+
+def tau(h):
+    """The earliest supported t at level h; -inf below the first knot."""
+    k = knots()
+    if h <= k[0][0]:
+        return -mp.inf
+    for (h0, t0), (h1, t1) in zip(k, k[1:]):
+        if h <= h1:
+            return t0 + (h - h0) / (h1 - h0) * (t1 - t0)
+    return k[-1][1]
+
+
+def tau_slope(h):
+    k = knots()
+    for (h0, t0), (h1, t1) in zip(k, k[1:]):
+        if h0 < h < h1:
+            return (t1 - t0) / (h1 - h0)
+    return mp.mpf(0)
+
+
 def features(w, hour, s):
-    """(h, t) of the document's feature equations."""
-    h = mp.log(max(mp.mpf(w) / mp.mpf(s), mp.mpf(ORACLE_FPO_DOC_EPS)))
-    t = mp.log(mp.mpf(hour + 1) / ORACLE_FPO_DOC_HOURS)
-    return h, t
+    """(h, t) of the document's feature equations, before the hold."""
+    return mp.log(max(mp.mpf(w) / mp.mpf(s), mp.mpf(ORACLE_FPO_DOC_FLOOR))), log_time(hour)
 
 
 def kernel(h, t):
@@ -47,9 +76,13 @@ def kernel(h, t):
 
 
 def kernel_dh(h, t):
-    """dz/dh, term by term."""
     return mp.fsum(mp.mpf(c) * i * h ** (i - 1) * t ** j
                    for (i, j), c in zip(ORACLE_FPO_DOC_TERMS, ORACLE_FPO_DOC_COEFFS) if i)
+
+
+def kernel_dt(h, t):
+    return mp.fsum(mp.mpf(c) * j * h ** i * t ** (j - 1)
+                   for (i, j), c in zip(ORACLE_FPO_DOC_TERMS, ORACLE_FPO_DOC_COEFFS) if j)
 
 
 def sigma(z):
@@ -57,34 +90,40 @@ def sigma(z):
     return 1 / (1 + mp.exp(-z))
 
 
+def p_features(h, t):
+    """P at log level h and log time t: 1 at or above severe, else held and fitted."""
+    if h >= 0:
+        return mp.mpf(1)
+    h = max(h, mp.log(mp.mpf(ORACLE_FPO_DOC_FLOOR)))
+    return sigma(kernel(h, max(t, tau(h))))
+
+
 def p_flood(w, hour, s):
     """The document's P(flood); zero for a non-positive threshold."""
     if s <= 0:
         return mp.mpf(0)
-    return sigma(kernel(*features(w, hour, s)))
+    return mp.mpf(1) if mp.mpf(w) >= mp.mpf(s) else p_features(*features(w, hour, s))
+
+
+def held(w, hour, s):
+    """Whether the hour is held at the envelope (the document's dagger)."""
+    h, t = features(w, hour, s)
+    return mp.mpf(w) < mp.mpf(s) and t < tau(h)
 
 
 def slope(h, t):
-    """dP/dh = sigma'(z) dz/dh (unclamped z)."""
+    """dP/dh at a fixed hour (s3.4): along the envelope where the hour is held there."""
+    if h >= 0 or h < mp.log(mp.mpf(ORACLE_FPO_DOC_FLOOR)):
+        return mp.mpf(0)
+    te = tau(h)
+    if t < te:
+        t, dz = te, kernel_dh(h, te) + kernel_dt(h, te) * tau_slope(h)
+    else:
+        dz = kernel_dh(h, t)
     p = sigma(kernel(h, t))
-    return p * (1 - p) * kernel_dh(h, t)
+    return p * (1 - p) * dz
 
 
 def p_simple(w, s):
-    """s5.2: the ratio w/s capped at 1."""
+    """s6.3: the ratio w/s capped at 1."""
     return mp.mpf(0) if s <= 0 else min(mp.mpf(1), mp.mpf(w) / mp.mpf(s))
-
-
-def half_levels(hour, lo=mp.mpf("-1.5")):
-    """Every w/s at which P = 1/2 at an hour, below severe: the real roots of the
-    kernel as a polynomial in h, between ``lo`` and 0, ascending."""
-    t = mp.log(mp.mpf(hour + 1) / ORACLE_FPO_DOC_HOURS)
-    deg = max(i for i, _ in ORACLE_FPO_DOC_TERMS)
-    by_power = [mp.mpf(0)] * (deg + 1)
-    for (i, j), c in zip(ORACLE_FPO_DOC_TERMS, ORACLE_FPO_DOC_COEFFS):
-        by_power[i] += mp.mpf(c) * t ** j
-    while len(by_power) > 1 and by_power[-1] == 0:
-        by_power.pop()
-    roots = mp.polyroots(by_power[::-1], maxsteps=200, extraprec=200) if len(by_power) > 1 else []
-    real = [mp.re(r) for r in roots if abs(mp.im(r)) < mp.mpf(10) ** (-mp.mp.dps // 2)]
-    return sorted(mp.exp(h) for h in real if lo <= h <= 0)

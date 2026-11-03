@@ -22,9 +22,9 @@
 The polynomial sees the level and the hour; each gauge's GBM also sees the rate of
 rise. So the comparison is made where production uses it: on the real storm states
 the classifiers are trained on, rebuilt by the challenger's catalogue loader, below
-severe (at and above it the stress route latches P = 1). For the gauge the document
-fitted to, the fit metrics are recomputed on every real state, as the document's
-3,393,600 samples (168 hours x 20,200 storms) were.
+severe (at and above it P = 1). The same states give the support envelope -- the
+earliest hour any storm reached each level -- and the document's held-out table is
+recomputed on the fit's own split, with the document's model.
 """
 
 import io
@@ -32,7 +32,7 @@ import io
 import joblib
 import numpy as np
 
-from config.models import ORACLE_FPO_GAUGE, ORACLE_FPO_NEAR, ORACLE_FPO_SEED, ORACLE_FPO_STORMS
+from config.models import ORACLE_FPO_DOC_HOURS, ORACLE_FPO_NEAR, ORACLE_FPO_SEED, ORACLE_FPO_STORMS
 
 
 def catalogue(gauge_ids, n_storms):  # pragma: no cover - reads the data store
@@ -67,8 +67,9 @@ def _stats(p, g, y):
 
 
 def compare(predict, ids=None, n_storms=ORACLE_FPO_STORMS):
-    """Per gauge: the polynomial (``predict(h, t)``) against the GBM below severe and near it."""
-    out = []
+    """Per gauge, the polynomial (``predict(h, t)``) against the GBM below severe and
+    near it; and the highest level any storm reached by each hour."""
+    out, top = [], np.full(ORACLE_FPO_DOC_HOURS, -np.inf)
     for gid, X, y in catalogue(ids if ids is not None else gauge_ids(), n_storms):
         g = classifier(gid).predict_proba(X)[:, 1]
         p = predict(X[:, 0], X[:, 1])
@@ -76,18 +77,31 @@ def compare(predict, ids=None, n_storms=ORACLE_FPO_STORMS):
         near = below & (X[:, 0] >= np.log(ORACLE_FPO_NEAR))
         out.append({"gauge": gid, "below": _stats(p[below], g[below], y[below]),
                     "near": _stats(p[near], g[near], y[near])})
-    return out
+        hour = np.rint(np.exp(X[:, 1]) * ORACLE_FPO_DOC_HOURS - 1).astype(int)
+        np.maximum.at(top, hour, X[:, 0])
+    return out, np.exp(np.maximum.accumulate(top))
 
 
-def fit_metrics(predict, n_storms=None, cubic=None):
-    """R^2, MAE and RMSE against the fitted gauge's GBM on every real state; with
-    ``cubic`` (a fitter) also the R^2 a cubic kernel reaches on the same states."""
-    (gid, X, y), = catalogue([ORACLE_FPO_GAUGE], n_storms)
-    g = classifier(gid).predict_proba(X)[:, 1]
-    p = predict(X[:, 0], X[:, 1])
-    r2 = lambda q: float(1 - ((q - g) ** 2).sum() / ((g - g.mean()) ** 2).sum())
-    out = {"n": int(len(g)), "r2": r2(p), "mae": float(np.abs(p - g).mean()),
-           "rmse": float(np.sqrt(((p - g) ** 2).mean()))}
-    if cubic is not None:
-        out["cubic_r2"] = r2(cubic(X[:, 0], X[:, 1], g)(X[:, 0], X[:, 1]))
-    return out
+def first_reached(top, ratio):
+    """The hour a level is first reached, linear between hours, from the highest level by hour."""
+    k = int(np.argmax(top >= ratio))
+    if top[k] < ratio:
+        return None
+    return 0.0 if k == 0 or top[0] >= ratio else k - 1 + (ratio - top[k - 1]) / (top[k] - top[k - 1])
+
+
+def heldout(predict):
+    """Per gauge, on the storms the fit did not see: (near MAE, near bias, near share
+    over 0.1, below MAE) of ``predict`` against the GBM, and the fit and test counts."""
+    from tools.flood_poly_fit.fit import states
+    h, t, g, gauge, is_fit = states()
+    test = ~is_fit
+    p = predict(h[test], t[test])
+    rows = []
+    for k in np.unique(gauge[test]):
+        m = gauge[test] == k
+        nm = m & (h[test] >= np.log(ORACLE_FPO_NEAR))
+        d = p - g[test]
+        rows.append((float(np.abs(d[nm]).mean()), float(d[nm].mean()), float((np.abs(d[nm]) > 0.1).mean()),
+                     float(np.abs(d[m]).mean())))
+    return {"rows": rows, "fit_states": int(is_fit.sum()), "test_states": int(test.sum())}

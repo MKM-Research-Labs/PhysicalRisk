@@ -20,22 +20,28 @@
 """FPO-001's code against its document, case by case.
 
 ``p_flood_poly`` over thresholds, levels from zero to half again above severe, and
-the storm's hours; the clamp; ``p_flood_series``; ``p_flood_simple``; the copy in
-``stress.sensitivity`` with its closed-form slope; and the coefficients the port
-stress screen hard-codes in JavaScript.
+the storm's hours -- through the floor, the envelope and the step at severe;
+``p_flood_series``; ``p_flood_simple``; the model as ``stress.sensitivity`` evaluates
+it, with its closed-form slope; what the server sends the port stress screen; and the
+screen's JavaScript itself, run under node on the model the server sends.
 """
 
 import importlib
+import json
 import re
+import shutil
+import subprocess
 
 import mpmath as mp
 
 from config import config
 from config.models import (
     ORACLE_FPO_DOC_COEFFS,
+    ORACLE_FPO_DOC_ENVELOPE,
     ORACLE_FPO_HOURS,
     ORACLE_FPO_JS,
     ORACLE_FPO_MODULES,
+    ORACLE_FPO_NODE,
     ORACLE_FPO_RATIOS,
     ORACLE_FPO_SEVERE,
     ORACLE_REFERENCE_DPS,
@@ -60,14 +66,46 @@ def _err(a, b):
     return float(abs(mp.mpf(a) - b)) if abs(b) < 1e-300 else rel_err(a, b)
 
 
-def js_coefficients(text=None):
-    """The coefficients the port stress screen hard-codes, in the document's order."""
+def _on_knot(w, s):
+    """At an envelope knot the held slope has a kink: no derivative to compare."""
+    return any(abs(w / s - float(r)) < 1e-9 for r, _ in ORACLE_FPO_DOC_ENVELOPE)
+
+
+def _held_kernel(w, hour, s):
+    h, t = ref.features(w, hour, s)
+    return ref.kernel(h, max(t, ref.tau(h)))
+
+
+def js_function(text=None):
+    """The screen's evaluation of the model: from its envelope helper to the end of
+    ``_fpPFlood``. None if it is not there."""
     text = text if text is not None else (config.get_project_root() / ORACLE_FPO_JS).read_text()
-    m = re.search(r"_fpCoeffs\s*=\s*\{([^}]*)\}", text)
-    if m is None:
+    m = re.search(r"function _fpEnvelopeT.*?\n            function _fpPFlood.*?\n            }\n", text, re.S)
+    return m.group(0) if m else None
+
+
+def js_literal_coefficients(text=None):
+    """Whether the screen still carries coefficients of its own."""
+    text = text if text is not None else (config.get_project_root() / ORACLE_FPO_JS).read_text()
+    return re.search(r"_fpCoeffs\s*=", text) is not None
+
+
+def run_js(params, cases, fn=None, node=ORACLE_FPO_NODE):
+    """``_fpPFlood`` at each (w, hour, s), run under node on the served model; None
+    without node."""
+    fn = fn if fn is not None else js_function()
+    if fn is None or shutil.which(node) is None:
         return None
-    pairs = dict(re.findall(r"(\w+)\s*:\s*(-?[\d.]+)", m.group(1)))
-    return [pairs.get(k) for k in "abcdef"]
+    script = (f"var _fpModel = {json.dumps(params)};\n{fn}\n"
+              f"console.log(JSON.stringify({json.dumps(cases)}.map(c => _fpPFlood(c[0], c[1], c[2]))));")
+    return json.loads(subprocess.run([node, "-e", script], capture_output=True, text=True, check=True).stdout)
+
+
+def served(poly):
+    """Whether what the server sends the screen is the document's model."""
+    p = poly.client_params()
+    return (p["coeffs"] == [float(c) for c in ORACLE_FPO_DOC_COEFFS]
+            and p["envelope"] == [[float(r), float(h)] for r, h in ORACLE_FPO_DOC_ENVELOPE])
 
 
 def run(m):
@@ -75,19 +113,22 @@ def run(m):
     poly, sens = m["poly"], m["sensitivity"]
     with mp.workdps(ORACLE_REFERENCE_DPS):
         cases = grid()
+        refs = [ref.p_flood(w, hr, s) for w, hr, s in cases]
         out = {
-            "poly": max(_err(poly.p_flood_poly(w, hr, s), ref.p_flood(w, hr, s)) for w, hr, s in cases),
+            "poly": max(_err(poly.p_flood_poly(w, hr, s), r) for (w, hr, s), r in zip(cases, refs)),
             "zero_threshold": poly.p_flood_poly(5.0, 10, 0.0) == 0 and poly.p_flood_simple(5.0, 0.0) == 0,
             "series": max(abs(p - poly.p_flood_poly(w, hr, 6.58)) for hr, (w, p) in enumerate(
                 zip(SERIES, poly.p_flood_series(SERIES, 6.58)))),
             "simple": max(_err(poly.p_flood_simple(w, s), ref.p_simple(w, s)) for w, _, s in cases),
-            "copy": max(_err(sens.flood_probability(*map(float, ref.features(w, hr, s))), ref.p_flood(w, hr, s))
-                        for w, hr, s in cases if w > 0),
+            "copy": max(_err(sens.flood_probability(*map(float, ref.features(w, hr, s))), r)
+                        for (w, hr, s), r in zip(cases, refs) if 0 < w < s),
             "slope": max(_err(sens.flood_probability_slope(*map(float, ref.features(w, hr, s))),
                               ref.slope(*ref.features(w, hr, s)))
-                         for w, hr, s in cases if w > 0 and abs(ref.kernel(*ref.features(w, hr, s))) < 30),
+                         for w, hr, s in cases
+                         if 0 < w < s and not _on_knot(w, s) and abs(_held_kernel(w, hr, s)) < 30),
         }
-    js = js_coefficients()
-    out["js"] = js == list(ORACLE_FPO_DOC_COEFFS) if js else False
-    out["js_values"] = js
+        js = run_js(poly.client_params(), cases)
+        out["js"] = None if js is None else max(_err(a, r) for a, r in zip(js, refs))
+    out["js_own_coefficients"] = js_literal_coefficients()
+    out["served"] = served(poly)
     return out

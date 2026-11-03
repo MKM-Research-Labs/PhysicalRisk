@@ -2,21 +2,21 @@
 \begin{table}[H]\centering\small
 \caption{The model document's claims, tested}\label{tab:bm-claims}
 \begin{adjustbox}{max width=\textwidth}
-\begin{tabular}{p{18mm}p{46mm}p{72mm}l}
+\begin{tabular}{p{20mm}p{44mm}p{72mm}l}
 \toprule
 Claim & Stated & Benchmark finds & Outcome \\
 \midrule
-\S8, Table~1 & $P$ by level and hour, $s=6.58$\,m & 8 of 54 cells reproduced by the code & \textbf{not met} \\
-\S8, Table~2 & GBM and polynomial at six points & polynomial column 0 of 6; GBM column 0 of 6 (rate of rise zero) & \textbf{not met} \\
-\S8 & at the severe level, 0.42 at hour~0 rising to 0.97 at hour~167 & 0.00 at hour~0, 0.29 at hour~167 & \textbf{not met} \\
-\S8 & $|\text{poly}-\text{GBM}|<0.05$ across the surface & near severe, 95th percentile up to 0.26; above 0.05 in up to 39\% of states & \textbf{not met} \\
-\S4.2 & $R^2$ 0.9395, MAE 0.0456, RMSE 0.0986 against the GBM & 0.9083{,} 0.0103{,} 0.0444 on all 1{,}680{,}000 real states & \textbf{not met} \\
-\S9.1 & a cubic kernel reaches $R^2\approx0.97$ & 0.9460 on the same states & \textbf{not met} \\
-\S4.2 & mildly conservative: over-predicts near severe & bias near severe -0.020 to +0.048 across gauges & \textbf{not met} \\
-\S3.2 & $t\approx-5.1$ at hour~0 & -5.1240 & met \\
---- & rising water raises $P$ & at hour~24, $P$ passes $\tfrac12$ at 52\% and 74\% of severe: it falls as the water rises between them & finding \\
-\S5 & the scenario uses $P$ as given & the stress route latches $P=1$ once the level reaches severe; undocumented & finding \\
-\S5.2 & \texttt{p\_flood\_simple} for portfolio stress & $\min(1,w/s)$ is a ratio, not a probability, and it sets portfolio stress P\&L & finding \\
+\S4.3, Table~2 & the ten terms and coefficients & the code's, to the printed six decimals & met \\
+\S3.3, Table~1 & the earliest hour any storm reached each level & the code's knots; recomputed from the catalogue, every knot within 0.05 h (limit 0.1); first level at hour~0 0.326 & met \\
+\S7.1, Table~4 & $P$ by level and hour, held cells marked & 88 of 88 cells reproduced by the code; the 23 held cells marked as the code holds them & met \\
+\S3.2 & $P=1$ at or above severe; constant below the floor & so at every hour & met \\
+\S3.2 & below the floor, effectively zero & at most 0.0012 & met \\
+\S3.4 & rising water never lowers $P$ (the code) & over 2{,}000 levels at each of 168 hours{,} the largest fall is 0.0e+00 & met \\
+\S3.4 & rising water never lowers $P$ (Wolfram, between the fit's grid levels) & smallest $\partial z/\partial h$ at any whole hour where it runs free 0.0057; along the envelope 0.0105 & met \\
+\S3.2 & from hour~16 on $P$ never rises with the hour; before it, by at most 0.06 & largest rise from hour~16 0.0e+00; before it 0.055 & met \\
+\S3.1 & $t\approx-5.12$ at hour~0 & -5.1240 & met \\
+\S5, Table~3 & accuracy on the held-out storms, by gauge & 11 of 11 rows reproduced with the document's model{,} on 1{,}807{,}233 fitted and 1{,}807{,}896 held-out states & met \\
+\S2.3 & the scenario holds $P=1$ once severe is reached & so the route does & met \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}

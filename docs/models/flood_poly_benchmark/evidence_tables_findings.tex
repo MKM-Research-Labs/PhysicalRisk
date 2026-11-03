@@ -6,14 +6,16 @@
 \toprule
 Check & Result & Limit & Outcome \\
 \midrule
-Eqs.~1--4: \texttt{p\_flood\_poly} against the reference, worst relative error & $1.8\times10^{-14}$ & $1.0\times10^{-12}$ & pass \\
+Eq.~3: \texttt{p\_flood\_poly} against the reference, worst relative error & $3.8\times10^{-14}$ & $1.0\times10^{-12}$ & pass \\
 A threshold at or below zero gives zero & yes &  & pass \\
 \texttt{p\_flood\_series} is \texttt{p\_flood\_poly} hour by hour & 0 & 0 & pass \\
-\S5.2: \texttt{p\_flood\_simple} is $\min(1, w/s)$ & $6.9\times10^{-17}$ & $1.0\times10^{-12}$ & pass \\
-The copy in \texttt{stress.sensitivity}, worst relative error & $1.8\times10^{-14}$ & $1.0\times10^{-12}$ & pass \\
-Its closed-form $\partial P/\partial h$, worst relative error & $1.1\times10^{-13}$ & $1.0\times10^{-12}$ & pass \\
-The port stress screen's JavaScript coefficients are the document's & yes &  & pass \\
-Wolfram agrees with the reference (Table~1 cells, $P=\tfrac12$ levels, slopes) & $3.6\times10^{-31}$ & $1.0\times10^{-25}$ & pass \\
+\texttt{p\_flood\_simple} is $\min(1, w/s)$ & $7.3\times10^{-17}$ & $1.0\times10^{-12}$ & pass \\
+The model as \texttt{stress.sensitivity} evaluates it & $3.8\times10^{-14}$ & $1.0\times10^{-12}$ & pass \\
+Its closed-form $\partial P/\partial h$, held hours included & $5.1\times10^{-13}$ & $1.0\times10^{-12}$ & pass \\
+The server sends the screen the document's coefficients and envelope & yes &  & pass \\
+The screen carries no coefficients of its own & yes &  & pass \\
+The screen's JavaScript, run under node, against the reference & $6.8\times10^{-14}$ & $1.0\times10^{-12}$ & pass \\
+Wolfram agrees with the reference (table cells, slopes, minima at their points) & $3.1\times10^{-31}$ & $1.0\times10^{-25}$ & pass \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}

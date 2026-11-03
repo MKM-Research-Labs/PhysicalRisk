@@ -123,10 +123,13 @@ class TestAllStormHoursImportsAlign:
 
 
 class TestFloodPolyJsHasNoHardcodedStormHours:
-    """The port_stress JS helper must not hardcode storm hours — it must read from window global.
+    """The port_stress JS must evaluate the backend's own FloodPoly, storm hours included.
 
-    This test guards against regressing the client-side bug that made FloodPoly
-    use a different value than the backend whenever the user changed Control.
+    This guards against the client-side bug that made FloodPoly use a different value
+    than the backend. The screen now fetches the model the server evaluates
+    (``/api/v1/trading/stress/flood-poly``) and takes T from it: T is the model's
+    fitted time scale, not the Control tab's storm length, so it must not follow
+    ``window.__STORM_CONTROL_HOURS``.
     """
 
     def test_fpStormHours_is_not_hardcoded(self):
@@ -139,13 +142,8 @@ class TestFloodPolyJsHasNoHardcodedStormHours:
         # setup.js (returned via js_static()); fold it back in so the source
         # assertions see the migrated JS.
         src = _augment_with_static(setup.read_text(), repo)
-        # The literal form "var _fpStormHours = 168;" is the known bug.
-        # We want a getter that reads from window.__STORM_CONTROL_HOURS.
-        assert 'var _fpStormHours = 168' not in src, (
-            "setup.py hardcodes _fpStormHours — it must read from "
-            "window.__STORM_CONTROL_HOURS so Control tab changes propagate."
-        )
-        assert 'window.__STORM_CONTROL_HOURS' in src, (
-            "setup.py must reference window.__STORM_CONTROL_HOURS as the "
-            "single source of truth for storm hours."
-        )
+        assert 'var _fpStormHours = 168' not in src
+        assert '/api/v1/trading/stress/flood-poly' in src, (
+            "the screen must fetch the model the backend evaluates")
+        assert 'm.storm_hours' in src, (
+            "the screen must take storm hours from the served model")
