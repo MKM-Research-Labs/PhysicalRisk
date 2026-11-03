@@ -19,10 +19,11 @@
 # SOFTWARE.
 
 """
-Storm portfolio Table tab — Hedges sub-tab JS.
+Storm portfolio Table tab — Hedges and Hedge Payout sub-tab JS.
 
-Renders the REIT hedge payouts for the selected storm against each
-asset's flood damage, and the market-maker's net position.
+Hedges renders the REIT's hedge book with the market-maker and the desk's
+lay-off trades. Hedge Payout renders what those hedges pay in the selected
+storm against each asset's flood damage, and the market-maker's net position.
 """
 
 from visual.interactivity._jsbundle import js_static

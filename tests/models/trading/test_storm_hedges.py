@@ -62,6 +62,7 @@ def _trade(swap_id, gauge_id, notional, trade_type='PropertyPRS', payer=True,
     record = {'PhysicalSwap': {
         'Header': header,
         'LegData': {'Notional': notional, 'Payer': payer},
+        'Pricing': {'SpreadBps': 40, 'NPV': -1_250.0},
         'GaugeSet': {'GaugeBasket': [{'GaugeID': gauge_id, 'GaugeName': gauge_id}]},
     }}
     if asset_id:
@@ -102,6 +103,14 @@ class TestReitHedges:
         _gauge('G1', severe_in={'STORM-a', 'STORM-b'})
         _trade('PRS-P1', 'G1', 500_000, asset_id='PROP-1')
         assert storm_hedge_report(_CATCHMENT, [SEQ])['reit']['total_payout'] == 500_000
+
+    def test_pre_storm_npv_is_reported_but_never_paid(self):
+        _gauge('G1', severe_in=set())
+        _trade('PRS-P1', 'G1', 500_000, asset_id='PROP-1')
+        hedge = storm_hedge_report(_CATCHMENT, [SEQ])['reit']['hedges'][0]
+        assert hedge['npv'] == -1_250.0
+        assert hedge['spread_bps'] == 40
+        assert hedge['payout'] == 0
 
     def test_trade_without_gauge_is_ignored(self):
         _trade('PRS-P1', '', 500_000, asset_id='PROP-1')

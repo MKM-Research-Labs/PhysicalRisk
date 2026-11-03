@@ -18,10 +18,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-            // Hedges sub-tab: what the REIT's gauge hedges pay in this storm,
-            // set against each asset's flood damage, and the market-maker's
-            // side (paid to the REIT, received on its lay-off and other
-            // gauge trades). A hedge pays when its gauge reaches severe.
+            // Two sub-tabs on the REIT's gauge hedges with the market-maker:
+            //  * Hedges — the hedge book itself (what the REIT bought, on
+            //    which gauge, at what spread) and the desk's lay-off trades.
+            //  * Hedge Payout — what those hedges pay in this storm, set
+            //    against each asset's flood damage, and the market-maker's
+            //    side (paid to the REIT, received on its lay-off and other
+            //    gauge trades). A hedge pays when its gauge reaches severe.
+            // Both read the same /hedges report, which lists every trade.
             var spHedgeData = null;  // last /hedges response (has storm_id)
 
             // Fetch the hedge report for a storm; reuses the cached one.
@@ -51,7 +55,30 @@
                     .catch(function() { return null; });
             }
 
-            function loadHedges() {
+            function loadHedgeBook() {
+                var sid = (document.getElementById('sp-storm-select') || {}).value || '';
+                var container = document.getElementById('sp-table-container');
+                if (!sid) {
+                    _renderHedgesEmpty('Select a storm to view the hedge book.');
+                    return;
+                }
+                container.innerHTML = '<div style="padding:var(--space-10);text-align:center;color:var(--muted-2);">Loading hedge book…</div>';
+                fetchHedgeData(sid)
+                    .then(function(d) {
+                        if (spTableSubTab !== 'hedges') return;  // user moved on
+                        if (!d || d.status !== 'success') {
+                            _renderHedgesEmpty((d && d.message) || 'Hedge book unavailable.');
+                            return;
+                        }
+                        _renderHedgeBook(d);
+                    })
+                    .catch(function(err) {
+                        console.error('Hedge book error:', err);
+                        _renderHedgesEmpty('Failed to load the hedge book.');
+                    });
+            }
+
+            function loadHedgePayout() {
                 var sid = (document.getElementById('sp-storm-select') || {}).value || '';
                 var container = document.getElementById('sp-table-container');
                 if (!sid) {
@@ -62,7 +89,7 @@
                 Promise.all([fetchHedgeData(sid), _fetchCommercialImpact(sid)])
                     .then(function(res) {
                         var d = res[0];
-                        if (spTableSubTab !== 'hedges') return;  // user moved on
+                        if (spTableSubTab !== 'payout') return;  // user moved on
                         if (!d || d.status !== 'success') {
                             _renderHedgesEmpty((d && d.message) || 'Hedge payouts unavailable.');
                             return;
@@ -132,6 +159,82 @@
                     (note ? ' <span style="text-transform:none;letter-spacing:0;color:var(--muted-2);">— ' + note + '</span>' : '') + '</div>';
             }
 
+            function _cards(cards) {
+                var summary = document.getElementById('sp-summary');
+                summary.innerHTML = '';
+                cards.forEach(function(card) {
+                    var div = document.createElement('div');
+                    div.style.cssText = 'flex:1;min-width:120px;padding:var(--space-4) var(--space-6);border-radius:var(--radius-md);background:var(--sunken);border-left:3px solid ' + card.color + ';';
+                    div.innerHTML = '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
+                        '<div style="font-size:var(--size-lg);font-weight:700;color:' + card.color + ';margin-top:var(--space-1);">' + card.value + '</div>' +
+                        (card.note ? '<div style="font-size:var(--size-xxs);color:var(--text-2);margin-top:var(--space-1);">' + card.note + '</div>' : '');
+                    summary.appendChild(div);
+                });
+            }
+
+            function _bps(v) { return v == null ? '—' : (+v).toFixed(0) + ' bps'; }
+            function _premium(r) { return (r.notional || 0) * (r.spread_bps || 0) / 10000; }
+
+            // The hedge book: the REIT's protection bought from the
+            // market-maker, and the desk's lay-off of it. Nothing here
+            // depends on the storm; payouts are on the Hedge Payout tab.
+            function _renderHedgeBook(d) {
+                var reit = d.reit || {}, desk = d.desk || {};
+                var hedges = (reit.hedges || []).slice().sort(function(a, b) { return b.notional - a.notional; });
+                var layoffs = (desk.trades || []).filter(function(t) { return t.role === 'layoff'; })
+                    .sort(function(a, b) { return b.notional - a.notional; });
+
+                var notional = hedges.reduce(function(a, h) { return a + h.notional; }, 0);
+                var value = hedges.reduce(function(a, h) { return a + (h.asset_value || 0); }, 0);
+                var premium = hedges.reduce(function(a, h) { return a + _premium(h); }, 0);
+                var mtm = hedges.reduce(function(a, h) { return a + (h.npv || 0); }, 0);
+                var layoffNotional = layoffs.reduce(function(a, t) { return a + t.notional; }, 0);
+                var nCom = hedges.filter(function(h) { return h.asset_class === 'commercial'; }).length;
+                var reitName = hedges.length ? hedges[0].counterparty : 'REIT';
+
+                _cards([
+                    { label: 'REIT Hedges', value: hedges.length, color: 'var(--purple)',
+                      note: (hedges.length - nCom) + ' residential / ' + nCom + ' commercial' },
+                    { label: 'Hedged Notional', value: _hMoney(notional), color: 'var(--accent)',
+                      note: value ? Math.round(notional / value * 100) + '% of ' + fmtGBP(value) + ' asset value' : '' },
+                    { label: 'Annual Premium (REIT pays)', value: _hMoney(premium), color: 'var(--amber)',
+                      note: notional ? _bps(premium / notional * 10000) + ' average' : '' },
+                    { label: 'Pre-storm MTM (to REIT)', value: _hSigned(mtm), color: mtm >= 0 ? 'var(--green-dark)' : 'var(--red-dark)',
+                      note: 'Model value today, before any storm' },
+                    { label: 'Market-Maker Lay-off', value: _hMoney(layoffNotional), color: 'var(--teal, var(--accent))',
+                      note: layoffs.length + ' trades, ' + (notional ? Math.round(layoffNotional / notional * 100) : 0) + '% of REIT notional' },
+                ]);
+
+                var html = _hSection('REIT hedge book', _hEsc(reitName) + ' buys flood protection from the market-maker; each hedge pays its notional when its gauge reaches severe');
+                html += hedges.length ? _hTable([
+                    { label: 'Trade', align: 'left', cell: function(r) { return _hEsc(r.swap_id); } },
+                    { label: 'Asset', align: 'left', cell: function(r) { return _hEsc(r.asset_id); } },
+                    { label: 'Class', align: 'left', cell: function(r) { return r.asset_class === 'commercial' ? 'Commercial' : 'Residential'; } },
+                    { label: 'Address', align: 'left', cell: function(r) { return _hEsc(r.address) || '—'; } },
+                    { label: 'Asset Value', align: 'right', cell: function(r) { return _hMoney(r.asset_value); } },
+                    { label: 'Trigger Gauge', align: 'left', cell: function(r) { return _hEsc(r.gauge_name || r.gauge_id); } },
+                    { label: 'Notional', align: 'right', cell: function(r) { return _hMoney(r.notional); } },
+                    { label: 'Cover', align: 'right', cell: function(r) { return r.asset_value ? Math.round(r.notional / r.asset_value * 100) + '%' : '—'; } },
+                    { label: 'Spread', align: 'right', cell: function(r) { return _bps(r.spread_bps); } },
+                    { label: 'Annual Premium', align: 'right', cell: function(r) { return _hMoney(_premium(r)); } },
+                    { label: 'MTM (to REIT)', align: 'right', cell: function(r) { return _hSigned(r.npv || 0); } },
+                    { label: 'Maturity', align: 'left', cell: function(r) { return _hEsc(r.end_date) || '—'; } },
+                ], hedges) : '<div style="padding:var(--space-6) var(--space-8);color:var(--muted-2);">The REIT has no hedges in this book.</div>';
+
+                html += _hSection('Market-maker lay-off', 'the desk buys back part of the REIT risk on each gauge from other counterparties');
+                html += layoffs.length ? _hTable([
+                    { label: 'Trade', align: 'left', cell: function(r) { return _hEsc(r.swap_id); } },
+                    { label: 'Counterparty', align: 'left', cell: function(r) { return _hEsc(r.counterparty); } },
+                    { label: 'Gauge', align: 'left', cell: function(r) { return _hEsc(r.gauge_name || r.gauge_id); } },
+                    { label: 'Desk Side', align: 'left', cell: function(r) { return r.payer ? 'Bought protection' : 'Sold protection'; } },
+                    { label: 'Notional', align: 'right', cell: function(r) { return _hMoney(r.notional); } },
+                    { label: 'Spread', align: 'right', cell: function(r) { return _bps(r.spread_bps); } },
+                    { label: 'Maturity', align: 'left', cell: function(r) { return _hEsc(r.end_date) || '—'; } },
+                ], layoffs) : '<div style="padding:var(--space-6) var(--space-8);color:var(--muted-2);">No lay-off trades in the book.</div>';
+
+                document.getElementById('sp-table-container').innerHTML = html;
+            }
+
             function _renderHedges(d) {
                 var reit = d.reit || {}, desk = d.desk || {};
                 var damage = _hedgeDamageByAsset();
@@ -150,15 +253,7 @@
                     { label: 'REIT Net (payout − damage)', value: _hSigned(reitNet), color: reitNet >= 0 ? 'var(--green-dark)' : 'var(--red-dark)' },
                     { label: 'Market-Maker Net', value: _hSigned(desk.net || 0), color: (desk.net || 0) >= 0 ? 'var(--green-dark)' : 'var(--red-dark)' },
                 ];
-                var summary = document.getElementById('sp-summary');
-                summary.innerHTML = '';
-                cards.forEach(function(card) {
-                    var div = document.createElement('div');
-                    div.style.cssText = 'flex:1;min-width:120px;padding:var(--space-4) var(--space-6);border-radius:var(--radius-md);background:var(--sunken);border-left:3px solid ' + card.color + ';';
-                    div.innerHTML = '<div style="font-size:var(--size-xxs);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">' + card.label + '</div>' +
-                        '<div style="font-size:var(--size-lg);font-weight:700;color:' + card.color + ';margin-top:var(--space-1);">' + card.value + '</div>';
-                    summary.appendChild(div);
-                });
+                _cards(cards);
 
                 var tick = function(r) { return r.triggered ? '<span style="color:var(--green-dark);font-weight:700;">✓ Severe</span>' : '<span style="color:var(--muted-2);">No</span>'; };
                 var peak = function(r) { return r.gauge_peak_m == null ? '—' : r.gauge_peak_m.toFixed(2) + ' m'; };

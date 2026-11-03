@@ -28,7 +28,7 @@ Returns the JS body for the Table tab, composed from sibling sub-modules:
 - sp_table_damage:     Flood Damage (combined residential + commercial) sub-tab
 - sp_table_wind:       Wind Damage sub-tab (model pending)
 - sp_table_mortgage:   Loan/Mortgage sub-tab (Flood + Wind LTV/Remaining)
-- sp_table_hedges:     Hedges sub-tab (REIT hedge payouts, market-maker net)
+- sp_table_hedges:     Hedges (REIT hedge book) and Hedge Payout sub-tabs
 - sp_table_summary:    Summary report card
 
 This file owns the cross-sub-tab state, DOM creation, sub-tab switching,

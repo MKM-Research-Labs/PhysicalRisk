@@ -53,10 +53,11 @@
                 }
                 mkBtn('portfolio',  'Residential',   'portfolio', false);
                 mkBtn('commercial', 'Commercial',    'commercial', false);
+                mkBtn('hedges',     'Hedges',        'hedges', false);
                 mkBtn('damage',     'Flood Damage',  'damage', true);
                 mkBtn('wind',       'Wind Damage',   'wind', false);
                 mkBtn('mortgage',   'Loan/Mortgage', 'mortgage', false);
-                mkBtn('hedges',     'Hedges',        'hedges', false);
+                mkBtn('payout',     'Hedge Payout',  'payout', false);
                 mkBtn('summary',    'Summary',       'summary', false);
                 view.appendChild(subTabBar);
 
@@ -75,7 +76,7 @@
 
             function switchSubTab(sub) {
                 spTableSubTab = sub;
-                ['portfolio','commercial','damage','wind','mortgage','hedges','summary'].forEach(function(k) {
+                ['portfolio','commercial','hedges','damage','wind','mortgage','payout','summary'].forEach(function(k) {
                     var b = document.getElementById('sp-sub-' + k);
                     if (b) { b.style.background = Theme.value('panel'); b.style.color = Theme.value('text-2'); b.style.borderColor = Theme.value('line-strong'); }
                 });
@@ -103,7 +104,9 @@
                 } else if (sub === 'mortgage') {
                     loadMortgageData();
                 } else if (sub === 'hedges') {
-                    loadHedges();
+                    loadHedgeBook();
+                } else if (sub === 'payout') {
+                    loadHedgePayout();
                 } else if (sub === 'summary') {
                     loadSummary();
                 } else {
