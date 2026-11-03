@@ -115,9 +115,9 @@ class TestPropertyFloodTimeline:
         map_page.evaluate(f"window.viewPropertyStorms('{prop_id}')")
         map_page.wait_for_timeout(3_000)
 
-    def test_timeline_renders(self, map_page, first_property_id):
+    def test_timeline_renders(self, map_page, flooded_property_id):
         """Flood Timeline tab (idx 1) should render content."""
-        self._open_storm_panel(map_page, first_property_id)
+        self._open_storm_panel(map_page, flooded_property_id)
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
@@ -134,9 +134,9 @@ class TestPropertyFloodTimeline:
         )
         assert has_content, "Flood Timeline tab is empty"
 
-    def test_timeline_has_selector(self, map_page, first_property_id):
+    def test_timeline_has_selector(self, map_page, flooded_property_id):
         """Storm selector dropdown should have options."""
-        self._open_storm_panel(map_page, first_property_id)
+        self._open_storm_panel(map_page, flooded_property_id)
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
@@ -152,9 +152,9 @@ class TestPropertyFloodTimeline:
         options = select.locator("option")
         assert options.count() > 0, "Timeline storm selector has no options"
 
-    def test_timeline_has_stats(self, map_page, first_property_id):
+    def test_timeline_has_stats(self, map_page, flooded_property_id):
         """Timeline stats section should have content."""
-        self._open_storm_panel(map_page, first_property_id)
+        self._open_storm_panel(map_page, flooded_property_id)
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 
@@ -170,9 +170,9 @@ class TestPropertyFloodTimeline:
         text = stats.inner_text()
         assert len(text.strip()) > 0, "Timeline stats are empty"
 
-    def test_timeline_chart_exists(self, map_page, first_property_id):
+    def test_timeline_chart_exists(self, map_page, flooded_property_id):
         """Timeline chart canvas should be present when flood data exists."""
-        self._open_storm_panel(map_page, first_property_id)
+        self._open_storm_panel(map_page, flooded_property_id)
         panel = map_page.locator("#prop-storm-panel")
         panel.wait_for(state="visible", timeout=10_000)
 

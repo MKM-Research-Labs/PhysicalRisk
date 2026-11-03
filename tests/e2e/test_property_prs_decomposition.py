@@ -97,7 +97,7 @@ class TestPropertyPRSDecomposition:
         )
 
     def test_decomposition_not_all_zeros(
-        self, map_page, first_property_id
+        self, map_page, flooded_property_id
     ):
         """Spread decomposition values must not all be zero.
 
@@ -105,7 +105,7 @@ class TestPropertyPRSDecomposition:
         is missing from propertyhc.json (because attach_spread_decomposition
         was not called), the UI falls back to 0.0 for every field.
         """
-        self._open_prs_tab(map_page, first_property_id)
+        self._open_prs_tab(map_page, flooded_property_id)
 
         # Extract the spread decomposition data from the loaded phcData
         decomp = map_page.evaluate("""() => {

@@ -58,18 +58,18 @@ class TestPropertyStormToPRS:
         map_page.evaluate(f"window.viewPropertyStorms('{prop_id}')")
         map_page.wait_for_timeout(4_000)
 
-    def test_01_storm_panel_has_prs_tab(self, map_page, first_property_id):
+    def test_01_storm_panel_has_prs_tab(self, map_page, flooded_property_id):
         """Storm panel should have PRS Pricing action tab."""
-        self._open_storm_panel(map_page, first_property_id)
+        self._open_storm_panel(map_page, flooded_property_id)
         tab = map_page.locator(".prop-storm-tab[data-idx='6']")
         assert tab.count() > 0, "PRS Pricing tab (idx 6) not found"
         text = tab.inner_text().lower()
         assert "prs" in text, f"Tab doesn't mention PRS: '{text}'"
         map_page.evaluate(CLOSE_ALL_JS)
 
-    def test_02_prs_tab_opens_property_hazard_panel(self, map_page, first_property_id):
+    def test_02_prs_tab_opens_property_hazard_panel(self, map_page, flooded_property_id):
         """Clicking PRS Pricing tab should open the property hazard panel."""
-        self._open_storm_panel(map_page, first_property_id)
+        self._open_storm_panel(map_page, flooded_property_id)
 
         tab = map_page.locator(".prop-storm-tab[data-idx='6']")
         if tab.count() == 0:
@@ -83,9 +83,9 @@ class TestPropertyStormToPRS:
         )
         map_page.evaluate(CLOSE_ALL_JS)
 
-    def test_03_storm_flood_history_click_opens_timeline(self, map_page, first_property_id):
+    def test_03_storm_flood_history_click_opens_timeline(self, map_page, flooded_property_id):
         """Clicking a storm in Flood History should open Flood Timeline."""
-        self._open_storm_panel(map_page, first_property_id)
+        self._open_storm_panel(map_page, flooded_property_id)
 
         # Switch to Flood History tab (idx 3)
         hist_tab = map_page.locator(".prop-storm-tab[data-idx='3']")
@@ -134,66 +134,48 @@ class TestStormScenarioTabConsistency:
         if not has_fn:
             pytest.skip("viewPropertyStorms not available")
         map_page.evaluate(f"window.viewPropertyStorms('{prop_id}')")
-        map_page.wait_for_timeout(4_000)
+        # A property with many floods loads for longer than a fixed pause:
+        # wait until the header has replaced "Loading..." with its counts.
+        map_page.wait_for_function(
+            "() => /property flood/.test("
+            "(document.getElementById('prop-storm-status') || {}).textContent || '')",
+            timeout=60_000)
 
-    def test_distribution_and_history_show_same_flood_count(self, map_page, first_property_id):
-        """Distribution and Flood History must show the same number of floods."""
-        self._open_storm_panel(map_page, first_property_id)
+    def _stats(self, map_page, tab_idx, stats_id, pattern):
+        """Open a storm tab and read the first number after ``pattern`` in its stats."""
+        map_page.locator(f".prop-storm-tab[data-idx='{tab_idx}']").click()
+        map_page.wait_for_function(
+            f"() => new RegExp({pattern!r}).test("
+            f"(document.getElementById('{stats_id}') || {{}}).textContent || '')",
+            timeout=30_000)
+        return map_page.evaluate(
+            f"() => parseFloat(document.getElementById('{stats_id}')"
+            f".textContent.match(new RegExp({pattern!r}))[1])")
 
-        # Distribution tab (idx 0) — count events
-        map_page.locator(".prop-storm-tab[data-idx='0']").click()
-        map_page.wait_for_timeout(2_000)
-        dist_count = map_page.evaluate("""() => {
-            var stats = document.getElementById('prop-dist-stats');
-            if (!stats) return null;
-            var match = stats.textContent.match(/Events:\\s*(\\d+)/);
-            return match ? parseInt(match[1]) : null;
-        }""")
-
-        # Flood History tab (idx 3) — count rows
-        map_page.locator(".prop-storm-tab[data-idx='3']").click()
-        map_page.wait_for_timeout(2_000)
-        hist_count = map_page.evaluate("""() => {
-            var stats = document.getElementById('prop-history-stats');
-            if (!stats) return null;
-            var match = stats.textContent.match(/Floods:\\s*(\\d+)/);
-            return match ? parseInt(match[1]) : null;
-        }""")
-
-        if dist_count is None or hist_count is None:
-            pytest.skip("Could not extract flood counts from stats")
-
-        assert dist_count == hist_count, (
-            f"Distribution shows {dist_count} events but "
-            f"Flood History shows {hist_count} floods"
+    def test_distribution_and_history_show_same_max_depth(self, map_page, flooded_property_id):
+        """Distribution and Flood History read the same flood events, so their
+        maximum flood depth must agree. (The Distribution tab no longer shows
+        a flood count; it shows depths and gauge-severe counts.)"""
+        self._open_storm_panel(map_page, flooded_property_id)
+        dist_max = self._stats(map_page, 0, 'prop-dist-stats', r'Max depth:\s*([\d.]+)m')
+        hist_max = self._stats(map_page, 3, 'prop-history-stats', r'Max depth:\s*([\d.]+)m')
+        assert dist_max > 0
+        assert dist_max == hist_max, (
+            f"Distribution max depth {dist_max} m but Flood History {hist_max} m"
         )
 
         map_page.evaluate(CLOSE_ALL_JS)
 
-    def test_header_flood_count_matches_history(self, map_page, first_property_id):
+    def test_header_flood_count_matches_history(self, map_page, flooded_property_id):
         """Header 'N property floods' must match Flood History event count."""
-        self._open_storm_panel(map_page, first_property_id)
+        self._open_storm_panel(map_page, flooded_property_id)
 
-        header_count = map_page.evaluate("""() => {
-            var status = document.getElementById('prop-storm-status');
-            if (!status) return null;
-            var match = status.textContent.match(/(\\d+)\\s*property flood/);
-            return match ? parseInt(match[1]) : null;
-        }""")
+        header_count = map_page.evaluate(
+            "() => parseInt(document.getElementById('prop-storm-status')"
+            ".textContent.match(/(\\d+)\\s*property flood/)[1])")
+        hist_count = self._stats(map_page, 3, 'prop-history-stats', r'Floods:\s*(\d+)')
 
-        # Flood History count
-        map_page.locator(".prop-storm-tab[data-idx='3']").click()
-        map_page.wait_for_timeout(2_000)
-        hist_count = map_page.evaluate("""() => {
-            var stats = document.getElementById('prop-history-stats');
-            if (!stats) return null;
-            var match = stats.textContent.match(/Floods:\\s*(\\d+)/);
-            return match ? parseInt(match[1]) : null;
-        }""")
-
-        if header_count is None or hist_count is None:
-            pytest.skip("Could not extract counts")
-
+        assert header_count > 0
         assert header_count == hist_count, (
             f"Header says {header_count} property floods but "
             f"Flood History shows {hist_count}"
@@ -201,9 +183,9 @@ class TestStormScenarioTabConsistency:
 
         map_page.evaluate(CLOSE_ALL_JS)
 
-    def test_worst_storms_are_subset_of_history(self, map_page, first_property_id):
+    def test_worst_storms_are_subset_of_history(self, map_page, flooded_property_id):
         """Worst Storms top bars should all appear in Flood History."""
-        self._open_storm_panel(map_page, first_property_id)
+        self._open_storm_panel(map_page, flooded_property_id)
 
         # Get Worst Storms storm IDs (idx 2)
         map_page.locator(".prop-storm-tab[data-idx='2']").click()
