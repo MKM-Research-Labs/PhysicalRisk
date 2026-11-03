@@ -123,19 +123,38 @@ def _make_prop_flood(property_id=PROP_ID, storm_id=SEQ_ID,
     }
 
 
+def write_gauge_responses(gaugets_dir, severe_storms):
+    """Write gaugets/<gauge>.json with per-storm responses.
+
+    ``severe_storms`` maps gauge ID -> storm IDs in which that gauge reached
+    severe (what triggers a PRS payout)."""
+    for gauge_id, storm_ids in severe_storms.items():
+        (gaugets_dir / f'{gauge_id}.json').write_text(json.dumps({
+            'gauge_id': gauge_id,
+            'storm_responses': {'responses': [
+                {'storm_id': sid, 'peak_level_m': 6.8, 'exceeded_severe': True}
+                for sid in storm_ids
+            ]},
+        }))
+
+
 def _build_client(tmp_path, monkeypatch, *,
                   prop_flood=None, property_json=None,
                   mortgage_json=None, gauge_json=None,
                   gaugehc_json=None, prs_trades=None,
                   storm_file=None, include_prs_dir=True,
-                  extra_prop_files=None):
-    """Create a full test client with flexible fixture data."""
+                  extra_prop_files=None, severe_storms=None):
+    """Create a full test client with flexible fixture data.
+
+    ``severe_storms`` defaults to GAUGE-001 reaching severe in SEQ_ID."""
     from config import config
 
     pts_dir = tmp_path / 'propertyts'
     pts_dir.mkdir()
     gaugets_dir = tmp_path / 'gaugets'
     gaugets_dir.mkdir()
+    write_gauge_responses(
+        gaugets_dir, {'GAUGE-001': [SEQ_ID]} if severe_storms is None else severe_storms)
     output_dir = tmp_path / 'output'
     output_dir.mkdir()
     prs_dir = tmp_path / 'prs'  # database resolves prs_trade under input_dir/prs

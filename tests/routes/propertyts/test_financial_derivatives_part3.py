@@ -200,6 +200,14 @@ def pts_env_with_prs(tmp_path, monkeypatch):
         }],
     }))
 
+    # GAUGE-001 reached severe in the storm — the hedge's trigger
+    (gaugets_dir / 'GAUGE-001.json').write_text(json.dumps({
+        'gauge_id': 'GAUGE-001',
+        'storm_responses': {'responses': [
+            {'storm_id': SEQ_ID, 'peak_level_m': 5.8, 'exceeded_severe': True},
+        ]},
+    }))
+
     # storm_sequences.json
     (tmp_path / 'storm_sequences.json').write_text(json.dumps({
         'num_sequences': 1,
@@ -239,7 +247,7 @@ class TestDerivativesInPortfolioImpact:
         resp = client.get(f'/api/v1/propertyts/{storm_id}/portfolio-impact')
         data = resp.get_json()
 
-        # Property was flooded, PRS should trigger
+        # GAUGE-001 reached severe, so the hedge pays its notional
         prop = data['properties'][0]
         assert prop['prs_payout'] == 500000  # full notional
         assert len(prop['prs_trades']) == 1
@@ -287,3 +295,22 @@ class TestDerivativesInPortfolioImpact:
         d = data['derivatives']
         assert d['total_prs_payout'] == 0
         assert d['num_trades_triggered'] == 0
+
+
+class TestHedgesEndpoint:
+    """GET /propertyts/<storm_id>/hedges — the Hedges tab's data."""
+
+    def test_reit_payout_and_desk_position(self, pts_env_with_prs):
+        client = pts_env_with_prs['client']
+        resp = client.get(f"/api/v1/propertyts/{pts_env_with_prs['storm_id']}/hedges")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data['status'] == 'success'
+        assert data['storm_id'] == SEQ_ID
+        assert data['reit']['total_payout'] == 500000
+        assert data['reit']['hedges'][0]['asset_id'] == PROP_ID
+        assert data['desk']['paid_to_reit'] == -500000
+
+    def test_options(self, pts_env_with_prs):
+        resp = pts_env_with_prs['client'].options(f'/api/v1/propertyts/{SEQ_ID}/hedges')
+        assert resp.status_code == 200

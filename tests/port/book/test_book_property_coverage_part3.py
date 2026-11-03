@@ -212,7 +212,7 @@ class TestGeneratePropertyBookPart2(_PropertyBookSetup):
 # ---------------------------------------------------------------------------
 
 class TestResilientFlavour(_PropertyBookSetup):
-    """Booking the resilient (BRI) leg alongside the pure leg."""
+    """One hedge per asset, priced on the BRI (resilient) curve if present."""
 
     @patch('port.src.book.book_property._core._price_and_save_trade')
     @patch('port.src.book.book_property._core._load_counterparties')
@@ -241,8 +241,8 @@ class TestResilientFlavour(_PropertyBookSetup):
     @patch('port.src.book.book_property._core._load_counterparties')
     def test_resilient_trade_added_when_bri_present(self, mock_load_ctpy,
                                                     mock_price, tmp_path):
-        """A property with a BRI curve gets both a pure and a resilient trade,
-        and the resilient fair spread is tighter (<=) than the pure spread."""
+        """A property with a BRI curve gets one hedge, priced on the tighter
+        resilient spread rather than the pure one."""
         mock_load_ctpy.return_value = [_make_counterparty_entry()]
         mock_price.return_value = ({'trade_id': 'T1'}, 1)
 
@@ -261,15 +261,10 @@ class TestResilientFlavour(_PropertyBookSetup):
             include_resilient=True,
         )
 
-        assert len(trades) == 2
-        calls = mock_price.call_args_list
-        variants = [c[1]['property_set'].get('PRSVariant') for c in calls]
-        assert variants == ['pure', 'resilient']
-
-        # Both legs price the same tenor; resilient spread must be <= pure.
-        pure_spread = calls[0][1]['fair_spread_override']
-        resilient_spread = calls[1][1]['fair_spread_override']
-        assert resilient_spread <= pure_spread
+        assert len(trades) == 1
+        call = mock_price.call_args_list[0][1]
+        assert call['property_set']['PRSVariant'] == 'resilient'
+        assert call['fair_spread_override'] in (40, 64, 96, 168)
 
     @patch('port.src.book.book_property._core._price_and_save_trade')
     @patch('port.src.book.book_property._core._load_counterparties')

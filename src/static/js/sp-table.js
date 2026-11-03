@@ -25,7 +25,7 @@
             // ================================================================
             // Table tab — DOM creation
             // ================================================================
-            var spTableSubTab = 'damage';  // residential | commercial | damage (flood) | wind | mortgage | summary
+            var spTableSubTab = 'damage';  // residential | commercial | damage (flood) | wind | mortgage | hedges | summary
             var spBlotterData = null;
             var spCommercialData = null;
             var spCommercialImpact = null;  // per-storm; invalidated on storm change
@@ -36,7 +36,7 @@
                 view.id = 'sp-table-view';
                 view.style.cssText = 'display:flex;flex-direction:column;flex:1;overflow:hidden;';
 
-                // Sub-tab toggle: Residential | Commercial | Flood Damage | Wind Damage | Loan/Mortgage | Summary
+                // Sub-tab toggle: Residential | Commercial | Flood Damage | Wind Damage | Loan/Mortgage | Hedges | Summary
                 var subTabBar = document.createElement('div');
                 subTabBar.id = 'sp-sub-tab-bar';
                 subTabBar.style.cssText = 'display:flex;gap:0;padding:var(--space-4) var(--space-8) 0;';
@@ -56,6 +56,7 @@
                 mkBtn('damage',     'Flood Damage',  'damage', true);
                 mkBtn('wind',       'Wind Damage',   'wind', false);
                 mkBtn('mortgage',   'Loan/Mortgage', 'mortgage', false);
+                mkBtn('hedges',     'Hedges',        'hedges', false);
                 mkBtn('summary',    'Summary',       'summary', false);
                 view.appendChild(subTabBar);
 
@@ -74,7 +75,7 @@
 
             function switchSubTab(sub) {
                 spTableSubTab = sub;
-                ['portfolio','commercial','damage','wind','mortgage','summary'].forEach(function(k) {
+                ['portfolio','commercial','damage','wind','mortgage','hedges','summary'].forEach(function(k) {
                     var b = document.getElementById('sp-sub-' + k);
                     if (b) { b.style.background = Theme.value('panel'); b.style.color = Theme.value('text-2'); b.style.borderColor = Theme.value('line-strong'); }
                 });
@@ -101,6 +102,8 @@
                     loadWindDamage();
                 } else if (sub === 'mortgage') {
                     loadMortgageData();
+                } else if (sub === 'hedges') {
+                    loadHedges();
                 } else if (sub === 'summary') {
                     loadSummary();
                 } else {

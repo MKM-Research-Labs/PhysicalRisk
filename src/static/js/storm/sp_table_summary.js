@@ -43,6 +43,9 @@
 
                 var stormSel = document.getElementById('sp-storm-select');
                 var sid = stormSel ? stormSel.value : '';
+                if (sid && (!spHedgeData || spHedgeData.storm_id !== sid)) {
+                    pending.push(fetchHedgeData(sid).catch(function(){ /* leave spHedgeData as is */ }));
+                }
                 if (sid && (!spCommercialImpact || spCommercialImpact._storm_id !== sid)) {
                     pending.push(
                         fetch(getBaseUrl() + '/api/v1/commercial/' + sid + '/portfolio-impact', {mode:'cors'})
@@ -84,12 +87,15 @@
                 var impairedRes = rp.mortgages_in_negative_equity || 0;
                 var impairedCom = cp.loans_in_negative_equity || 0;
 
-                var trades = (spTradesData && spTradesData.trades) || [];
-                var totalNotional = ts.total_notional_sold || 0;
-                var totalNpv = 0;
-                trades.forEach(function(t) { totalNpv += (t.npv || 0); });
+                // Hedges: what the REIT's gauge hedges pay in this storm
+                var stormSel0 = document.getElementById('sp-storm-select');
+                var hd = (spHedgeData && stormSel0 && spHedgeData.storm_id === stormSel0.value) ? spHedgeData : null;
+                var reit = (hd && hd.reit) || {};
+                var numHedges = reit.num_hedges != null ? reit.num_hedges : (ts.num_trades || 0);
+                var hedgePayout = reit.total_payout || 0;
+                var deskNet = (hd && hd.desk) ? hd.desk.net : null;
 
-                var net = (windLoss != null ? -(floodLoss + windLoss) : -floodLoss) + totalNpv;
+                var net = (windLoss != null ? -(floodLoss + windLoss) : -floodLoss) + hedgePayout;
 
                 // Build report-card layout ----------------------------------
                 var stormSel = document.getElementById('sp-storm-select');
@@ -148,25 +154,28 @@
                 html += '</div>';
 
                 // Row 3: hedges
-                html += '<div style="font-size:var(--size-xs);text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin:var(--space-9) 0 var(--space-3) 0;">PRS Hedges</div>';
+                html += '<div style="font-size:var(--size-xs);text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);margin:var(--space-9) 0 var(--space-3) 0;">REIT Hedges</div>';
                 html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-6);margin-bottom:var(--space-6);">';
                 html += '<div style="' + cardStyle + 'border-left:3px solid var(--purple);">'
-                      +  '<div style="' + labelStyle + '">Trades Live</div>'
-                      +  '<div style="' + bigValStyle + 'color:var(--purple);">' + (ts.num_trades || trades.length) + '</div>'
+                      +  '<div style="' + labelStyle + '">Hedges Triggered</div>'
+                      +  '<div style="' + bigValStyle + 'color:var(--purple);">' + (reit.num_triggered || 0) + ' <span style="font-size:var(--size-md);color:var(--muted);font-weight:400;">/ ' + numHedges + '</span></div>'
+                      +  '<div style="' + smallStyle + '">Notional ' + fmtGBP(reit.total_notional || 0) + '</div>'
                       + '</div>';
-                html += '<div style="' + cardStyle + 'border-left:3px solid var(--purple);">'
-                      +  '<div style="' + labelStyle + '">Total Notional</div>'
-                      +  '<div style="' + bigValStyle + 'color:var(--purple);">' + fmtGBP(totalNotional) + '</div>'
+                html += '<div style="' + cardStyle + 'border-left:3px solid var(--green-dark);">'
+                      +  '<div style="' + labelStyle + '">Hedge Payout to REIT</div>'
+                      +  '<div style="' + bigValStyle + 'color:var(--green-dark);">' + fmtGBP(hedgePayout) + '</div>'
+                      +  '<div style="' + smallStyle + '">Paid when the trigger gauge reaches severe</div>'
                       + '</div>';
-                html += '<div style="' + cardStyle + 'border-left:3px solid ' + (totalNpv >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">'
-                      +  '<div style="' + labelStyle + '">Hedge NPV (REIT)</div>'
-                      +  '<div style="' + bigValStyle + 'color:' + (totalNpv >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(totalNpv) + '</div>'
+                html += '<div style="' + cardStyle + 'border-left:3px solid ' + ((deskNet || 0) >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">'
+                      +  '<div style="' + labelStyle + '">Market-Maker Net</div>'
+                      +  '<div style="' + bigValStyle + 'color:' + ((deskNet || 0) >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + (deskNet == null ? '\u2014' : _hMoney(deskNet)) + '</div>'
+                      +  '<div style="' + smallStyle + '">After lay-off and other gauge trades</div>'
                       + '</div>';
                 html += '</div>';
 
                 // Net line
                 html += '<div style="margin-top:var(--space-9);padding:var(--space-7) var(--space-8);border-radius:var(--radius-lg);background:' + (net >= 0 ? 'var(--ok-bg)' : 'var(--danger-bg-soft)') + ';border-left:4px solid ' + (net >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">';
-                html += '<div style="' + labelStyle + '">Net Portfolio P&L (gross loss + hedge NPV)</div>';
+                html += '<div style="' + labelStyle + '">Net Portfolio P&amp;L (gross loss + hedge payout)</div>';
                 html += '<div style="font-size:var(--size-24);font-weight:700;color:' + (net >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">' + fmtGBP(net) + '</div>';
                 html += '</div>';
 

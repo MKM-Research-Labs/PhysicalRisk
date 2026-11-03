@@ -35,6 +35,9 @@ GET /propertyts/<storm_id>/portfolio-impact
 GET /propertyts/sequence/<sequence_id>/portfolio-impact
     Sequence-level impact: max flood depth across all storms in the sequence.
 
+GET /propertyts/<storm_id>/hedges
+    REIT hedge payouts and the desk's net position for a storm.
+
 GET /propertyts/<storm_id>/basis
     Synthetic-gauge basis decomposition for a storm.
 
@@ -46,6 +49,7 @@ imports them so their routes register on ``propertyts_bp``.
 # that previously did ``from routes.propertyts.financial import ...``.
 from .financial_basis import storm_basis  # noqa: F401
 from .financial_blotter import property_blotter  # noqa: F401
+from .financial_hedges import storm_hedges  # noqa: F401
 from .financial_impact import (  # noqa: F401
     portfolio_impact,
     sequence_portfolio_impact,
@@ -59,8 +63,4 @@ from .financial_loaders import (  # noqa: F401
     _load_rloan_lookup,
     _portfolio_totals,
 )
-from .financial_prs import (  # noqa: F401
-    _enrich_with_prs,
-    _load_all_prs_trades,
-    _match_prs_to_properties,
-)
+from .financial_prs import _enrich_with_prs  # noqa: F401

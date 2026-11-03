@@ -62,7 +62,8 @@ def run_blotter(ctx: StageContext):
     print("10. Generating Trading Book (Blotter)...")
     from port.src.book import (
         generate_thames_central_book, generate_market_making_book,
-        generate_property_book, generate_trade_pdfs, print_book_summary,
+        generate_property_book, generate_reit_layoff_book, generate_trade_pdfs,
+        print_book_summary,
     )
 
     blotter_dir = config.get_reports_dir('prs')
@@ -112,7 +113,8 @@ def run_blotter(ctx: StageContext):
         )
         _book_generator_name = "port.src.book.generate_market_making_book"
 
-    # Property PRS client trades
+    # The REIT's hedges (bought from the desk), then the desk's lay-off of
+    # them with external counterparties on the same gauges
     prop_trades = generate_property_book(
         output_dir=blotter_dir,
         catchment_id=ctx.catchment,
@@ -121,7 +123,15 @@ def run_blotter(ctx: StageContext):
     )
     trades.extend(prop_trades)
     if prop_trades:
-        print(f"  + {len(prop_trades)} property PRS client trades")
+        print(f"  + {len(prop_trades)} REIT hedge trades")
+        layoff_trades = generate_reit_layoff_book(
+            prop_trades,
+            output_dir=blotter_dir,
+            catchment_id=ctx.catchment,
+            seed=stage_seed(getattr(args, 'seed', None), 'book_layoff'),
+        )
+        trades.extend(layoff_trades)
+        print(f"  + {len(layoff_trades)} desk lay-off trades")
 
     print_book_summary(trades)
 

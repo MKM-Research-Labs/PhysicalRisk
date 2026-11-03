@@ -107,3 +107,27 @@ def _lookup_property_metadata(property_json: List[Dict],
                 'Longitude': loc.get('LongitudeDegrees', 0),
             }
     return {'PropertyID': property_id}
+
+
+def _lookup_commercial_metadata(commercial_json: List[Dict],
+                                asset_id: str) -> Dict:
+    """Extract PropertySet metadata from commercial.json for a given asset."""
+    for a in commercial_json:
+        asset = a.get('CommercialAsset', {})
+        if asset.get('Header', {}).get('PropertyID') == asset_id:
+            loc = asset.get('Location', {})
+            address = ' '.join(
+                part for part in (loc.get('BuildingName', ''),
+                                  loc.get('BuildingNumber', ''),
+                                  loc.get('StreetName', '')) if part).strip()
+            return {
+                'PropertyID': asset_id,
+                'EAFloodZone': asset.get('RiskAssessment', {}).get('EAFloodZone', ''),
+                'PropertyAddress': address,
+                'Postcode': loc.get('Postcode', ''),
+                'LocalAuthority': loc.get('LocalAuthority', ''),
+                'PropertyValue': asset.get('Valuation', {}).get('PropertyValue', 0),
+                'Latitude': loc.get('LatitudeDegrees', 0),
+                'Longitude': loc.get('LongitudeDegrees', 0),
+            }
+    return {'PropertyID': asset_id}

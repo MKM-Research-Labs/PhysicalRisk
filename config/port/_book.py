@@ -97,14 +97,22 @@ PROPERTY_BOOK_TENORS: List[int] = [1, 2, 3, 5]
 # Weighting across PROPERTY_BOOK_TENORS (must sum to 1.0)
 PROPERTY_BOOK_TENOR_WEIGHTS: List[float] = [0.10, 0.20, 0.35, 0.35]
 
-# Notional range for property trades (smaller than the gauge-level book —
-# property protection is closer in size to a single mortgage exposure)
-PROPERTY_BOOK_NOTIONAL_MIN: int = 2_000_000
-PROPERTY_BOOK_NOTIONAL_MAX: int = 8_000_000
-PROPERTY_BOOK_NOTIONAL_STEP: int = 1_000_000
+# Hedge size as a share of the asset's value. A severe flood costs a typical
+# Thames asset 15-30% of its value (mean damage ratio on PRS-countable
+# floods), so the REIT hedges about the loss a severe flood would cause.
+PROPERTY_BOOK_HEDGE_RATIO: float = 0.25
 
-# Target number of property trades to generate per port --blotter run
+# Hedge notionals are rounded to this step (and never below one step)
+PROPERTY_BOOK_NOTIONAL_STEP: int = 50_000
+
+# Most residential properties / commercial assets to hedge per run. Only
+# assets with simulated severe floods (a positive fair spread) are hedgeable.
 PROPERTY_BOOK_NUM_TRADES: int = 15
+PROPERTY_BOOK_NUM_COMMERCIAL: int = 15
+
+# Share of the REIT's protection on each gauge that the desk lays off by
+# buying the same gauge protection from an external counterparty
+PROPERTY_BOOK_LAYOFF_RATIO: float = 0.5
 
 
 # ===========================================================================
