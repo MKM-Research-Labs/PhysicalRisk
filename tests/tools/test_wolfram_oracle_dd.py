@@ -77,12 +77,13 @@ class TestReference:
 
 
 class TestModel:
-    def test_every_family_agrees(self, evaluated):
+    def test_every_family_agrees(self, model, evaluated):
         r, _ = evaluated
         for k in ("damage", "manning", "travel", "slope", "attenuation", "idw"):
             assert r["det"][k] <= ORACLE_DD_CODE_TOL, k
         assert r["det"]["travel_inf"] and r["det"]["haversine_m"] < 1e-6
         assert r["corr_err"] <= ORACLE_DD_CODE_TOL and r["hydro_err"] <= 1e-4
+        assert cases.hydrographs(model) <= 1e-4
 
     def test_the_monte_carlo_mean_is_the_exact_expected_loss(self, evaluated):
         r, _ = evaluated
@@ -90,16 +91,20 @@ class TestModel:
 
 
 class TestClaims:
-    def test_the_documents_claims(self, evaluated):
+    def test_the_documents_claims_all_hold(self, evaluated):
         _, c = evaluated
-        assert all(c[k]["met"] for k in ("t5", "t6", "t7", "s334", "t10", "psd", "memory", "hhi", "poly"))
-        assert not any(c[k]["met"] for k in ("t9", "t8", "s8", "ell"))
-        assert c["t8"]["single"][0] == pytest.approx(1.1, abs=1e-6) and c["s8"]["error"] > 0.6
-        assert set(c["eq2"]["unused"]) == {"PROPERTY_TYPE_DAMAGE_FACTORS", "FLOOD_MAX_DISTANCE_M"}
-        assert c["eq15"]["depth_gap"] > 1 and c["cholesky"]["met"] is None
+        assert all(v["met"] for v in c.values()), [k for k, v in c.items() if not v["met"]]
+        assert c["ell"]["code"] == 10_000 and c["t7"]["of"] == 7 and c["deg"]["error"] > 0.6
 
     def test_the_generators_number_format(self):
         assert claims.printed(0.89095, 3) == "0.8910" and claims.printed(1.0, 4) == "1.00"
+
+    def test_a_changed_default_would_fail(self, model, monkeypatch):
+        monkeypatch.setattr(claims, "ORACLE_DD_DOC_ATTENUATION_M", 2000.0)
+        assert claims.assess(model, 0.0, 1.0)["ell"]["met"] is False
+
+    def test_the_draws_are_by_svd(self):
+        assert claims.draws_by_svd()
 
 
 def _answers():

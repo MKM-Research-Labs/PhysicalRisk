@@ -17,13 +17,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""DD-001's formulae, from its filed document (``flood_risk.pdf`` v1.1, s3), at 50 digits.
+"""DD-001's formulae, from its model document (``flood_risk_v2.0.pdf``, s3), at 50 digits.
 
-Written from the document, not the code: Eq. 1's curve from Table 1, Manning (Eqs.
-11-13), the attenuation of Eq. 14, the property hydrograph of Eqs. 15-17, the
-haversine of Eq. 7, IDW (Eq. 8), the correlation of Eq. 10, and the exact expected
-loss under Eq. 18's clipped shock -- the shocked ratio delta (1 + 0.2 z) is normal,
-so its clipped mean is a truncated-normal integral.
+Written from the document, not the code: Eq. 1's curve from Table 1, Manning, slope
+and travel time (Eqs. 3-5), the retention of Eq. 6, the property hydrograph of Eq. 7,
+the haversine of Eq. 8, IDW (s3.4.2), the correlation of Eq. 9, and the exact
+expected loss of Eq. 11 under Eq. 10's clipped shock -- the shocked ratio
+delta (1 + 0.2 z) is normal, so its clipped mean is a truncated-normal integral.
 """
 
 import mpmath as mp
@@ -64,7 +64,7 @@ def slope_clamped(s):
 
 
 def manning(h, s, n):
-    """Eq. 11, with the slope clamped at S_min (s3.3.1) and zero for h <= 0 or n <= 0."""
+    """Eq. 3, with the slope clamped at S_min and zero for h <= 0 or n <= 0."""
     h, n = mp.mpf(h), mp.mpf(n)
     if h <= 0 or n <= 0:
         return mp.mpf(0)
@@ -72,31 +72,31 @@ def manning(h, s, n):
 
 
 def travel_hours(d, h, s, n):
-    """Eq. 13."""
+    """Eq. 5."""
     v = manning(h, s, n)
     return mp.inf if v == 0 else mp.mpf(d) / (v * 3600)
 
 
 def slope(e_gauge, e_prop, d):
-    """Eq. 12."""
+    """Eq. 4."""
     floor = mp.mpf(MIN_SLOPE_TEXT)
     return floor if d <= 0 else max(abs(mp.mpf(e_gauge) - mp.mpf(e_prop)) / mp.mpf(d), floor)
 
 
 def attenuation(d, ell):
-    """Eq. 14."""
+    """Eq. 6."""
     return mp.exp(-mp.mpf(d) / mp.mpf(ell))
 
 
 def haversine(lat1, lon1, lat2, lon2):
-    """Eq. 7, in its arcsine form."""
+    """Eq. 8, in its arcsine form."""
     p1, l1, p2, l2 = (mp.radians(mp.mpf(x)) for x in (lat1, lon1, lat2, lon2))
     a = mp.sin((p2 - p1) / 2) ** 2 + mp.cos(p1) * mp.cos(p2) * mp.sin((l2 - l1) / 2) ** 2
     return 2 * ORACLE_DD_EARTH_R_M * mp.asin(mp.sqrt(a))
 
 
 def idw(pairs, p=2, d_min=1):
-    """Eq. 8: the first gauge within d_min returns its WSE directly."""
+    """s3.4.2: the first gauge within d_min returns its WSE directly."""
     for d, w in pairs:
         if mp.mpf(d) < d_min:
             return mp.mpf(w)
@@ -105,7 +105,7 @@ def idw(pairs, p=2, d_min=1):
 
 
 def correlation(coords, ell_m, rho0):
-    """Eq. 10: distances in degrees, times 111 km, unit diagonal."""
+    """Eq. 9: distances in degrees, times 111 km, unit diagonal."""
     n = len(coords)
     out = mp.matrix(n, n)
     for i in range(n):
@@ -118,8 +118,8 @@ def correlation(coords, ell_m, rho0):
     return out
 
 
-def hydrograph(levels, peak_wse, travel, a, e_prop, floor, gamma):
-    """Eqs. 15-17, hour by hour, sampling the gauge at the nearest hour."""
+def hydrograph(levels, peak_wse, travel, e_prop, floor, gamma):
+    """Eq. 7, hour by hour, sampling the gauge at the nearest hour."""
     base, peak = min(levels), max(levels)
     i_peak, n, out = levels.index(peak), len(levels), []
     for t in range(n):
@@ -133,13 +133,13 @@ def hydrograph(levels, peak_wse, travel, a, e_prop, floor, gamma):
             k = int(round(i_peak + (t - (i_peak + travel)) / gamma))
         k = max(0, min(k, n - 1))
         s = (mp.mpf(levels[k]) - base) / (peak - base)
-        w = base + (mp.mpf(peak_wse) - base) * s * a
+        w = base + (mp.mpf(peak_wse) - base) * s
         out.append((w, max(mp.mpf(0), w - e_prop - floor)))
     return out
 
 
 def expected_clipped(delta, shock=ORACLE_DD_SHOCK):
-    """E[clip(delta (1 + shock Z), 0, 1)], Z standard normal (Eq. 18)."""
+    """E[clip(delta (1 + shock Z), 0, 1)], Z standard normal (Eq. 11)."""
     mu = mp.mpf(delta)
     if mu == 0:
         return mp.mpf(0)

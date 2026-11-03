@@ -22,7 +22,7 @@
 Eq. 1 through Wolfram's own first-order Interpolation of Table 1; Manning and the
 attenuation from exact inputs; the great-circle distance as R times the angle
 between the two points' unit vectors (not the haversine); the expected clipped
-shock of Eq. 18 by Expectation; the least-squares fit of the code's degree-5 curve
+shock of Eq. 11 by Expectation; the least-squares fit of the code's degree-5 curve
 to Table 1, exactly; and the true east-west length of 0.1 degree at 51.5N on WGS84.
 """
 

@@ -19,8 +19,8 @@
 # SOFTWARE.
 """Wolfram oracle benchmark parameters for MKM-DD-001 (Depth-Damage Curve Model).
 
-The cases a benchmark run evaluates, the claims in DD-001's filed model document
-(``flood_risk.pdf`` v1.1, 18-Feb-2026) it tests, and where it files its evidence.
+The cases a benchmark run evaluates, the claims in DD-001's model document
+(``flood_risk_v2.0.pdf``, 03-Nov-2026) it tests, and where it files its evidence.
 """
 
 # The code under test, imported as production imports it (config puts src/ on the path).
@@ -42,19 +42,19 @@ ORACLE_DD_WOLFRAM_TOL = 1e-25
 ORACLE_DD_Z_LIMIT = 4.0
 
 # The document's Table 2 and s3.
-ORACLE_DD_DOC_ATTENUATION_M = 2000.0
+ORACLE_DD_DOC_ATTENUATION_M = 10000.0
 ORACLE_DD_SHOCK = 0.2
 ORACLE_DD_MC_DRAWS = 1000
 ORACLE_DD_EARTH_R_M = 6371000
 ORACLE_DD_DEG_KM = 111.0
 
-# The cases. Table 6's roughness grid and depths at S = 0.005; Table 7's distances and
-# lengths; Table 9's depth and slope; the depths of Table 5.
+# The cases. Table 5's roughness grid and depths at S = 0.005; Table 6's distances and
+# lengths; Table 8's depth, slope and path; the depths of Table 4.
 ORACLE_DD_TABLE5_DEPTHS = (0, 0.05, 0.1, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0)
 ORACLE_DD_TABLE6 = {"slope": 0.005, "n": (0.02, 0.03, 0.04, 0.05, 0.06, 0.08), "depths": (0.5, 1.0, 2.0)}
-ORACLE_DD_TABLE7 = {"distances": (0, 500, 1000, 2000, 5000, 10000), "lengths": (1000, 2000, 3000, 5000)}
-ORACLE_DD_TABLE9 = {"depth": 1.0, "slope": 0.003, "n": (0.025, 0.04, 0.06, 0.1)}
-ORACLE_DD_TABLE10 = {"distance": 2000, "lengths": (1000, 2000, 5000)}
+ORACLE_DD_TABLE7 = {"distances": (0, 500, 1000, 2000, 5000, 10000), "lengths": (3000, 5000, 10000, 20000)}
+ORACLE_DD_TABLE9 = {"depth": 1.0, "slope": 0.003, "n": (0.025, 0.04, 0.06, 0.1), "path_m": 3000}
+ORACLE_DD_TABLE10 = {"distance": 2000, "lengths": (2000, 5000, 10000)}
 ORACLE_DD_SLOPES = (0.005, 0.003, 0.0004, -0.004)
 
 # A synthetic portfolio for the Monte Carlo (s3.4): N properties on a grid near the
@@ -63,5 +63,4 @@ ORACLE_DD_PORTFOLIO_N = 40
 ORACLE_DD_PORTFOLIO_ORIGIN = (51.5, -0.1)
 ORACLE_DD_PORTFOLIO_STEP_DEG = 0.01
 ORACLE_DD_CORR = {"distance_m": 2000.0, "base": 0.6}
-ORACLE_DD_CURVE_SHIFT = 0.10                   # s6.1: a +/-10% shift of the curve
-ORACLE_DD_LATITUDE = 51.5                      # s8(8): the Thames latitude
+ORACLE_DD_LATITUDE = 51.5                      # s3.4.3: the Thames latitude

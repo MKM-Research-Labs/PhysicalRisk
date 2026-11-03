@@ -124,25 +124,24 @@ def correlation(m):
 
 
 def hydrographs(m):
-    """The code against Eqs. 15-17 without a (the code's reading) and with it (the document's)."""
+    """The code against Eq. 7: the gauge shape scaled to the property's peak, retention
+    already in that peak (s3.3.5), so the retention argument changes nothing."""
     readings, levels = gauge_series(), [r["water_level_m"] for r in gauge_series()]
-    worst, depth_gap = 0.0, 0.0
+    worst = 0.0
     for travel, a in ((0.0, 1.0), (2.4, 0.8), (7.0, 0.5)):
         got = m["velocity"].build_property_hydrograph(readings, 4.6, travel, a, 3.1, 0.3)
-        plain = ref.hydrograph(levels, 4.6, travel, 1, 3.1, 0.3, 1.5)
-        doc = ref.hydrograph(levels, 4.6, travel, a, 3.1, 0.3, 1.5)
+        want = ref.hydrograph(levels, 4.6, travel, 3.1, 0.3, 1.5)
         worst = max(worst, max(abs(g["wse_m"] - float(w)) + abs(g["depth_m"] - float(d))
-                               for g, (w, d) in zip(got, plain)))
-        depth_gap = max(depth_gap, float(max(d for _, d in plain) - max(d for _, d in doc)))
-    return worst, depth_gap
+                               for g, (w, d) in zip(got, want)))
+    return worst
 
 
-def monte_carlo(m, shift=1.0):
+def monte_carlo(m):
     """The code's Monte Carlo on the portfolio against the exact expected loss."""
     rows = portfolio()
     gdf = _gdf(rows)
     corr = m["spatial"].build_correlation_matrix(gdf, ORACLE_DD_CORR["distance_m"], ORACLE_DD_CORR["base"])
-    deltas = np.array([min(1.0, shift * m["damage"].scalar_depth_damage(r["depth"])) for r in rows])
+    deltas = np.array([m["damage"].scalar_depth_damage(r["depth"]) for r in rows])
     res = m["risk"].simulate_portfolio_impact(gdf, np.array([r["depth"] for r in rows]), deltas, corr,
                                               n_simulations=ORACLE_DD_MC_DRAWS)
     dist = res["impact_distribution"]
@@ -152,5 +151,4 @@ def monte_carlo(m, shift=1.0):
     q99 = np.percentile(dist, 99)
     return {"mean": float(res["mean_impact"]), "exact": float(exact), "se": float(se),
             "z": float((res["mean_impact"] - float(exact)) / se),
-            "es99_err": rel_err(res["es_99"], dist[dist >= q99].mean()), "var99": float(res["var_99"]),
-            "es99": float(res["es_99"]), "deltas": deltas, "values": [r["value"] for r in rows]}
+            "es99_err": rel_err(res["es_99"], dist[dist >= q99].mean())}

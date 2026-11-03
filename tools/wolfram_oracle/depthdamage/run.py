@@ -30,7 +30,6 @@ import mpmath as mp
 from config import config
 from config.models import (
     ORACLE_DD_CSV,
-    ORACLE_DD_CURVE_SHIFT,
     ORACLE_DD_DOC,
     ORACLE_DD_OUT_DIR,
     ORACLE_DD_SOURCES,
@@ -46,22 +45,20 @@ from tools.wolfram_oracle.depthdamage.latex import write_tables
 
 
 def evaluate(m):
-    """Every code-against-reference result, and the Monte Carlo at the base and shifted curves."""
+    """Every code-against-reference result, the Monte Carlo, and the claims."""
     with mp.workdps(ORACLE_REFERENCE_DPS):
         det = cases.deterministic(m)
         corr_err, min_eig = cases.correlation(m)
-        hydro_err, depth_gap = cases.hydrographs(m)
+        hydro_err = cases.hydrographs(m)
         mc = cases.monte_carlo(m)
-        up = cases.monte_carlo(m, 1 + ORACLE_DD_CURVE_SHIFT)
-        down = cases.monte_carlo(m, 1 - ORACLE_DD_CURVE_SHIFT)
-    c = claims.assess(m, mc, up, down, depth_gap, min_eig)
+    c = claims.assess(m, hydro_err, min_eig)
     return {"det": det, "corr_err": corr_err, "hydro_err": hydro_err, "mc": mc}, c
 
 
 def rows_for_csv(r):
     rows = [{"check": k, "value": v} for k, v in r["det"].items()]
     rows += [{"check": k, "value": r[k]} for k in ("corr_err", "hydro_err")]
-    rows += [{"check": f"mc_{k}", "value": v} for k, v in r["mc"].items() if k not in ("deltas", "values")]
+    rows += [{"check": f"mc_{k}", "value": v} for k, v in r["mc"].items()]
     return rows
 
 
