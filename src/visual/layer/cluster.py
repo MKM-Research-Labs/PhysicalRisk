@@ -56,8 +56,8 @@ function(cluster) {
     var label = np + (np === 1 ? ' property' : ' properties') + ', ' + nc + ' commercial';
     return L.divIcon({
         html: '<div title="' + label + '" data-property="' + np + '" data-commercial="' + nc + '"'
-            + ' style="background: conic-gradient(var(--mkm-cl-prop) 0 ' + deg + 'deg,'
-            + ' var(--mkm-cl-comm) ' + deg + 'deg 360deg)"><span>' + n + '</span></div>',
+            + ' style="background: conic-gradient(var(--slate-dark) 0 ' + deg + 'deg,'
+            + ' var(--layer-violet-soft) ' + deg + 'deg 360deg)"><span>' + n + '</span></div>',
         className: 'marker-cluster mkm-cluster',
         iconSize: L.point(40, 40)
     });
@@ -69,7 +69,6 @@ _CLUSTER_CSS = """
 /* Above every pin (Leaflet sets marker z-index inline, by latitude), so a
    gauge pin never hides a bubble's count. */
 .mkm-cluster {
-    --mkm-cl-prop: rgb(55, 65, 81); --mkm-cl-comm: rgb(160, 50, 160);
     background: rgba(255, 255, 255, 0.6); z-index: 10000 !important;
 }
 .mkm-cluster div {
@@ -78,7 +77,7 @@ _CLUSTER_CSS = """
 }
 .mkm-cluster span {
     position: absolute; inset: 5px; border-radius: 12px;
-    background: rgb(31, 41, 55); color: #fff; text-align: center;
+    background: var(--slate-ink); color: var(--inverse); text-align: center;
     font: 600 12px/24px "Helvetica Neue", Arial, sans-serif;
 }
 </style>
