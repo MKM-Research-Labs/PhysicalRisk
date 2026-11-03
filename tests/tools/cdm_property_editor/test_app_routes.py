@@ -187,3 +187,13 @@ def test_shared_waterfall_js_served(client):
     assert r.status_code == 200
     assert r.headers["Content-Type"] == "application/javascript"
     assert len(r.get_data()) > 0
+
+
+def test_shared_theme_js_served_before_the_waterfall(client):
+    """The waterfall renderer reads colours through window.Theme."""
+    r = client.get("/shared/theme.js")
+    assert r.status_code == 200
+    assert r.headers["Content-Type"] == "application/javascript"
+    assert b"window.Theme" in r.get_data()
+    page = client.get("/").get_data(as_text=True)
+    assert page.index("/shared/theme.js") < page.index("/shared/phc_basis_waterfall.js")
