@@ -49,3 +49,4 @@ from config.models._wolfram_oracle_fire_tables import *  # noqa: F401,F403
 from config.models._wolfram_oracle_seis import *  # noqa: F401,F403
 from config.models._wolfram_oracle_seis_tables import *  # noqa: F401,F403
 from config.models._flood_challenger import *  # noqa: F401,F403
+from config.models._wolfram_oracle_ghd import *  # noqa: F401,F403
