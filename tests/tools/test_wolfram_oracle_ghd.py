@@ -29,11 +29,11 @@ import re
 import mpmath as mp
 import numpy as np
 import pytest
-
-from config.models import ORACLE_GHD_TABLE1, ORACLE_GHD_Z_LIMIT
 from tools.wolfram_oracle import __main__ as cli
 from tools.wolfram_oracle._wl import save_wolfram
 from tools.wolfram_oracle.gaugehd import cases, claims, exact
+
+from config.models import ORACLE_GHD_TABLE1, ORACLE_GHD_Z_LIMIT
 
 
 @pytest.fixture(scope="module")
@@ -42,7 +42,9 @@ def run():
 
 
 def _quad(alpha, beta, r1, r2, gamma):
-    q = lambda r, v: mp.erfc((alpha - beta * r - gamma * v) / mp.sqrt(2)) / 2
+    def q(r, v):
+        return mp.erfc((alpha - beta * r - gamma * v) / mp.sqrt(2)) / 2
+
     if gamma == 0:
         return mp.quad(lambda r: q(r, 0), [r1, r2]) / (r2 - r1)
     return mp.quad(q, [r1, r2], [-1, 1]) / (2 * (r2 - r1))
