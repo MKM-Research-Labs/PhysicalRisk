@@ -196,4 +196,4 @@ def test_shared_theme_js_served_before_the_waterfall(client):
     assert r.headers["Content-Type"] == "application/javascript"
     assert b"window.Theme" in r.get_data()
     page = client.get("/").get_data(as_text=True)
-    assert page.index("/shared/theme.js") < page.index("/shared/phc_basis_waterfall.js")
+    assert page.index("shared/theme.js") < page.index("shared/phc_basis_waterfall.js")

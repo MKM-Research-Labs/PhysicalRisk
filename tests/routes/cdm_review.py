@@ -18,39 +18,88 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Tests for routes.cdm_review — CDM Asset Review launch redirect.
+"""Tests for routes.cdm_review — the CDM Asset Review tool mounted in the main app.
 
-Covers: /cdm-asset-review redirects to the standalone tool (default host:port)
-and honours the CDM_REVIEW_URL override.
+Covers: requests under /cdm-asset-review/ reach the tool with the prefix stripped,
+the bare prefix redirects to the trailing-slash URL the page's relative links need,
+the rest of the app is untouched, the tool is loaded once and only on first use,
+and the real tool page is served from the main app.
 """
 
 from flask import Flask
 
+from routes.cdm_review import PREFIX, LazyCdmReview, mount_cdm_review
 
-def _client():
-    from routes.cdm_review import cdm_review_bp
+
+def _tool():
+    tool = Flask("stub_cdm_tool")
+
+    @tool.route("/")
+    def index():
+        return "cdm-index"
+
+    @tool.route("/api/assets")
+    def assets():
+        return {"script_root": __import__("flask").request.script_root}
+
+    return tool
+
+
+def _client(tool):
     app = Flask(__name__)
-    app.register_blueprint(cdm_review_bp)
-    app.config["TESTING"] = True
+
+    @app.route("/visualization")
+    def vis():
+        return "map"
+
+    mount_cdm_review(app, tool)
     return app.test_client()
 
 
-class TestRedirect:
+class TestMount:
 
-    def test_redirects_to_default_port(self, monkeypatch):
-        monkeypatch.delenv("CDM_REVIEW_URL", raising=False)
-        from routes import cdm_review
-        r = _client().get("/cdm-asset-review")
-        assert r.status_code == 302
-        # default target is <scheme>://<host>:<CDM_REVIEW_PORT>/
-        assert r.headers["Location"].endswith(":" + cdm_review.CDM_REVIEW_PORT + "/")
+    def test_prefix_serves_tool_index(self):
+        r = _client(_tool()).get(PREFIX + "/")
+        assert r.status_code == 200
+        assert r.get_data(as_text=True) == "cdm-index"
 
-    def test_url_override_takes_precedence(self, monkeypatch):
-        monkeypatch.setenv("CDM_REVIEW_URL", "http://example.test/cdm/")
-        r = _client().get("/cdm-asset-review")
-        assert r.status_code == 302
-        assert r.headers["Location"] == "http://example.test/cdm/"
+    def test_tool_routes_see_prefix_as_script_root(self):
+        r = _client(_tool()).get(PREFIX + "/api/assets")
+        assert r.get_json() == {"script_root": PREFIX}
 
-    def test_only_get(self):
-        r = _client().post("/cdm-asset-review")
-        assert r.status_code == 405
+    def test_bare_prefix_redirects_to_trailing_slash(self):
+        r = _client(LazyCdmReview(loader=_tool)).get(PREFIX)
+        assert r.status_code in (301, 302)
+        assert r.headers["Location"].endswith(PREFIX + "/")
+
+    def test_main_app_routes_unaffected(self):
+        assert _client(_tool()).get("/visualization").get_data(as_text=True) == "map"
+
+
+class TestLazyLoad:
+
+    def test_loads_once_on_first_request(self):
+        calls = []
+
+        def loader():
+            calls.append(1)
+            return _tool()
+
+        client = _client(LazyCdmReview(loader=loader))
+        assert calls == []
+        client.get(PREFIX + "/")
+        client.get(PREFIX + "/api/assets")
+        assert calls == [1]
+
+
+class TestRealTool:
+
+    def test_main_app_serves_cdm_page_with_relative_assets(self):
+        client = _client(LazyCdmReview())
+        page = client.get(PREFIX + "/").get_data(as_text=True)
+        assert "<title>CDM Asset Review</title>" in page
+        assert 'src="static/app.js"' in page
+        assert client.get(PREFIX + "/static/app.js").status_code == 200
+        assert client.get(PREFIX + "/shared/theme.js").status_code == 200
+        assert client.get(PREFIX + "/theme.css").status_code == 200
+        assert client.get(PREFIX + "/api/assets").status_code == 200
