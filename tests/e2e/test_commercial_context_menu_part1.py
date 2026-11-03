@@ -139,6 +139,7 @@ class TestCommercialContextMenu:
         Verifies the context-menus.js search-both-tooltip-and-popup fix is
         actually finding the CPROP- id buried in the popup HTML.
         """
+        find_commercial_markers(map_page)  # un-cluster a pin if all are folded
         diag = map_page.evaluate("""() => {
             const mapKey = Object.keys(window).find(k => k.startsWith('map_'));
             const m = mapKey ? window[mapKey] : null;

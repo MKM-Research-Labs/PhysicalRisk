@@ -242,6 +242,102 @@ def td_close_trading_desk(page):
 
 
 # ---------------------------------------------------------------------------
+# Clustered marker helpers
+# ---------------------------------------------------------------------------
+
+# Property and commercial markers live in one Leaflet.markercluster group
+# (visual/layer/cluster.py). A pin folded into a cluster bubble has no DOM
+# element, so a test that needs a real pin spiderfies one bubble of that
+# kind first. Spiderfying fans the pins out in place without changing the
+# zoom, so the shared page keeps its landing view for later tests.
+_ASSET_KIND_JS = """
+    function _mkmKind(layer) {
+        var o = layer.options && layer.options.icon && layer.options.icon.options;
+        if (!o) return null;
+        if (o.markerColor === 'purple') return 'commercial';
+        if (o.icon === 'home' || o.icon === 'university') return 'property';
+        return null;
+    }
+    function _mkmMap() {
+        var k = Object.keys(window).find(function (k) { return k.startsWith('map_'); });
+        return k ? window[k] : (window.mapInstance || null);
+    }
+    function _mkmClusterGroups(map) {
+        var groups = [];
+        map.eachLayer(function (l) {
+            if (window.L && L.MarkerClusterGroup && l instanceof L.MarkerClusterGroup) {
+                groups.push(l);
+            }
+        });
+        return groups;
+    }
+"""
+
+REVEAL_CLUSTERED_JS = """(kind) => {""" + _ASSET_KIND_JS + """
+    var map = _mkmMap();
+    if (!map) return false;
+    var groups = _mkmClusterGroups(map);
+    for (var i = 0; i < groups.length; i++) {
+        var markers = groups[i].getLayers();
+        for (var j = 0; j < markers.length; j++) {
+            if (_mkmKind(markers[j]) !== kind) continue;
+            var parent = groups[i].getVisibleParent(markers[j]);
+            if (parent && parent !== markers[j] && parent.spiderfy) {
+                parent.spiderfy();
+                return true;
+            }
+        }
+    }
+    return false;
+}"""
+
+# What the map shows for each kind: the markers the cluster holds, what the
+# visible bubbles and single pins account for, and what is drawn — the
+# per-type numbers each bubble carries (data-property / data-commercial)
+# plus the single pins in the DOM.
+SHOWN_ASSET_COUNTS_JS = """() => {""" + _ASSET_KIND_JS + """
+    var map = _mkmMap();
+    var out = {property: {held: 0, shown: 0}, commercial: {held: 0, shown: 0},
+               bubbles: 0, bubbleLabelsMatch: true};
+    if (!map) return out;
+    _mkmClusterGroups(map).forEach(function (g) {
+        g.getLayers().forEach(function (m) {
+            var kind = _mkmKind(m);
+            if (!kind) return;
+            out[kind].held++;
+            if (g.getVisibleParent(m)) out[kind].shown++;
+        });
+    });
+    var bubbles = document.querySelectorAll('.mkm-cluster div[data-property]');
+    out.bubbles = bubbles.length;
+    out.property.bubbleTotal = 0;
+    out.commercial.bubbleTotal = 0;
+    Array.prototype.forEach.call(bubbles, function (b) {
+        var np = parseInt(b.dataset.property, 10), nc = parseInt(b.dataset.commercial, 10);
+        out.property.bubbleTotal += np;
+        out.commercial.bubbleTotal += nc;
+        if (parseInt(b.textContent, 10) !== np + nc) out.bubbleLabelsMatch = false;
+    });
+    out.commercial.pins = document.querySelectorAll(
+        ".leaflet-marker-pane [class*='awesome-marker-icon-purple']").length;
+    out.property.pins = document.querySelectorAll(
+        ".leaflet-marker-pane [class*='awesome-marker-icon-']:has(i.fa-home), " +
+        ".leaflet-marker-pane [class*='awesome-marker-icon-']:has(i.fa-university)").length;
+    return out;
+}"""
+
+
+def reveal_clustered_markers(page, kind):
+    """Make at least one ``kind`` ('property' or 'commercial') pin exist in
+    the DOM by spiderfying a bubble that holds one. Returns False when no
+    pin of that kind is folded into a bubble."""
+    revealed = page.evaluate(REVEAL_CLUSTERED_JS, kind)
+    if revealed:
+        page.wait_for_timeout(500)
+    return revealed
+
+
+# ---------------------------------------------------------------------------
 # Commercial marker helpers
 # ---------------------------------------------------------------------------
 
@@ -254,8 +350,12 @@ COMMERCIAL_MARKER_SELECTOR = "[class*='awesome-marker-icon-purple']"
 
 
 def find_commercial_markers(page):
-    """Locator over every commercial (purple) marker on the map."""
-    return page.locator(COMMERCIAL_MARKER_SELECTOR)
+    """Locator over every commercial (purple) marker on the map, spiderfying
+    a cluster bubble first when every commercial pin is folded into one."""
+    markers = page.locator(COMMERCIAL_MARKER_SELECTOR)
+    if markers.count() == 0:
+        reveal_clustered_markers(page, "commercial")
+    return markers
 
 
 def _commercial_marker_diagnostics(page):
