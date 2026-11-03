@@ -28,6 +28,7 @@ from types import SimpleNamespace
 
 import folium
 import pytest
+from folium.plugins import FeatureGroupSubGroup
 
 from visual.layer import CommercialLayer
 from visual.layer.commercial_layer.layer import _ICON_BY_TYPE, _MARKER_COLOR
@@ -85,10 +86,10 @@ def _marker_popup_html(group: folium.FeatureGroup) -> str:
 
 class TestAddToMap:
 
-    def test_returns_feature_group(self):
+    def test_returns_asset_group(self):
         layer = CommercialLayer()
         result = layer.add_to_map(folium.Map(), _loaded(_asset()))
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
     def test_layer_name(self):
         assert CommercialLayer().layer_name == "Commercial Assets"
@@ -96,19 +97,19 @@ class TestAddToMap:
     def test_no_commercial_data_returns_empty_group(self):
         loaded = SimpleNamespace(commercial_data=None, commercial_loan_lookup={})
         result = CommercialLayer().add_to_map(folium.Map(), loaded)
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
     def test_empty_commercial_assets_returns_empty_group(self):
         loaded = SimpleNamespace(commercial_data={"commercial_assets": []},
                                   commercial_loan_lookup={})
         result = CommercialLayer().add_to_map(folium.Map(), loaded)
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
     def test_marker_count_matches_assets(self):
         layer = CommercialLayer()
         loaded = _loaded(_asset("CPROP-1"), _asset("CPROP-2"), _asset("CPROP-3"))
         group = layer.add_to_map(folium.Map(), loaded)
-        # FeatureGroup stores children in _children dict
+        # The layer group stores children in _children dict
         markers = [c for c in group._children.values() if isinstance(c, folium.Marker)]
         assert len(markers) == 3
 

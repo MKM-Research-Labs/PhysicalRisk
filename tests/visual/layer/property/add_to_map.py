@@ -26,6 +26,7 @@ from unittest.mock import patch
 
 import folium
 import pytest
+from folium.plugins import FeatureGroupSubGroup
 
 from visual.layer.property_layer.layer import PropertyLayer
 
@@ -77,15 +78,15 @@ class MockLoadedData:
 
 class TestAddToMapEmpty:
 
-    def test_returns_feature_group_when_no_property_data(self):
+    def test_returns_asset_group_when_no_property_data(self):
         layer = PropertyLayer()
         result = layer.add_to_map(folium.Map(), MockLoadedData(property_data=None))
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
-    def test_returns_feature_group_when_properties_empty(self):
+    def test_returns_asset_group_when_properties_empty(self):
         layer = PropertyLayer()
         result = layer.add_to_map(folium.Map(), MockLoadedData(property_data={"items": []}))
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
     def test_feature_group_name_set(self):
         layer = PropertyLayer()
@@ -103,7 +104,7 @@ class TestAddToMapWithData:
         layer = PropertyLayer()
         loaded = MockLoadedData(property_data={"items": [_make_property()]})
         result = layer.add_to_map(folium.Map(), loaded)
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
     def test_multiple_properties_added(self):
         layer = PropertyLayer()
@@ -111,7 +112,7 @@ class TestAddToMapWithData:
             _make_property("P1"), _make_property("P2", lat=51.6, lon=-0.2)
         ]})
         result = layer.add_to_map(folium.Map(), loaded)
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
     def test_property_hazard_data_loaded(self):
         """Lines 69-73: property_hazard_data dict populated."""
@@ -148,7 +149,7 @@ class TestAddToMapWithData:
             rloan_lookup={"PROP-001": {"original_loan": 250_000}},
         )
         result = layer.add_to_map(folium.Map(), loaded)
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
     def test_property_with_flood_info(self):
         layer = PropertyLayer()
@@ -157,7 +158,7 @@ class TestAddToMapWithData:
             property_flood_info={"PROP-001": {"risk_level": "High", "flood_depth": 0.5}},
         )
         result = layer.add_to_map(folium.Map(), loaded)
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
     def test_high_hazard_property(self):
         """Property with flood_count > 5 gets red icon."""
@@ -169,7 +170,7 @@ class TestAddToMapWithData:
             },
         )
         result = layer.add_to_map(folium.Map(), loaded)
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
 
 # ===========================================================================
@@ -184,7 +185,7 @@ class TestPropertyInfoNone:
         loaded = MockLoadedData(property_data={"items": [_make_property("PROP-001")]})
         with patch("visual.layer.property_layer.layer.DataExtractor.extract_property_info", return_value=None):
             result = layer.add_to_map(folium.Map(), loaded)
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
 
 # ===========================================================================
@@ -205,7 +206,7 @@ class TestAddToMapException:
         )
         loaded.property_flood_info = RaisingFloodInfo()
         result = layer.add_to_map(folium.Map(), loaded)
-        assert isinstance(result, folium.FeatureGroup)
+        assert isinstance(result, FeatureGroupSubGroup)
 
 
 # ===========================================================================

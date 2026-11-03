@@ -24,6 +24,8 @@ Property context menu e2e tests — right-click property markers on the map.
 
 import pytest
 
+from tests.e2e._helpers import reveal_clustered_markers
+
 
 def _find_property_markers(page):
     """Find property markers on the map.
@@ -31,6 +33,10 @@ def _find_property_markers(page):
     Property markers use fa-home icon; gauge markers use fa-tint.
     Both can be green/orange/red, so we distinguish by the icon inside.
     """
+    # Property pins may all be folded into cluster bubbles at landing zoom.
+    if page.locator("[class*='awesome-marker-icon-']:has(i.fa-home), "
+                    "[class*='awesome-marker-icon-']:has(i.fa-university)").count() == 0:
+        reveal_clustered_markers(page, "property")
     # Property markers contain an <i> with fa-home class
     markers = page.locator("[class*='awesome-marker-icon-']:has(i.fa-home)")
     if markers.count() > 0:

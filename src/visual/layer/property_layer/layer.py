@@ -24,11 +24,13 @@ import logging
 from typing import Any, Dict, List
 
 import folium
+from folium.plugins import FeatureGroupSubGroup
 
 from config.format import property_title_py
 from config.visual import PROPERTY_FLOOD_HIGH, PROPERTY_FLOOD_MEDIUM
 
 from ...utils import DataExtractor
+from ..cluster import make_asset_group
 from .popup import create_flood_risk_section, create_property_popup, create_rloan_section
 from .stats import get_property_statistics
 
@@ -50,11 +52,11 @@ class PropertyLayer:
         self.show_rloan_status = True
         self.risk_based_sizing = False
 
-    def add_to_map(self, folium_map: folium.Map, loaded_data) -> folium.FeatureGroup:
-        """Add property layer to the map."""
+    def add_to_map(self, folium_map: folium.Map, loaded_data) -> FeatureGroupSubGroup:
+        """Add property layer to the map, clustering pins that overlap."""
         logger.info(f"Adding {self.layer_name} to map...")
 
-        property_group = folium.FeatureGroup(name=self.layer_name)
+        property_group = make_asset_group(folium_map, self.layer_name)
 
         if not loaded_data.property_data:
             logger.warning("No property data available")
@@ -108,7 +110,7 @@ class PropertyLayer:
         logger.info(f"Added {property_count} properties to map ({mortgaged_property_count} with mortgages)")
         return property_group
 
-    def _add_property_marker(self, feature_group: folium.FeatureGroup, property_info: Dict[str, Any],
+    def _add_property_marker(self, feature_group: FeatureGroupSubGroup, property_info: Dict[str, Any],
                            property_flood_info: Dict[str, Any], has_rloan: bool,
                            rloan_info: Dict[str, Any], loaded_data) -> None:
         """Add a single property marker to the feature group."""

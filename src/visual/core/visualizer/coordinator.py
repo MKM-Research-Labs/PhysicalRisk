@@ -33,6 +33,7 @@ from ...layer import (
 )
 from ..data_loader import DataLoader
 from ..map_builder import MapBuilder
+from .fit import fit_portfolio_bounds
 from .heatmap import add_flood_heatmap
 
 logger = logging.getLogger(__name__)
@@ -142,11 +143,7 @@ class TCEventVisualization:
 
             # Create base map and fit to all markers
             base_map = self.map_builder.create_map(coordinates=all_coords)
-            if len(all_coords) >= 2:
-                lats = [c[0] for c in all_coords]
-                lons = [c[1] for c in all_coords]
-                base_map.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]],
-                                   padding=[30, 30])
+            fit_portfolio_bounds(base_map, all_coords)
 
             # Add layer
             self._add_layer(base_map)

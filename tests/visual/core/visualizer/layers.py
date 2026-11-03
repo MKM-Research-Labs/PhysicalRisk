@@ -20,6 +20,7 @@
 
 """Tests for layer init, interactivity init, _add_layer and _add_interactivity."""
 
+import json
 from unittest.mock import MagicMock, patch
 
 import folium
@@ -179,14 +180,22 @@ class TestCommercialLayerAndAutoZoom:
         vis._extract_coordinates = lambda: coords
         return base_map
 
+    @staticmethod
+    def _fitted_bounds(base_map):
+        """Bounds of the FitPortfolioBounds added to the map, or None."""
+        from visual.core.visualizer.fit import FitPortfolioBounds
+        for call in base_map.add_child.call_args_list:
+            if isinstance(call.args[0], FitPortfolioBounds):
+                return json.loads(call.args[0].bounds)
+        return None
+
     def test_two_or_more_markers_fit_the_view_to_their_bounds(self, tmp_path):
         """Auto-zoom frames every marker rather than centring on one."""
         vis = self._vis(tmp_path)
         base_map = self._ready(vis, [(51.4, -0.3), (51.6, -0.1)])
         vis.create_event_map("out.html")
 
-        assert base_map.fit_bounds.called
-        assert base_map.fit_bounds.call_args[0][0] == [[51.4, -0.3], [51.6, -0.1]]
+        assert self._fitted_bounds(base_map) == [[51.4, -0.3], [51.6, -0.1]]
 
     def test_bounds_span_the_extremes_not_the_first_and_last(self, tmp_path):
         """Order must not matter — min/max, not endpoints."""
@@ -195,7 +204,7 @@ class TestCommercialLayerAndAutoZoom:
             vis, [(51.5, -0.2), (51.9, -0.5), (51.2, -0.05)])
         vis.create_event_map("out.html")
 
-        assert base_map.fit_bounds.call_args[0][0] == [[51.2, -0.5], [51.9, -0.05]]
+        assert self._fitted_bounds(base_map) == [[51.2, -0.5], [51.9, -0.05]]
 
     def test_a_single_marker_skips_the_bounds_fit(self, tmp_path):
         """One marker gives no box to fit; create_map centres on it instead."""
@@ -203,4 +212,4 @@ class TestCommercialLayerAndAutoZoom:
         base_map = self._ready(vis, [(51.5, -0.2)])
         vis.create_event_map("out.html")
 
-        assert not base_map.fit_bounds.called
+        assert self._fitted_bounds(base_map) is None

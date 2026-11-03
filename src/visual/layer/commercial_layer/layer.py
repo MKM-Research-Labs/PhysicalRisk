@@ -24,7 +24,9 @@ import logging
 from typing import Any, Dict, List
 
 import folium
+from folium.plugins import FeatureGroupSubGroup
 
+from ..cluster import make_asset_group
 from .popup import create_commercial_popup
 from .stats import get_commercial_statistics
 
@@ -55,12 +57,12 @@ class CommercialLayer:
     def __init__(self):
         self.layer_name = _LAYER_NAME
 
-    def add_to_map(self, folium_map: folium.Map, loaded_data) -> folium.FeatureGroup:
-        """Add the commercial layer to the map. No-ops when there are no
-        commercial assets loaded."""
+    def add_to_map(self, folium_map: folium.Map, loaded_data) -> FeatureGroupSubGroup:
+        """Add the commercial layer to the map, clustering pins that overlap.
+        No-ops when there are no commercial assets loaded."""
         logger.info(f"Adding {self.layer_name} to map...")
 
-        group = folium.FeatureGroup(name=self.layer_name)
+        group = make_asset_group(folium_map, self.layer_name)
         assets = self._extract_assets(loaded_data)
         if not assets:
             logger.info("No commercial assets to render")
@@ -90,7 +92,7 @@ class CommercialLayer:
         return data.get("commercial_assets", [])
 
     @staticmethod
-    def _add_marker(group: folium.FeatureGroup, asset: Dict[str, Any],
+    def _add_marker(group: FeatureGroupSubGroup, asset: Dict[str, Any],
                     loan_lookup: Dict[str, Dict]) -> bool:
         ca = asset.get("CommercialAsset", {})
         location = ca.get("Location", {})
