@@ -81,7 +81,7 @@
     function showPanel() {
         if (!panel) buildPanel();
         // Lazy-load on first open.
-        if (!iframe.getAttribute('src')) iframe.setAttribute('src', '/cdm-asset-review');
+        if (!iframe.getAttribute('src')) iframe.setAttribute('src', '/cdm-asset-review/');
         panel.style.display = 'flex';
     }
 

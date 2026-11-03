@@ -384,7 +384,7 @@ async function loadPerils() {
   CURRENT_PERILS = null;
   renderPerilContent();
   try {
-    const res = await fetch(`/api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}/perils`);
+    const res = await fetch(`api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}/perils`);
     const data = await res.json();
     if (reqId !== CURRENT_ID) return; // a different record was opened meanwhile
     CURRENT_PERILS = data;
@@ -581,7 +581,7 @@ async function renderWaterfall(body) {
   let data;
   try {
     data = await (await fetch(
-      `/api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}/waterfall`)).json();
+      `api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}/waterfall`)).json();
   } catch (e) { body.innerHTML = `<div class="wf-msg">Failed to load waterfall.</div>`; return; }
   if (!data.supported) {
     body.innerHTML = `<div class="wf-msg">${data.reason || "Not available."}</div>`;
@@ -658,7 +658,7 @@ async function priceAsset() {
   if (btn) { btn.disabled = true; btn.textContent = "Pricing… (this can take ~30–60s)"; }
   try {
     const res = await fetch(
-      `/api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}/price`, { method: "POST" });
+      `api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}/price`, { method: "POST" });
     const data = await res.json();
     if (data.ok) {
       renderDetailBody();   // the priced curve is now in the sandbox → waterfall renders
@@ -811,7 +811,7 @@ function openLineagePopup(fieldPath, fieldLabel) {
 
 async function ensureEditSpec(asset) {
   if (EDIT_SPECS[asset]) return;
-  try { EDIT_SPECS[asset] = await (await fetch(`/api/${asset}/edit-spec`)).json(); }
+  try { EDIT_SPECS[asset] = await (await fetch(`api/${asset}/edit-spec`)).json(); }
   catch (_) { EDIT_SPECS[asset] = {}; }
 }
 
@@ -893,7 +893,7 @@ async function openCreateForm() {
 
   // Show the catchment centre as the lat/lon ballpark so a transposed pair stands out.
   try {
-    const info = await (await fetch("/api/catchment-info")).json();
+    const info = await (await fetch("api/catchment-info")).json();
     const setPh = (suffix, val) => {
       const hit = Object.entries(inputs).find(([p]) => p.endsWith(suffix));
       if (hit && val !== null && val !== undefined) {
@@ -918,7 +918,7 @@ async function uploadRecords(file) {
   fd.append("file", file);
   let data;
   try {
-    const res = await fetch(`/api/${ASSET}/upload`, { method: "POST", body: fd });
+    const res = await fetch(`api/${ASSET}/upload`, { method: "POST", body: fd });
     data = await res.json();
     if (!res.ok) { setStatus(data.error || "Upload failed", true); return; }
   } catch (err) { setStatus("Upload failed: " + err.message, true); return; }
@@ -968,7 +968,7 @@ async function submitCreate(inputs, close) {
     if (v !== "" && v !== null && v !== undefined) changes[path] = v;
   }
   try {
-    const res = await fetch(`/api/${ASSET}/items`, {
+    const res = await fetch(`api/${ASSET}/items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ changes }),
@@ -989,7 +989,7 @@ async function submitCreate(inputs, close) {
 
 async function reloadItems() {
   try {
-    ITEMS = await (await fetch(`/api/${ASSET}/items`)).json();
+    ITEMS = await (await fetch(`api/${ASSET}/items`)).json();
     renderList($("#search").value);
     renderSummary();
   } catch (_) { /* leave the list as-is */ }
@@ -1035,7 +1035,7 @@ async function commitAmend(fieldPath, spec, input, close) {
   errEl.textContent = "";
   input.classList.remove("input-error");
   try {
-    const res = await fetch(`/api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}`, {
+    const res = await fetch(`api/${ASSET}/items/${encodeURIComponent(CURRENT_ID)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ changes: { [fieldPath]: newVal } }),
@@ -1070,7 +1070,7 @@ async function commitAmend(fieldPath, spec, input, close) {
 async function openDetail(rid) {
   setStatus("Loading " + rid + "…");
   try {
-    const res = await fetch(`/api/${ASSET}/items/${encodeURIComponent(rid)}`);
+    const res = await fetch(`api/${ASSET}/items/${encodeURIComponent(rid)}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     CURRENT = await res.json();
     CURRENT_ID = rid;
@@ -1133,8 +1133,8 @@ async function selectAsset(key) {
   setStatus("Loading " + label + "…");
   try {
     const [schemaRes, itemsRes] = await Promise.all([
-      fetch(`/api/${key}/schema`),
-      fetch(`/api/${key}/items`),
+      fetch(`api/${key}/schema`),
+      fetch(`api/${key}/items`),
     ]);
     SCHEMA = await schemaRes.json();
     ITEMS = await itemsRes.json();
@@ -1151,8 +1151,8 @@ async function selectAsset(key) {
 async function boot() {
   setStatus("Loading…");
   try {
-    ASSETS = await (await fetch("/api/assets")).json();
-    try { LINEAGE = await (await fetch("/api/lineage")).json(); } catch (_) { LINEAGE = null; }
+    ASSETS = await (await fetch("api/assets")).json();
+    try { LINEAGE = await (await fetch("api/lineage")).json(); } catch (_) { LINEAGE = null; }
     $("#search").addEventListener("input", (e) => renderList(e.target.value));
     $("#add-record").addEventListener("click", openCreateForm);
     $("#upload-record").addEventListener("click", () => $("#upload-file").click());

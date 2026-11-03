@@ -18,34 +18,74 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Entry point for the CDM Asset Review workstream.
+"""Mount the CDM Asset Review workstream inside the main application.
 
-The CDM Asset Review tool currently runs as a standalone Flask app
-(``tools/cdm_property_editor/app.py``) on its own port. This route gives the
-main application a clean, same-origin launch URL (``/cdm-asset-review``) that
-the map's house icon opens; it redirects to the standalone tool so the tool's
-location lives in one place (overridable via ``CDM_REVIEW_URL`` /
-``CDM_REVIEW_PORT``).
+The tool is its own Flask app (``tools/cdm_property_editor/app.py``) and still
+runs standalone on port 5057. Here the same app is mounted at
+``/cdm-asset-review/`` so the platform serves it from one origin and one port:
+the map's house icon opens it in an in-app panel without a second server.
 
-When the tool is later mounted into this app as a blueprint, only this redirect
-target changes — the icon and its URL stay the same.
+The tool is imported on the first request under the prefix, not at start-up:
+its import binds the data backend and reads the catchment, which the rest of
+the platform (and its tests) should not pay for unless the tool is opened.
 """
 
-import os
+import importlib.util
+import sys
+import threading
+from pathlib import Path
 
-from flask import Blueprint, redirect, request
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.utils import redirect
 
-cdm_review_bp = Blueprint("cdm_review", __name__)
+PREFIX = "/cdm-asset-review"
+TOOL_DIR = Path(__file__).resolve().parents[2] / "tools" / "cdm_property_editor"
+# Unique module name: the tool's ``app.py`` must not shadow the repo's ``app``.
+MODULE_NAME = "cdm_asset_review_app"
 
-# Default location of the standalone CDM Asset Review server.
-CDM_REVIEW_PORT = os.environ.get("CDM_REVIEW_PORT", "5057")
+
+def _load_tool_app():
+    """Import the tool's Flask app by file path, as its tests do."""
+    if MODULE_NAME in sys.modules:
+        return sys.modules[MODULE_NAME].app
+    spec = importlib.util.spec_from_file_location(MODULE_NAME, TOOL_DIR / "app.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[MODULE_NAME] = mod  # before exec, so Flask(__name__) finds its root
+    # app.py imports its siblings (recompute, price_new) by bare name; put the tool
+    # dir on the path only for the exec. The siblings stay cached in sys.modules.
+    added = str(TOOL_DIR) not in sys.path
+    if added:
+        sys.path.insert(0, str(TOOL_DIR))
+    try:
+        spec.loader.exec_module(mod)
+    except BaseException:
+        sys.modules.pop(MODULE_NAME, None)
+        raise
+    finally:
+        if added:
+            sys.path.remove(str(TOOL_DIR))
+    return mod.app
 
 
-@cdm_review_bp.route("/cdm-asset-review")
-def cdm_asset_review():
-    """Redirect to the CDM Asset Review workstream."""
-    target = os.environ.get("CDM_REVIEW_URL")
-    if not target:
-        host = request.host.split(":")[0]
-        target = f"{request.scheme}://{host}:{CDM_REVIEW_PORT}/"
-    return redirect(target)
+class LazyCdmReview:
+    """WSGI app that loads the CDM tool on first use and serves it under PREFIX."""
+
+    def __init__(self, loader=_load_tool_app):
+        self._loader = loader
+        self._app = None
+        self._lock = threading.Lock()
+
+    def __call__(self, environ, start_response):
+        # The tool's page uses relative URLs, so it must be served at PREFIX + "/".
+        if not environ.get("PATH_INFO"):
+            return redirect(environ.get("SCRIPT_NAME", "") + "/")(environ, start_response)
+        if self._app is None:
+            with self._lock:
+                if self._app is None:
+                    self._app = self._loader()
+        return self._app(environ, start_response)
+
+
+def mount_cdm_review(app, tool=None) -> None:
+    """Serve the CDM Asset Review tool at PREFIX on ``app``."""
+    app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {PREFIX: tool or LazyCdmReview()})
