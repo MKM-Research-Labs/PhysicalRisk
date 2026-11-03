@@ -478,6 +478,32 @@ def first_property_id(property_data):
 
 
 @pytest.fixture(scope="session")
+def flooded_property_id(property_data):
+    """The property that floods most often, for tests whose subject is its floods.
+
+    ``first_property_id`` is whichever property the generator wrote first; in
+    the thames demo book that one sits at 25.8 m and floods in none of the
+    10,000 storms, so worst-storm charts, flood history and the property
+    spread are all legitimately empty for it. Counted from ``propertyhc.json``
+    (``flood_count``); ties keep property.json order.
+    """
+    hc_path = INPUT_DIR / "propertyhc.json"
+    if not hc_path.exists():
+        pytest.skip("propertyhc.json not found — run `python phys.py port --hazard` first")
+    with open(hc_path) as f:
+        curves = json.load(f).get("property_hazard_curves", {})
+    best_id, best_count = None, 0
+    for p in property_data.get("properties", []):
+        pid = p.get("PropertyHeader", {}).get("Header", {}).get("PropertyID", "")
+        count = (curves.get(pid) or {}).get("flood_count") or 0
+        if count > best_count:
+            best_id, best_count = pid, count
+    if best_id is None:
+        pytest.skip("No property floods in this catchment's storm set")
+    return best_id
+
+
+@pytest.fixture(scope="session")
 def first_commercial_peril_id():
     """Return a commercial (CPROP-) asset ID that has BOTH fire and seismic
     peril results AND a commercial hazard curve.
