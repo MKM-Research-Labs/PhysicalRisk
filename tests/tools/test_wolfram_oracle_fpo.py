@@ -107,6 +107,9 @@ class TestReference:
             assert ref.slope(h, t) == pytest.approx(numeric, rel=1e-8)
             assert ref.slope(mp.mpf("0.1"), t) == 0 and ref.tau_slope(mp.mpf("0.1")) == 0
 
+    def test_from_the_features_severe_is_one(self):
+        assert ref.p_features(mp.mpf(0), ref.log_time(10)) == 1
+
     def test_a_threshold_at_zero(self):
         assert ref.p_flood(5, 3, 0) == 0 and ref.p_simple(5, 0) == 0 and ref.p_simple(9, 6) == 1
 
@@ -118,6 +121,13 @@ class TestModel:
             assert c[k] <= ORACLE_FPO_CODE_TOL, k
         assert c["zero_threshold"] and c["series"] == 0 and c["served"] and not c["js_own_coefficients"]
         assert c["js"] is None if not NODE else c["js"] <= ORACLE_FPO_CODE_TOL
+
+    def test_without_node_the_screen_is_pending(self, model, monkeypatch):
+        from tools.wolfram_oracle.floodpoly import latex
+        monkeypatch.setattr(cases, "run_js", lambda *a, **k: None)
+        c = cases.run(model)
+        rows = latex.findings({"code": c, "wolfram": None})
+        assert c["js"] is None and ("not run", None) in [(r[1], r[3]) for r in rows]
 
     def test_the_javascript_finders(self):
         assert cases.js_literal_coefficients("var _fpCoeffs = {a: 1};") and not cases.js_literal_coefficients("x")
