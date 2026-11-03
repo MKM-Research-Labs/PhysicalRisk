@@ -43,6 +43,7 @@ Run:
 
 from __future__ import annotations
 
+import heapq
 import json
 import sys
 import uuid
@@ -264,6 +265,11 @@ _HC_SAVE_FNS = {
 # Seismic damage states DS0..DS3; DS3 is the collapse state (no_collapse counts
 # DS0+DS1+DS2). See src/models/seismic/damage.py.
 SEISMIC_DS_LABELS = ["None", "Slight", "Moderate", "Collapse"]
+# Every typhoon rolls a (usually tiny) damage ratio for every asset, so a "wind
+# event" for one asset is a roll at or above this damage ratio (1%).
+WIND_EVENT_MIN_DAMAGE = 0.01
+# Rows shown in the flood / wind event tables.
+EVENT_TOP_N = 12
 
 # Lazy caches (read-only reference data; never written back).
 _CACHE: dict = {}
@@ -321,6 +327,56 @@ def _hc_record(asset: str, rid: str) -> dict | None:
         doc = _HC_GETTERS[asset](CATCHMENT) or {}
         _CACHE[key] = doc.get(cfg["container"], {})
     return _CACHE[key].get(rid)
+
+
+def _gauge_hc(rid: str) -> dict:
+    """A gauge's hazard curve (GEV fit, annual exceedance probabilities), via the seam."""
+    if "hc_gauge" not in _CACHE:
+        doc = database.get_gauge_hazard_curves(CATCHMENT) or {}
+        _CACHE["hc_gauge"] = doc.get("hazard_curves", {})
+    return _CACHE["hc_gauge"].get(rid) or {}
+
+
+def _storm_sequence_of() -> dict:
+    """member storm_id -> its sequence_id. Gauge responses are per member storm;
+    the rest of the tool (and the app) speaks in storm sequences."""
+    if "storm_members" not in _CACHE:
+        doc = database.get_storm_sequences(CATCHMENT) or {}
+        _CACHE["storm_members"] = {m.get("storm_id"): s.get("sequence_id")
+                                   for s in doc.get("sequences", [])
+                                   for m in s.get("storms") or []}
+    return _CACHE["storm_members"]
+
+
+def _typhoon_storms() -> dict:
+    """typhoon event_id -> paired storm sequence_id (the shared 1:1 ``event_id`` key)."""
+    if "typhoon_storms" not in _CACHE:
+        doc = database.get_storm_sequences(CATCHMENT) or {}
+        _CACHE["typhoon_storms"] = {s["event_id"]: s.get("sequence_id")
+                                    for s in doc.get("sequences", []) if s.get("event_id")}
+    return _CACHE["typhoon_storms"]
+
+
+def _wind_index() -> dict:
+    """asset_id -> {n_events, count (damage >= WIND_EVENT_MIN_DAMAGE), top}; built
+    once by walking every typhoon damage event (each lists every asset). Only the
+    worst EVENT_TOP_N rolls are kept per asset. Empty when the typhoon stage hasn't run."""
+    if "wind" not in _CACHE:
+        idx: dict = {}
+        for eid in database.iter_typhoon_event_ids(CATCHMENT):
+            data = database.get_typhoon_event(CATCHMENT, eid) or {}
+            for d in data.get("damages") or []:
+                s = idx.setdefault(d.get("property_id"), {"n_events": 0, "count": 0, "top": []})
+                ratio = d.get("damage_ratio") or 0.0
+                s["n_events"] += 1
+                s["count"] += ratio >= WIND_EVENT_MIN_DAMAGE
+                roll = (ratio, data.get("event_id") or eid, d.get("peak_sustained_ms") or 0.0)
+                if len(s["top"]) < EVENT_TOP_N:
+                    heapq.heappush(s["top"], roll)
+                else:
+                    heapq.heappushpop(s["top"], roll)
+        _CACHE["wind"] = idx
+    return _CACHE["wind"]
 
 
 app = Flask(__name__)
@@ -794,8 +850,65 @@ def api_audit():
     return jsonify(list(reversed(_load_audit())))
 
 
+def _gauge_flood_payload(rid: str) -> dict:
+    """A gauge's simulated storm peaks: the storm sequences that took the river
+    above its alert level (worst first), with alert/warning/severe counts and the
+    GEV annual exceedance probabilities. A sequence's peak is its highest member storm's."""
+    ts = database.get_gauge_timeseries(CATCHMENT, rid) or {}
+    responses = (ts.get("storm_responses") or {}).get("responses") or []
+    hc = _gauge_hc(rid)
+    if not responses and not hc:
+        return {"supported": True, "kind": "gauge", "count": 0, "events": [],
+                "note": "No storm simulation for this gauge."}
+    idx, seq_of = _storm_type_index(), _storm_sequence_of()
+    peaks: dict = {}  # sequence_id -> (peak_m, level rank)
+    for r in responses:
+        seq = seq_of.get(r.get("storm_id"), r.get("storm_id"))
+        rank = (3 if r.get("exceeded_severe") else 2 if r.get("exceeded_warning")
+                else 1 if r.get("exceeded_alert") else 0)
+        peak = r.get("peak_level_m", 0) or 0
+        prev = peaks.get(seq, (0.0, 0))
+        peaks[seq] = (max(prev[0], peak), max(prev[1], rank))
+    levels = {3: "severe", 2: "warning", 1: "alert"}
+    events = []
+    for seq, (peak, rank) in peaks.items():
+        if not rank:
+            continue
+        t = idx.get(seq, {})
+        events.append({
+            "storm": seq,
+            "type": t.get("type") or "—",
+            "intensity": t.get("intensity"),
+            "peak_m": round(peak, 2),
+            "level": levels[rank],
+        })
+    events.sort(key=lambda e: -e["peak_m"])
+    return {
+        "supported": True, "kind": "gauge", "count": len(events),
+        "n_storms": len(peaks),
+        "levels": [
+            {"label": "Severe", "cls": "severe",
+             "count": sum(1 for e in events if e["level"] == "severe")},
+            {"label": "Warning", "cls": "warning",
+             "count": sum(1 for e in events if e["level"] == "warning")},
+            {"label": "Alert", "cls": "alert",
+             "count": sum(1 for e in events if e["level"] == "alert")},
+        ],
+        "stats": [
+            {"label": "Annual P(severe)", "value": hc.get("annual_flood_prob_severe"), "pct": True},
+            {"label": "Annual P(warning)", "value": hc.get("annual_flood_prob_warning"), "pct": True},
+            {"label": "Annual P(alert)", "value": hc.get("annual_flood_prob_alert"), "pct": True},
+            {"label": "Severe level (m)", "value": hc.get("severe_flood_warning_m")},
+        ],
+        "events": events[:EVENT_TOP_N],
+    }
+
+
 def _flood_payload(asset: str, rid: str) -> dict:
-    """Severe flood events: storm, cluster type, damage %. Property/commercial."""
+    """Severe flood events: storm, cluster type, damage %. Property/commercial;
+    gauges show the storms that took the river above its alert level."""
+    if asset == "gauge":
+        return _gauge_flood_payload(rid)
     if asset not in HC_CONFIG:
         return {"supported": False, "reason": "No flood model for this asset."}
     rec = _hc_record(asset, rid)
@@ -818,17 +931,41 @@ def _flood_payload(asset: str, rid: str) -> dict:
         })
     events.sort(key=lambda e: (-e["damage_pct"], 0 if e["severe"] else 1))
     return {"supported": True, "count": len(events),
-            "flood_zone": rec.get("flood_zone"), "events": events[:12]}
+            "flood_zone": rec.get("flood_zone"), "events": events[:EVENT_TOP_N]}
 
 
 def _wind_payload(asset: str, rid: str) -> dict:
-    """Wind/typhoon events. The thames win files are zero-event placeholders
-    (the typhoon ensemble was not run), so there is nothing real to show yet."""
+    """Typhoon wind damage for one property/commercial: the worst typhoon rolls
+    (paired storm, peak sustained wind, damage %), and how many reached
+    WIND_EVENT_MIN_DAMAGE. Read from the typhoon damage events."""
     if asset not in HC_CONFIG:
         return {"supported": False, "reason": "No wind model for this asset."}
-    return {"supported": True, "count": 0, "events": [],
-            "note": "Typhoon/wind ensemble not run for this catchment — "
-                    "zero-event placeholder. Run `port --typhoon` to populate."}
+    s = _wind_index().get(rid)
+    if not s:
+        return {"supported": True, "kind": "wind", "count": 0, "events": [],
+                "note": "No typhoon simulation for this asset — run `port --typhoon`."}
+    idx, storms = _storm_type_index(), _typhoon_storms()
+    events = []
+    worst = max(s["top"])[0] * 100 if s["top"] else 0.0
+    for ratio, eid, peak in sorted(s["top"], reverse=True):
+        if ratio < WIND_EVENT_MIN_DAMAGE:
+            break
+        storm = storms.get(eid)
+        t = idx.get(storm, {})
+        events.append({
+            "storm": storm or eid,
+            "type": t.get("type") or "—",
+            "intensity": t.get("intensity"),
+            "peak_ms": round(peak, 1),
+            "damage_pct": round(ratio * 100, 2),
+        })
+    out = {"supported": True, "kind": "wind", "count": s["count"],
+           "n_storms": s["n_events"], "min_damage_pct": WIND_EVENT_MIN_DAMAGE * 100,
+           "events": events}
+    if not s["count"]:
+        out["note"] = (f"No typhoon caused {WIND_EVENT_MIN_DAMAGE:.0%} damage or more "
+                       f"across {s['n_events']:,} simulated typhoons (worst {worst:.2f}%).")
+    return out
 
 
 def _fire_payload(asset: str, rid: str) -> dict:

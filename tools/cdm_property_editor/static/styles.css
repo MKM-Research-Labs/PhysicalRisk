@@ -517,6 +517,14 @@ html, body {
 .cl-persistent { background: var(--purple-bg); color: var(--purple); }
 .cl-na { background: var(--blue-grey-bg); color: var(--rv-sub); }
 
+/* gauge flood level reached (alert < warning < severe) */
+.lv-severe { font-weight: 700; color: var(--red); text-align: right; }
+.lv-warning { font-weight: 700; color: var(--amber-deep); text-align: right; }
+.lv-alert { font-weight: 600; color: var(--gold); text-align: right; }
+.seg-severe, .dot-severe { background: var(--red); }
+.seg-warning, .dot-warning { background: var(--amber); }
+.seg-alert, .dot-alert { background: var(--gold); }
+
 /* fire / seismic stat views */
 .seg-bar {
   display: flex;
