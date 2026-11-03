@@ -141,7 +141,7 @@
                             _ctrlRenderSection(secId, sections[secId] || {});
                         });
                         // Keep the window-level storm hours in sync so downstream
-                        // consumers (FloodPoly, animations) read one source of truth.
+                        // consumers (animations, the storm tab) read one source of truth.
                         var hrs = (sections.storm_generation || {}).event_window_hours;
                         if (typeof hrs === 'number' && hrs > 0) {
                             window.__STORM_CONTROL_HOURS = hrs;

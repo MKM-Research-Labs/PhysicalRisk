@@ -21,6 +21,7 @@
 """Stress test endpoints — CDS-in-stress cash pricing for PRS trades."""
 
 from . import (
+    flood_poly,  # noqa: F401
     gauges,  # noqa: F401
     scenario,  # noqa: F401
     storms,  # noqa: F401

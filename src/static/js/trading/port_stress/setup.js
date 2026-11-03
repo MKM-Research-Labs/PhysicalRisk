@@ -156,6 +156,8 @@
                     body: JSON.stringify({storm_id: stormId})
                 })
                 .then(function(r) { return r.json(); })
+                // The model's parameters arrive with the first run, before anything draws.
+                .then(function(data) { return _fpLoad(baseUrl).then(function() { return data; }); })
                 .then(function(data) {
                     if (data.status === 'success') {
                         psResult = data;
@@ -238,23 +240,42 @@
 
             var psGaugeHourlyChart = null;
 
-            // FloodPoly-v1 client-side: P(flood) = sigmoid(a*h + b*t + c*h*t + d*h^2 + e*t^2 + f)
-            var _fpCoeffs = {a: 28.9582, b: -11.6351, c: 26.5490, d: -22.8893, e: -7.0794, f: -0.8872};
-            // Single source of truth: read from centralised storm control (populated on
-            // app startup from /api/v1/trading/control/params). Fallback to 168 only if
-            // the Control tab hasn't been loaded yet — matches config.port.EVENT_WINDOW_HOURS.
-            function _fpStormHours() {
-                return (typeof window.__STORM_CONTROL_HOURS === 'number' && window.__STORM_CONTROL_HOURS > 0)
-                    ? window.__STORM_CONTROL_HOURS
-                    : 168;
+            // FloodPoly (MKM-FPO-001) client-side. The parameters are served from the
+            // model's own config (/trading/stress/flood-poly) rather than copied here:
+            // a copy in this file drifted to coefficients matching no released version.
+            // Mirrors src/models/stress/flood_poly.py: P = 1 at or above severe, the
+            // level held at the floor below it, storm time over the fitted T.
+            var _fpModel = null;
+            function _fpLoad(baseUrl) {
+                if (_fpModel) return Promise.resolve(_fpModel);
+                return fetch(baseUrl + '/api/v1/trading/stress/flood-poly', {mode: 'cors'})
+                    .then(function(r) { return r.json(); })
+                    .then(function(resp) { _fpModel = resp.model; return _fpModel; });
+            }
+            // The earliest log time any storm reached log level h (flood_poly.envelope_t):
+            // the model holds the hour there rather than extrapolate earlier.
+            function _fpEnvelopeT(m, h) {
+                var env = m.envelope, n = env.length;
+                var hk = function(k) { return Math.log(env[k][0]); };
+                var tk = function(k) { return Math.log((env[k][1] + 1) / m.storm_hours); };
+                if (h <= hk(0)) return -Infinity;
+                for (var k = 0; k < n - 1; k++) {
+                    if (h <= hk(k + 1)) return tk(k) + (h - hk(k)) / (hk(k + 1) - hk(k)) * (tk(k + 1) - tk(k));
+                }
+                return tk(n - 1);
             }
             function _fpPFlood(waterLevel, hour, severeLevel) {
-                if (severeLevel <= 0) return 0;
-                var eps = 1e-8, clamp = 30;
-                var h = Math.log(Math.max(waterLevel / severeLevel, eps));
-                var t = Math.log((hour + 1) / _fpStormHours());
-                var z = _fpCoeffs.a*h + _fpCoeffs.b*t + _fpCoeffs.c*h*t + _fpCoeffs.d*h*h + _fpCoeffs.e*t*t + _fpCoeffs.f;
-                z = Math.max(-clamp, Math.min(clamp, z));
+                var m = _fpModel;
+                if (!m || severeLevel <= 0) return 0;
+                var ratio = waterLevel / severeLevel;
+                if (ratio >= 1) return 1;
+                var h = Math.log(Math.max(ratio, m.level_floor));
+                var t = Math.max(Math.log((hour + 1) / m.storm_hours), _fpEnvelopeT(m, h));
+                var z = 0;
+                for (var k = 0; k < m.coeffs.length; k++) {
+                    z += m.coeffs[k] * Math.pow(h, m.terms[k][0]) * Math.pow(t, m.terms[k][1]);
+                }
+                z = Math.max(-m.exp_clamp, Math.min(m.exp_clamp, z));
                 return 1.0 / (1.0 + Math.exp(-z));
             }
 

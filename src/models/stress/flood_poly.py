@@ -17,59 +17,44 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
 """
-Polynomial Flood Probability Model (FloodPoly)
-===============================================
+Polynomial Flood Probability Model (FloodPoly) v2.0 -- MKM-FPO-001
+==================================================================
 
-Model type:  Logistic sigmoid with quadratic polynomial kernel
-Model ID:    flood-poly-v1
-Fitted from: GBM classifier (GAUGE-dc5e88fb, AUC=0.994, 3.4M samples)
-Fit method:  Nonlinear least-squares (scipy.optimize.curve_fit)
+A closed-form approximation of the per-gauge GBM flood classifiers (MKM-FC-001),
+so that stress scenarios can price P(flood) without a trained model per gauge.
 
-Overview
+Features
 --------
-A closed-form approximation of the per-gauge GBM flood classifier.
-Replaces the need for trained ``.joblib`` model files and scikit-learn
-at inference time.  The model operates entirely in log-transformed
-feature space, which normalises water levels across gauges with
-different severe thresholds.
+  h = ln(w / s)           -- water level relative to the severe threshold
+  t = ln((hour + 1) / T)  -- storm time, T = 168 hours
 
-Features (2)
-------------
-  h = ln(w / s)           — log water level relative to severe threshold
-  t = ln((hour + 1) / T)  — log normalised storm time (T = 168 hours)
-
-Both features are gauge-independent: ``h = 0`` when water equals the
-severe level; ``t = 0`` at the final storm hour.
-
-Model equation
---------------
-  P(flood) = σ(a·h + b·t + c·h·t + d·h² + e·t² + f)
-
-where σ is the standard logistic function 1/(1 + exp(-z)).
-
-All coefficients and parameters are defined in ``config/models.py``
-under the FloodPoly section.
-
-Performance vs GBM classifier
-------------------------------
-  R²  = 0.94
-  MAE = 0.046
-  RMSE = 0.099
-
-The model is conservative: it slightly over-predicts P(flood) in the
-transition zone (alert → severe) and slightly under-predicts at the
-tails.  This is acceptable for stress testing where false negatives
-are costlier than false positives.
-
-Usage
+Model
 -----
-Single-gauge hourly stress (scenario.py):
-    ``p = p_flood_poly(water_level=5.2, hour=48, severe_level=6.58)``
+  P(flood) = 1                                   if w >= s
+           = sigma( sum_k c_k h^i t^j )           otherwise
 
-Portfolio stress (port_stress.py) — time-independent variant:
-    ``p = p_flood_simple(water_level=5.2, severe_level=6.58)``
+over the cubic terms (i, j) of ``config.models.flood_poly_terms``. At or above the
+severe level a flood has happened -- that is the classifiers' label -- so P = 1.
+Below it the kernel is fitted (``python -m tools.flood_poly_fit``) to every gauge's
+GBM on the real storm states the classifiers are trained on, pooled, and constrained
+to rise with the level from ``flood_poly_level_floor`` (20% of severe) up to it;
+below the floor the model holds its value there, effectively zero.
+
+The kernel is only fitted where storms go. No storm reaches 40% of severe before hour
+4.7, or severe before hour 37.4 (``config.models.flood_poly_envelope``); earlier than
+that the GBMs have never been shown a state, and the polynomial is extrapolating. So
+the model holds the hour at that envelope: a level reached sooner than any storm
+reached it is priced as the earliest storm that did. The fit also constrains P to rise
+along the envelope, so rising water never lowers P, held or not.
+
+The GBMs also see the rate of rise; a function of (h, t) can at best give their
+average over the states sharing a level and an hour. v1.0 (a quadratic kernel
+fitted to one gauge) fell as the level rose early in a storm and fell back to 0.29
+at the severe level late in it; see MKM-FPO-001_wolfram_benchmark.
+
+``p_flood_simple`` is not a probability: it is the ratio w/s capped at 1, the
+proximity measure portfolio stress uses where only the peak level is known.
 """
 
 import math
@@ -77,26 +62,53 @@ from typing import List, Tuple
 
 from config.models import (
     flood_poly_coeffs,
+    flood_poly_envelope,
     flood_poly_exp_clamp,
     flood_poly_fit,
-    flood_poly_log_eps,
+    flood_poly_level_floor,
     flood_poly_storm_hours,
+    flood_poly_terms,
 )
 
-# ---------------------------------------------------------------------------
-# Core model functions
-# ---------------------------------------------------------------------------
 
-def _log_features(water_level: float, hour: int,
-                  severe_level: float) -> Tuple[float, float]:
-    """Transform raw inputs to log-space features.
-
-    Returns:
-        (h, t) where h = ln(w/s) and t = ln((hour+1)/T).
-    """
-    h = math.log(max(water_level / severe_level, flood_poly_log_eps))
+def _log_features(water_level: float, hour: int, severe_level: float) -> Tuple[float, float]:
+    """(h, t) = (ln(w/s), ln((hour+1)/T)), the level held at ``flood_poly_level_floor``
+    of severe below it."""
+    h = math.log(max(water_level / severe_level, flood_poly_level_floor))
     t = math.log((hour + 1) / flood_poly_storm_hours)
     return h, t
+
+
+_H_FLOOR = math.log(flood_poly_level_floor)
+_ENV_H = [math.log(r) for r, _ in flood_poly_envelope]
+_ENV_T = [math.log((hour + 1) / flood_poly_storm_hours) for _, hour in flood_poly_envelope]
+
+
+def _envelope_segment(h: float):
+    """The envelope segment holding log level h, or None below its first knot."""
+    if h <= _ENV_H[0]:
+        return None
+    for a in range(len(_ENV_H) - 1):
+        if h <= _ENV_H[a + 1]:
+            return a
+    return len(_ENV_H) - 2
+
+
+def envelope_t(h: float) -> float:
+    """The earliest supported log time at log level h; -inf where every hour is."""
+    a = _envelope_segment(h)
+    if a is None:
+        return -math.inf
+    f = min(1.0, (h - _ENV_H[a]) / (_ENV_H[a + 1] - _ENV_H[a]))
+    return _ENV_T[a] + f * (_ENV_T[a + 1] - _ENV_T[a])
+
+
+def envelope_slope(h: float) -> float:
+    """d(envelope_t)/dh at log level h."""
+    a = _envelope_segment(h)
+    if a is None or h > _ENV_H[-1]:
+        return 0.0
+    return (_ENV_T[a + 1] - _ENV_T[a]) / (_ENV_H[a + 1] - _ENV_H[a])
 
 
 def _sigmoid(z: float) -> float:
@@ -105,98 +117,97 @@ def _sigmoid(z: float) -> float:
     return 1.0 / (1.0 + math.exp(-z))
 
 
-def p_flood_poly(water_level: float, hour: int,
-                 severe_level: float) -> float:
-    """Estimate P(flood) from water level, storm hour, and severe threshold.
+def kernel(h: float, t: float) -> float:
+    """The log-odds below severe: sum of c_k h^i t^j."""
+    return sum(c * h ** i * t ** j for (i, j), c in zip(flood_poly_terms, flood_poly_coeffs))
 
-    This is the full 2D model using both log(w/s) and log(t/T).
-    Use for single-gauge hourly stress scenarios where the time
-    dimension matters.
 
-    Args:
-        water_level: Current water level in metres AOD.
-        hour: Storm hour index (0 = start, 167 = end).
-        severe_level: Severe flood warning threshold in metres AOD.
+def kernel_dh(h: float, t: float) -> float:
+    """d(kernel)/dh, term by term."""
+    return sum(c * i * h ** (i - 1) * t ** j for (i, j), c in zip(flood_poly_terms, flood_poly_coeffs) if i)
 
-    Returns:
-        Probability between 0 and 1.
-    """
+
+def kernel_dt(h: float, t: float) -> float:
+    """d(kernel)/dt, term by term."""
+    return sum(c * j * h ** i * t ** (j - 1) for (i, j), c in zip(flood_poly_terms, flood_poly_coeffs) if j)
+
+
+def p_from_features(h: float, t: float) -> float:
+    """P(flood) at log level h and log time t: 1 at or above severe (h >= 0); below
+    it h held at the level floor and t at the support envelope."""
+    if h >= 0:
+        return 1.0
+    h = max(h, _H_FLOOR)
+    return _sigmoid(kernel(h, max(t, envelope_t(h))))
+
+
+def slope_from_features(h: float, t: float) -> float:
+    """dP/dh at a fixed hour: zero at or above severe and below the floor; between,
+    sigma'(z) dz/dh, plus dz/dt along the envelope where the hour is held there."""
+    if h >= 0 or h < _H_FLOOR:
+        return 0.0
+    held = envelope_t(h)
+    if t < held:
+        dz = kernel_dh(h, held) + kernel_dt(h, held) * envelope_slope(h)
+        t = held
+    else:
+        dz = kernel_dh(h, t)
+    z = kernel(h, t)
+    return _sigmoid(z) * _sigmoid(-z) * dz          # sigma'(z), without 1 - p cancelling near P = 1
+
+
+def p_flood_poly(water_level: float, hour: int, severe_level: float) -> float:
+    """P(flood) from the water level, the storm hour (0..167) and the severe threshold."""
     if severe_level <= 0:
         return 0.0
-    a, b, c, d, e, f = flood_poly_coeffs
-    h, t = _log_features(water_level, hour, severe_level)
-    z = a * h + b * t + c * h * t + d * h**2 + e * t**2 + f
-    return _sigmoid(z)
+    return p_from_features(*_log_features(water_level, hour, severe_level))
 
 
 def p_flood_simple(water_level: float, severe_level: float) -> float:
-    """Time-independent P(flood) for portfolio stress.
+    """The ratio w/s capped at 1 -- a proximity measure, not a probability.
 
-    Uses the ratio of water level to severe threshold, capped at 1.0.
-    Suitable for portfolio-level stress where only peak water level
-    is available (no hourly dimension).
-
-    Args:
-        water_level: Peak water level in metres AOD.
-        severe_level: Severe flood warning threshold in metres AOD.
-
-    Returns:
-        Probability between 0 and 1.
+    Portfolio stress uses it where only a gauge's peak level is known.
     """
     if severe_level <= 0:
         return 0.0
     return min(1.0, water_level / severe_level)
 
 
-def p_flood_series(water_levels: List[float],
-                   severe_level: float) -> List[float]:
-    """Compute P(flood) for an hourly hydrograph.
+def p_flood_series(water_levels: List[float], severe_level: float) -> List[float]:
+    """``p_flood_poly`` for an hourly hydrograph (hour = position)."""
+    return [p_flood_poly(wl, h, severe_level) for h, wl in enumerate(water_levels)]
 
-    Convenience wrapper over ``p_flood_poly`` for a full time series.
-
-    Args:
-        water_levels: Hourly water levels (length <= storm_hours).
-        severe_level: Severe flood warning threshold in metres AOD.
-
-    Returns:
-        List of probabilities, same length as water_levels.
-    """
-    return [
-        p_flood_poly(wl, h, severe_level)
-        for h, wl in enumerate(water_levels)
-    ]
-
-
-# ---------------------------------------------------------------------------
-# Model metadata (for audit / reporting)
-# ---------------------------------------------------------------------------
 
 def model_card() -> dict:
-    """Return model metadata for audit and documentation."""
+    """Model metadata for audit and documentation."""
     return {
         "model_id": flood_poly_fit["model_id"],
         "version": flood_poly_fit["version"],
         "type": "logistic_sigmoid_polynomial",
         "features": ["ln(w/s)", "ln((t+1)/T)"],
         "num_parameters": len(flood_poly_coeffs),
-        "coefficients": {
-            "a (log_h_s)": flood_poly_coeffs.a,
-            "b (log_t)": flood_poly_coeffs.b,
-            "c (h*t interaction)": flood_poly_coeffs.c,
-            "d (h² quadratic)": flood_poly_coeffs.d,
-            "e (t² quadratic)": flood_poly_coeffs.e,
-            "f (intercept)": flood_poly_coeffs.f,
-        },
-        "fitted_from": {
-            "source_model": "GradientBoostingClassifier",
-            "source_gauge": flood_poly_fit["source_gauge"],
-            "source_auc": flood_poly_fit["source_auc"],
-            "source_samples": flood_poly_fit["source_samples"],
-        },
-        "fit_quality": {
-            "r_squared": flood_poly_fit["r_squared"],
-            "mae": flood_poly_fit["mae"],
-            "rmse": flood_poly_fit["rmse"],
-        },
+        "coefficients": {f"h^{i} t^{j}": c for (i, j), c in zip(flood_poly_terms, flood_poly_coeffs)},
+        "fitted_to": flood_poly_fit["fitted_to"],
+        "fit_quality": flood_poly_fit["fit_quality"],
         "storm_hours": flood_poly_storm_hours,
+        "support_envelope": [list(knot) for knot in flood_poly_envelope],
+    }
+
+
+def client_params() -> dict:
+    """What a browser needs to evaluate the model itself, served rather than copied.
+
+    The port-stress screen draws P(flood) hour by hour client-side. It used to carry
+    its own copy of v1.0's coefficients, which a refit would have left behind; it now
+    fetches these, so the screen and the server are one model.
+    """
+    return {
+        "model_id": flood_poly_fit["model_id"],
+        "version": flood_poly_fit["version"],
+        "terms": [list(term) for term in flood_poly_terms],
+        "coeffs": list(flood_poly_coeffs),
+        "level_floor": flood_poly_level_floor,
+        "envelope": [list(knot) for knot in flood_poly_envelope],
+        "storm_hours": flood_poly_storm_hours,
+        "exp_clamp": flood_poly_exp_clamp,
     }

@@ -255,14 +255,15 @@ def run_stress_scenario():
             'storm_id': storm_id,
             'storm_name': storm.get('name', ''),
             'intensity_category': storm.get('intensity_category', ''),
-            'model_type': 'gbm_classifier' if _classifier_ready else 'flood_poly',
+            # P(flood) is always the flood polynomial (MKM-FPO-001); the gauge's
+            # GBM classifier, trained or not, does not price this scenario.
+            'model_type': 'flood_poly',
             'model_auc': None,
             'classifier_status': 'ready' if _classifier_ready else 'not_trained',
             'classifier_notice': (
-                None if _classifier_ready else
-                f"Using analytical flood polynomial for {gauge_id}. "
-                "Train a GBM classifier for improved accuracy via the "
-                "Stress tab \u2192 Train Classifier button."
+                f"P(flood) is priced with the flood polynomial (MKM-FPO-001); "
+                f"the GBM classifier for {gauge_id} is "
+                f"{'trained' if _classifier_ready else 'not trained'} and is not used here."
             ),
             'effective_precipitation_mm': storm.get(
                 'effective_precipitation_mm', 0),
