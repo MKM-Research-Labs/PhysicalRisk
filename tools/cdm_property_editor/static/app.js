@@ -325,9 +325,50 @@ function statRowsHtml(items) {
     `</tbody></table>`;
 }
 
+// Gauge flood — storms that took the river above its alert level, worst peak first.
+function gaugeFloodHtml(data) {
+  const evs = data.events || [];
+  if (!evs.length) return msgHtml(data.note || "No storm took this gauge above its alert level.");
+  let rows = "";
+  for (const e of evs) {
+    rows += `<tr title="${e.intensity || ""}"><td class="pt-storm">${e.storm}</td>` +
+      `<td>${clusterBadge(e.type)}</td>` +
+      `<td class="pt-num">${e.peak_m.toFixed(2)} m</td>` +
+      `<td class="lv-${e.level}">${e.level}</td></tr>`;
+  }
+  const cap = `${data.count.toLocaleString()} of ${data.n_storms.toLocaleString()} storms ` +
+              `above alert &middot; top ${evs.length} by peak`;
+  return `<div class="peril-cap">${cap}</div>` +
+    `<div class="peril-scroll">${segBarHtml(data.levels)}${statRowsHtml(data.stats)}` +
+    `<table class="peril-table"><thead><tr>` +
+      `<th>Storm</th><th>Type</th><th>Peak</th><th>Level</th>` +
+    `</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// Wind — the worst typhoon damage rolls for this asset.
+function windHtml(data) {
+  const evs = data.events || [];
+  if (!evs.length) return msgHtml(data.note || "No wind events on record.");
+  let rows = "";
+  for (const e of evs) {
+    rows += `<tr title="${e.intensity || ""}"><td class="pt-storm">${e.storm}</td>` +
+      `<td>${clusterBadge(e.type)}</td>` +
+      `<td class="pt-num">${e.peak_ms.toFixed(1)} m/s</td>` +
+      `<td class="pt-dmg">${e.damage_pct.toFixed(1)}%</td></tr>`;
+  }
+  const cap = `${data.count.toLocaleString()} of ${data.n_storms.toLocaleString()} typhoons ` +
+              `caused &ge;${data.min_damage_pct}% damage &middot; top ${evs.length}`;
+  return `<div class="peril-cap">${cap}</div>` +
+    `<div class="peril-scroll"><table class="peril-table"><thead><tr>` +
+      `<th>Storm</th><th>Type</th><th>Peak wind</th><th>Damage</th>` +
+    `</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
 // Flood / wind — a list of discrete events.
 function eventTableHtml(data, peril) {
   if (!data || !data.supported) return msgHtml(data && data.reason || "Not modelled.");
+  if (data.kind === "gauge") return gaugeFloodHtml(data);
+  if (data.kind === "wind") return windHtml(data);
   const evs = data.events || [];
   if (!evs.length)
     return msgHtml(data.note ||

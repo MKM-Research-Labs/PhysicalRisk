@@ -29,8 +29,46 @@ tested deterministically without the data tree.
 
 # --- flood ------------------------------------------------------------------
 def test_flood_unsupported_for_non_hc_asset(app_mod):
-    out = app_mod._flood_payload("gauge", "G1")
+    out = app_mod._flood_payload("mortgage", "M1")
     assert out["supported"] is False
+
+
+def _gauge_stubs(app_mod, monkeypatch, responses, hc=None):
+    import database
+    monkeypatch.setattr(database, "get_gauge_timeseries", lambda c, g: {
+        "storm_responses": {"responses": responses}})
+    monkeypatch.setattr(app_mod, "_gauge_hc", lambda r: hc or {})
+    monkeypatch.setattr(app_mod, "_storm_sequence_of",
+                        lambda: {"s1a": "SEQ1", "s1b": "SEQ1", "s2": "SEQ2", "s3": "SEQ3"})
+    monkeypatch.setattr(app_mod, "_storm_type_index",
+                        lambda: {"SEQ1": {"type": "doublet", "intensity": "extreme"}})
+
+
+def test_gauge_flood_rolls_member_storms_up_to_sequences(app_mod, monkeypatch):
+    _gauge_stubs(app_mod, monkeypatch, [
+        {"storm_id": "s1a", "peak_level_m": 5.0, "exceeded_alert": True},
+        {"storm_id": "s1b", "peak_level_m": 7.0, "exceeded_alert": True,
+         "exceeded_warning": True, "exceeded_severe": True},
+        {"storm_id": "s2", "peak_level_m": 4.5, "exceeded_alert": True,
+         "exceeded_warning": True},
+        {"storm_id": "s3", "peak_level_m": 2.0},          # below alert: not an event
+    ], hc={"annual_flood_prob_severe": 0.01, "severe_flood_warning_m": 6.5})
+    out = app_mod._flood_payload("gauge", "G1")
+    assert out["supported"] is True and out["kind"] == "gauge"
+    assert out["count"] == 2 and out["n_storms"] == 3
+    # one row per sequence, its highest member peak and level, worst first
+    assert [(e["storm"], e["peak_m"], e["level"]) for e in out["events"]] == [
+        ("SEQ1", 7.0, "severe"), ("SEQ2", 4.5, "warning")]
+    assert out["events"][0]["type"] == "doublet"
+    assert {lv["cls"]: lv["count"] for lv in out["levels"]} == {
+        "severe": 1, "warning": 1, "alert": 0}
+    assert out["stats"][0] == {"label": "Annual P(severe)", "value": 0.01, "pct": True}
+
+
+def test_gauge_flood_without_simulation_says_so(app_mod, monkeypatch):
+    _gauge_stubs(app_mod, monkeypatch, [])
+    out = app_mod._flood_payload("gauge", "G1")
+    assert out["count"] == 0 and out["events"] == [] and "note" in out
 
 
 def test_flood_no_record_zero_events(app_mod, monkeypatch):
@@ -73,9 +111,55 @@ def test_wind_unsupported_for_non_hc_asset(app_mod):
     assert app_mod._wind_payload("gauge", "G1")["supported"] is False
 
 
-def test_wind_zero_event_placeholder(app_mod):
+def _typhoons(app_mod, monkeypatch, events):
+    """Stub the typhoon damage events ({event_id: [(asset, damage_ratio, peak)]})."""
+    import database
+    app_mod._CACHE.pop("wind", None)
+    monkeypatch.setattr(database, "iter_typhoon_event_ids", lambda c: iter(events))
+    monkeypatch.setattr(database, "get_typhoon_event", lambda c, eid: {
+        "event_id": eid, "damages": [
+            {"property_id": a, "damage_ratio": r, "peak_sustained_ms": p}
+            for a, r, p in events[eid]]})
+    monkeypatch.setattr(app_mod, "_typhoon_storms", lambda: {"E1": "STORM-1"})
+    monkeypatch.setattr(app_mod, "_storm_type_index",
+                        lambda: {"STORM-1": {"type": "cluster", "intensity": "extreme"}})
+
+
+def test_wind_lists_worst_typhoons_at_or_above_one_percent(app_mod, monkeypatch):
+    events = {f"E{i}": [("P1", i / 100, 10.0 + i), ("P2", 0.001, 5.0)] for i in range(15)}
+    _typhoons(app_mod, monkeypatch, events)
     out = app_mod._wind_payload("property", "P1")
-    assert out["supported"] is True and out["count"] == 0 and "note" in out
+    app_mod._CACHE.pop("wind", None)
+    assert out["supported"] is True and out["kind"] == "wind"
+    assert out["n_storms"] == 15
+    assert out["count"] == 14                      # E1..E14 reach 1%; E0 doesn't
+    assert len(out["events"]) == app_mod.EVENT_TOP_N
+    assert out["events"][0] == {"storm": "E14", "type": "—", "intensity": None,
+                                "peak_ms": 24.0, "damage_pct": 14.0}
+
+
+def test_wind_below_threshold_rows_dropped(app_mod, monkeypatch):
+    _typhoons(app_mod, monkeypatch, {"E1": [("P1", 0.02, 20.0)], "E2": [("P1", 0.005, 9.0)]})
+    out = app_mod._wind_payload("property", "P1")
+    app_mod._CACHE.pop("wind", None)
+    assert out["count"] == 1
+    assert [(e["storm"], e["type"], e["damage_pct"]) for e in out["events"]] == [
+        ("STORM-1", "cluster", 2.0)]
+
+
+def test_wind_no_meaningful_damage_explains_why(app_mod, monkeypatch):
+    _typhoons(app_mod, monkeypatch, {"E1": [("P1", 0.0014, 8.0)]})
+    out = app_mod._wind_payload("property", "P1")
+    app_mod._CACHE.pop("wind", None)
+    assert out["count"] == 0 and out["events"] == []
+    assert "worst 0.14%" in out["note"]
+
+
+def test_wind_without_typhoon_run(app_mod, monkeypatch):
+    _typhoons(app_mod, monkeypatch, {})
+    out = app_mod._wind_payload("property", "P1")
+    app_mod._CACHE.pop("wind", None)
+    assert out["count"] == 0 and "port --typhoon" in out["note"]
 
 
 # --- fire -------------------------------------------------------------------
