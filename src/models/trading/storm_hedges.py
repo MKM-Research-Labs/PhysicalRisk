@@ -128,6 +128,9 @@ def load_trades(catchment: str) -> List[Dict]:
             'notional': ps.get('LegData', {}).get('Notional', 0) or 0,
             'end_date': ps.get('ScheduleData', {}).get('EndDate', ''),
             'spread_bps': ps.get('Pricing', {}).get('SpreadBps', 0),
+            # Pre-storm model value, from the payer's side (the REIT on a
+            # PropertyPRS). Shown on the hedge book; never part of a payout.
+            'npv': ps.get('Pricing', {}).get('NPV', 0) or 0,
             'gauge_id': basket[0].get('GaugeID', ''),
             'gauge_name': basket[0].get('GaugeName', ''),
             'asset_id': prop.get('PropertyID', ''),

@@ -152,17 +152,40 @@ class TestStormListSortMode:
 
 
 class TestHedgesTab:
-    """The storm table has its own Hedges tab for hedge payouts."""
+    """The storm table has a Hedges tab (the REIT's hedge book) after
+    Commercial, and a Hedge Payout tab after Loan/Mortgage."""
 
-    def test_tab_button_between_loan_and_summary(self, table_js):
-        loan = table_js.index("mkBtn('mortgage'")
+    def test_hedges_tab_follows_commercial(self, table_js):
+        commercial = table_js.index("mkBtn('commercial'")
         hedges = table_js.index("mkBtn('hedges',     'Hedges'")
-        summary = table_js.index("mkBtn('summary'")
-        assert loan < hedges < summary
+        damage = table_js.index("mkBtn('damage'")
+        assert commercial < hedges < damage
 
-    def test_switching_to_hedges_loads_them(self, table_js):
+    def test_payout_tab_between_loan_and_summary(self, table_js):
+        loan = table_js.index("mkBtn('mortgage'")
+        payout = table_js.index("mkBtn('payout',     'Hedge Payout'")
+        summary = table_js.index("mkBtn('summary'")
+        assert loan < payout < summary
+
+    def test_switching_loads_each_tab(self, table_js):
         assert "sub === 'hedges'" in table_js
-        assert 'function loadHedges()' in table_js
+        assert 'function loadHedgeBook()' in table_js
+        assert "sub === 'payout'" in table_js
+        assert 'function loadHedgePayout()' in table_js
+
+    def test_both_tabs_are_highlightable(self, table_js):
+        assert "['portfolio','commercial','hedges','damage','wind','mortgage','payout','summary']" in table_js
+
+    def test_summary_counts_wind_from_the_typhoon(self, table_js):
+        """Wind damage comes from the paired typhoon, not a placeholder."""
+        assert "(wd.summary || {}).total_wind_damage" in table_js
+        assert "'/api/v1/propertyts/' + sid + '/wind-impact'" in table_js
+        assert 'Model pending' not in table_js
+
+    def test_book_shows_premium_and_lay_off(self, table_js):
+        assert 'REIT hedge book' in table_js
+        assert 'Market-maker lay-off' in table_js
+        assert 'Pre-storm MTM (to REIT)' in table_js
 
     def test_reads_the_hedges_endpoint(self, table_js):
         assert "'/api/v1/propertyts/' + sid + '/hedges'" in table_js

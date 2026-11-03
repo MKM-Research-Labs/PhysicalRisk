@@ -46,6 +46,14 @@
                 if (sid && (!spHedgeData || spHedgeData.storm_id !== sid)) {
                     pending.push(fetchHedgeData(sid).catch(function(){ /* leave spHedgeData as is */ }));
                 }
+                if (sid && (!spWindData || spWindData.storm_id !== sid)) {
+                    pending.push(
+                        fetch(getBaseUrl() + '/api/v1/propertyts/' + sid + '/wind-impact', {mode:'cors'})
+                            .then(function(r){return r.json();})
+                            .then(function(d){ if (d.status === 'success') spWindData = d; })
+                            .catch(function(){ /* leave spWindData as is */ })
+                    );
+                }
                 if (sid && (!spCommercialImpact || spCommercialImpact._storm_id !== sid)) {
                     pending.push(
                         fetch(getBaseUrl() + '/api/v1/commercial/' + sid + '/portfolio-impact', {mode:'cors'})
@@ -82,7 +90,15 @@
                 var comTotal     = cp.total_assets || (spCommercialData ? (spCommercialData.summary || {}).num_assets || 0 : 0);
 
                 var floodLoss = (rp.total_damage || 0) + (cp.total_damage || 0);
-                var windLoss  = null;  // pending wind model
+
+                // Wind: the typhoon paired with this storm, if any. The wind
+                // model covers residential properties only.
+                var stormSelW = document.getElementById('sp-storm-select');
+                var wd = (spWindData && stormSelW && spWindData.storm_id === stormSelW.value) ? spWindData : null;
+                var hasTyphoon = !!(wd && wd.typhoon);
+                var windLoss  = wd ? ((wd.summary || {}).total_wind_damage || 0) : null;
+                var windNote  = !wd ? 'Not loaded'
+                    : (hasTyphoon ? '⚡ ' + (wd.typhoon.event_id || '') + ' — residential only' : 'No typhoon paired with this storm');
 
                 var impairedRes = rp.mortgages_in_negative_equity || 0;
                 var impairedCom = cp.loans_in_negative_equity || 0;
@@ -144,8 +160,8 @@
                       + '</div>';
                 html += '<div style="' + cardStyle + 'border-left:3px solid var(--red);">'
                       +  '<div style="' + labelStyle + '">Wind Damage</div>'
-                      +  '<div style="' + bigValStyle + 'color:var(--muted-2);">' + (windLoss != null ? fmtGBP(windLoss) : '\u2014') + '</div>'
-                      +  '<div style="' + smallStyle + '">Model pending</div>'
+                      +  '<div style="' + bigValStyle + 'color:' + (windLoss ? 'var(--red)' : 'var(--muted-2)') + ';">' + (windLoss ? fmtGBP(windLoss) : '\u2014') + '</div>'
+                      +  '<div style="' + smallStyle + '">' + windNote + '</div>'
                       + '</div>';
                 html += '<div style="' + cardStyle + 'border-left:3px solid var(--red);">'
                       +  '<div style="' + labelStyle + '">Total Loss (Gross)</div>'
@@ -164,7 +180,7 @@
                 html += '<div style="' + cardStyle + 'border-left:3px solid var(--green-dark);">'
                       +  '<div style="' + labelStyle + '">Hedge Payout to REIT</div>'
                       +  '<div style="' + bigValStyle + 'color:var(--green-dark);">' + fmtGBP(hedgePayout) + '</div>'
-                      +  '<div style="' + smallStyle + '">Paid when the trigger gauge reaches severe</div>'
+                      +  '<div style="' + smallStyle + '">' + (floodLoss > 0 ? 'Covers ' + Math.round(hedgePayout / floodLoss * 100) + '% of the flood loss' : 'Paid when the trigger gauge reaches severe') + '</div>'
                       + '</div>';
                 html += '<div style="' + cardStyle + 'border-left:3px solid ' + ((deskNet || 0) >= 0 ? 'var(--green-dark)' : 'var(--red-dark)') + ';">'
                       +  '<div style="' + labelStyle + '">Market-Maker Net</div>'
