@@ -87,12 +87,12 @@ def compute_retention(distance_m: float,
     Compute distance-based retention factor for water surface elevation.
 
     Pure exponential decay from distance 0: retention = exp(-d / length).
-    With the default 3 km e-folding length, a property 600 m from the
-    gauge retains ~82 % of the flood signal; at 2 km ~51 %; at 5 km ~19 %.
+    With the default 10 km e-folding length, a property 600 m from the
+    gauge retains ~94 % of the flood signal; at 2 km ~82 %; at 5 km ~61 %.
 
     Args:
         distance_m: Distance from river/gauge in meters
-        length: Characteristic retention length in meters (default 3000)
+        length: Characteristic retention length in meters (default 10000)
 
     Returns:
         Retention factor between 0 and 1 (1 = full signal, 0 = no signal)

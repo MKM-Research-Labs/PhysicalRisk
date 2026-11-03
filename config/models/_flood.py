@@ -108,8 +108,8 @@ DEFAULT_TERRAIN_TYPE: str = 'urban'
 # Default retention length scale (meters).  Controls the exponential
 # decay of peak WSE with distance from river.  At d = L the retention
 # factor is 1/e ≈ 0.37; at d = 0 retention is 1.0 (full signal).
-# 3 km e-folding length: at 600 m retention ≈ 0.82, at 2 km ≈ 0.51,
-# at 5 km ≈ 0.19.  No near-field bypass — attenuation applies from 0 m.
+# 10 km e-folding length: at 600 m retention ≈ 0.94, at 2 km ≈ 0.82,
+# at 5 km ≈ 0.61.  No near-field bypass — attenuation applies from 0 m.
 DEFAULT_RETENTION_LENGTH: float = 10_000.0
 
 # Minimum slope to avoid division instability
