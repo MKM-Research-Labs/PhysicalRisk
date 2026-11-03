@@ -65,7 +65,6 @@ function tierOf(path) {
 
 const $ = (sel) => document.querySelector(sel);
 
-const AUDIT_KEY = "__audit__";        // special top tab (not an asset)
 const WATERFALL_KEY = "__waterfall__"; // synthetic detail tab (not a CDM section)
 const WATERFALL_ASSETS = ["property", "commercial"];
 
@@ -808,7 +807,7 @@ function openLineagePopup(fieldPath, fieldLabel) {
   document.getElementById("lin-close").addEventListener("click", () => overlay.remove());
 }
 
-// ---- amend a field via the 3-dots menu (commit to sandbox + audit) --------
+// ---- amend a field via the 3-dots menu (commit to sandbox; logged server-side)
 
 async function ensureEditSpec(asset) {
   if (EDIT_SPECS[asset]) return;
@@ -1118,16 +1117,12 @@ async function selectAsset(key) {
   CURRENT_ID = null;
   closeModal();
   renderAssetTabs();
-  const isAudit = key === AUDIT_KEY;
-  $(".content").classList.toggle("audit-view", isAudit);   // light-blue panel
-  $(".hint").classList.toggle("hidden", isAudit);
   // "+ Add" shows for assets with a form; "Upload" for any uploadable asset.
-  const canAdd = !isAudit && !!CREATE_FIELDS[key];
-  const canUpload = !isAudit && UPLOAD_ASSETS.includes(key);
+  const canAdd = !!CREATE_FIELDS[key];
+  const canUpload = UPLOAD_ASSETS.includes(key);
   $("#add-record").classList.toggle("hidden", !canAdd);
   $("#upload-record").classList.toggle("hidden", !canUpload);
   if (canAdd) ensureEditSpec(key);
-  if (isAudit) { await renderAudit(); return; }
 
   const label = assetLabel(key);
   $("#sidebar-title").textContent = label;
@@ -1151,55 +1146,12 @@ async function selectAsset(key) {
   }
 }
 
-// ---- audit trail view ------------------------------------------------------
-
-async function renderAudit() {
-  $("#sidebar-title").textContent = "Audit";
-  $("#item-list").innerHTML = "";
-  $("#content-title").textContent = "Audit Trail";
-  $("#content-sub").textContent =
-    "Field amendments committed to the sandbox (newest first).";
-  const cards = $("#cards");
-  cards.innerHTML = '<div class="audit-msg">Loading…</div>';
-  let entries = [];
-  try { entries = await (await fetch("/api/audit")).json(); } catch (_) { entries = []; }
-  $("#count").textContent = `${entries.length} amendment${entries.length === 1 ? "" : "s"}`;
-  if (!entries.length) {
-    cards.innerHTML = '<div class="audit-msg">No amendments yet. Use a field’s '
-      + '⋮ menu → Amend to make one.</div>';
-    return;
-  }
-  const rows = entries.map((e) =>
-    `<tr>` +
-      `<td class="au-when">${(e.timestamp || "").replace("T", " ")}</td>` +
-      `<td><span class="au-badge">${e.asset_label || e.asset}</span></td>` +
-      `<td class="au-rec">${e.record_id}</td>` +
-      `<td class="au-field" title="${e.field}">${prettyLabel(e.field_label || "")}</td>` +
-      `<td class="au-change"><span class="au-old">${formatValue(e.old)}</span>` +
-        `<span class="au-arrow">→</span>` +
-        `<span class="au-new">${formatValue(e.new)}</span></td>` +
-      `<td>${e.user || ""}</td>` +
-    `</tr>`).join("");
-  // Same layout as the regulatory-workflow audit trail: a "Showing X of Y" bar
-  // above a flat table (Timestamp · Asset · Record · Field · Change · User).
-  cards.innerHTML =
-    `<div class="audit-pane">` +
-      `<div class="audit-showing">Showing <b>${entries.length}</b> of ` +
-        `<b>${entries.length}</b> entries</div>` +
-      `<table class="audit-table"><thead><tr>` +
-        `<th>Timestamp</th><th>Asset</th><th>Record</th><th>Field</th>` +
-        `<th>Change</th><th>User</th>` +
-      `</tr></thead><tbody>${rows}</tbody></table>` +
-    `</div>`;
-}
-
 // ---- boot ------------------------------------------------------------------
 
 async function boot() {
   setStatus("Loading…");
   try {
     ASSETS = await (await fetch("/api/assets")).json();
-    ASSETS.push({ key: AUDIT_KEY, label: "Audit" });  // special non-asset tab
     try { LINEAGE = await (await fetch("/api/lineage")).json(); } catch (_) { LINEAGE = null; }
     $("#search").addEventListener("input", (e) => renderList(e.target.value));
     $("#add-record").addEventListener("click", openCreateForm);
