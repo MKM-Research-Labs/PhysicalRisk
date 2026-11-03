@@ -30,13 +30,15 @@ import re
 
 import mpmath as mp
 import pytest
+from tools.wolfram_oracle import __main__ as cli
+from tools.wolfram_oracle._wl import save_wolfram
+from tools.wolfram_oracle.depthdamage import cases, claims
+from tools.wolfram_oracle.depthdamage import reference as ref
+from tools.wolfram_oracle.depthdamage import run as runner
+from tools.wolfram_oracle.depthdamage import wolfram as oracle
 
 from config.damage import DAMAGE_POINTS, DD_POLY_COEFFS, DEPTH_POINTS
 from config.models import ORACLE_DD_CODE_TOL, ORACLE_DD_EARTH_R_M, ORACLE_DD_Z_LIMIT
-from tools.wolfram_oracle import __main__ as cli
-from tools.wolfram_oracle._wl import save_wolfram
-from tools.wolfram_oracle.depthdamage import cases, claims, reference as ref, run as runner
-from tools.wolfram_oracle.depthdamage import wolfram as oracle
 
 
 @pytest.fixture(scope="module")
@@ -59,8 +61,10 @@ class TestReference:
 
     @pytest.mark.parametrize("delta", [0.0, 0.2, 0.7, 0.95, 1.0])
     def test_the_clipped_expectation_by_quadrature(self, delta):
+        def f(z):
+            return min(max(delta * (1 + mp.mpf("0.2") * z), 0), 1) * mp.npdf(z)
+
         with mp.workdps(30):
-            f = lambda z: min(max(delta * (1 + mp.mpf("0.2") * z), 0), 1) * mp.npdf(z)
             # split at both kinks of the clip: z = -5 and z = (1/delta - 1)/0.2
             want = mp.quad(f, sorted({-mp.inf, -5, (1 / mp.mpf(delta) - 1) * 5, mp.inf})) if delta else 0
             assert float(ref.expected_clipped(delta)) == pytest.approx(float(want), rel=1e-20, abs=1e-30)
