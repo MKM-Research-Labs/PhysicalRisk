@@ -29,6 +29,7 @@
     python -m tools.wolfram_oracle seis001 [--out DIR] [--no-live] [--no-pdf]
     python -m tools.wolfram_oracle ghd001 [--out DIR] [--no-live] [--no-pdf]
     python -m tools.wolfram_oracle fire001 [--out DIR] [--no-live] [--no-pdf]
+    python -m tools.wolfram_oracle dd001 [--out DIR] [--no-live] [--no-pdf]
 
 With an activated Wolfram Engine and ``wolframclient`` installed, one run
 evaluates every oracle in a live kernel. Without them it writes ``.wl`` scripts
@@ -51,6 +52,7 @@ BENCHMARKS = {
     "seis001": "tools.wolfram_oracle.seismic.run",
     "ghd001": "tools.wolfram_oracle.gaugehd.run",
     "fire001": "tools.wolfram_oracle.fire.run",
+    "dd001": "tools.wolfram_oracle.depthdamage.run",
 }
 
 

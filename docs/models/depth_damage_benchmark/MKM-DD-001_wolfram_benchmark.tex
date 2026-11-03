@@ -1,0 +1,198 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Depth-Damage Curve Model (MKM-DD-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of the Code and its v2.0 Document}
+\newcommand{\docversion}{0.2}
+\newcommand{\docdate}{03-November-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{evidence_tables_macros}
+% The shared history table sets every column to its natural width; wrap the description.
+\renewcommand{\mkmhistorypage}[1]{%
+    \section{Document History}
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{l|l|p{9cm}|l}
+            \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author} \\
+            \hline
+            #1
+        \end{tabular}
+    \end{table}
+}
+
+\begin{document}
+% Long code paths and identifiers cannot hyphenate; let the spacing stretch instead.
+\sloppy
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the Depth-Damage Curve Model (MKM-DD-001): the functions in
+\texttt{src/models/floodrisk/} that turn a flood at a gauge into depth, timing and damage
+at a property. It asks whether the code computes what its model document
+(\texttt{flood\_risk\_v2.0.pdf}) says, and whether what the document says holds.
+
+Version~0.1 tested the filed v1.1 of that document and found it no longer described the
+model. The code was right, but the document gave a 2{,}000\,m retention length where the
+code uses 10{,}000\,m, described equations the code had dropped, and printed velocities,
+a curve-shift sensitivity and a distance error that its own equations do not give. The
+document has been rewritten to the code as v2.0, and the retention docstring corrected
+to the 10{,}000\,m it uses. This version tests v2.0.
+
+\paragraph{The code computes its documented formulae.} The curve, Manning's velocity,
+slope, travel time, retention, haversine, IDW and correlation matrix agree with a
+50-digit implementation of the document's equations to \bmCodeErr. The property
+hydrograph agrees to the millimetre the code reports. The portfolio Monte Carlo's mean
+loss is within \bmZ{} standard errors of the exact expected loss
+(Table~\ref{tab:bm-checks}). \bmWolframConfirms
+
+\paragraph{The document's claims hold:} \bmClaimsMet{} of \bmClaims{}
+(Table~\ref{tab:bm-claims}).
+\begin{itemize}[leftmargin=*,nosep]
+\item All \bmFigures{} figures in its sensitivity tables reproduce from the code, or, for
+  the curve-shift table, from the exact expected loss.
+\item Its statements about what the code does are true: the retention length, retention
+  applied once, the unread constants, the SVD draws and the 61\% degree error.
+\item The fit it quotes for the degree-5 curve is exact.
+\end{itemize}
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test, at commit \bmCodeCommit{}\bmCodeDirty.
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle dd001}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+The functions of \texttt{src/models/floodrisk/} that v2.0 documents, imported as
+production imports them:
+\begin{itemize}[leftmargin=*,nosep]
+\item \texttt{depth\_damage.scalar\_depth\_damage}, the curve of record;
+\item \texttt{velocity}: Manning, slope, travel time, retention and the property
+  hydrograph, which MKM-PF-001 calls for every property and storm;
+\item \texttt{spatial}: the haversine, IDW and the correlation matrix;
+\item \texttt{risk\_analytics}: the Monte Carlo, VaR, ES and HHI.
+\end{itemize}
+
+\subsection{What is not}
+\begin{itemize}[leftmargin=*,nosep]
+\item The calibration of the curve to survey data and the TUFLOW comparison (v2.0's
+  \S7.1--7.2), which are empirical.
+\item The propagation of MKM-PF-001 and the compound hydrograph of MKM-HG-001.
+\item KMeans clustering.
+\end{itemize}
+This is a benchmark of the implementation (validation question Q8), not independent
+validation (Q9).
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+The reference implements v2.0's equations directly from its text:
+\begin{itemize}[leftmargin=*,nosep]
+\item Table~1's curve, interpolated linearly (Eq.~1);
+\item Manning's $v=h^{2/3}S^{1/2}/n$ with $S\ge0.001$, the slope and $t=d/(3600v)$
+  (Eqs.~3--5);
+\item the retention $e^{-d/\ell}$ (Eq.~6);
+\item the hydrograph of Eq.~7, which scales the gauge's shape to a peak that already
+  carries the retention;
+\item the haversine (Eq.~8), IDW, and the correlation $\rho_0e^{-111d_{\deg}/(L/1000)}$
+  (Eq.~9).
+\end{itemize}
+
+\paragraph{The expected loss, exactly.} Eq.~10 shocks each damage ratio to
+$\mathrm{clip}(\delta(1+0.2z),0,1)$ with $z$ standard normal. Since
+$X=\delta(1+0.2z)\sim N(\delta,(0.2\delta)^2)$,
+\begin{equation}
+\mathbb{E}\,\mathrm{clip}(X,0,1)=\delta\bigl[\Phi(\beta)-\Phi(-5)\bigr]
++0.2\delta\bigl[\varphi(-5)-\varphi(\beta)\bigr]+1-\Phi(\beta),\quad
+\beta=\tfrac{1-\delta}{0.2\delta},
+\end{equation}
+which is v2.0's Eq.~11. The expected portfolio loss is $\sum_jV_j\,\mathbb{E}\,
+\mathrm{clip}(X_j,0,1)$ whatever the correlation, and it gives the curve-shift table
+exactly.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+\paragraph{The cases.}
+\begin{itemize}[leftmargin=*,nosep]
+\item Every family is evaluated over a grid covering the document's tables and their
+  edges: depths from $-0.2$ to 7\,m, zero and negative roughness, slopes below the
+  floor, and negative distances.
+\item The hydrograph is run on a 168-hour triangular storm at three travel times.
+\item The Monte Carlo runs on a 40-property portfolio near the Thames, with depths
+  spanning every damage band. It uses the production defaults: 1{,}000 draws, seed 42,
+  and the code's own correlation matrix.
+\end{itemize}
+
+\paragraph{The printed tables.} Tables~4--6 and~8 are judged as printed: the code's
+value, rounded and formatted as the house generator does, must give each printed figure.
+
+\paragraph{The statements.} Each statement about the code is checked against the code:
+\begin{itemize}[leftmargin=*,nosep]
+\item that retention is applied once, by running the hydrograph with different
+  retention arguments;
+\item that the constants are unread, by searching \texttt{src};
+\item that the draws are by SVD, by reproducing NumPy's legacy draws from the SVD
+  factor.
+\end{itemize}
+
+\paragraph{Wolfram.} Wolfram works from each input's exact value, independently of the
+reference:
+\begin{itemize}[leftmargin=*,nosep]
+\item the curve, through its own first-order \texttt{Interpolation} of Table~1;
+\item Manning and the retention;
+\item the great-circle distance, as $R$ times the angle between the two points' unit
+  vectors;
+\item the clipped expectation, by \texttt{Expectation};
+\item the least-squares fit of a degree-5 curve through the origin to Table~1;
+\item the true length of 0.1$^\circ$ east--west at 51.5$^\circ$N, by
+  \texttt{GeoDistance} on WGS84.
+\end{itemize}
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{The model document's claims}
+\input{evidence_tables_claims}
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The code is shown to compute its documented
+  formulae. Whether the curve fits UK damage, and whether 10{,}000\,m is the right
+  retention length, are empirical questions; v2.0 makes the latter a condition of its
+  Q9.
+\item \textbf{Unused code.} IDW, the correlation matrix, the portfolio analytics and
+  the degree-5 curve are verified, but nothing in production calls them; the
+  property-type factors and 25\,km radius sit unread in config.
+\end{enumerate}
+
+\mkmhistorypage{03-Nov-2026 & 0.1 & First issue: tests the filed v1.1; finds it no longer describes the model (not filed) & David K Kelly \\
+03-Nov-2026 & 0.2 & Tests v2.0, rewritten to the code & David K Kelly \\}
+
+\end{document}
