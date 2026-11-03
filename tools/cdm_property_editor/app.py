@@ -84,6 +84,9 @@ from port.cdm.gauge.schema import GAUGE_SCHEMA  # noqa: E402
 # utility rather than duplicated, so the tool's PRS Waterfall tab is the exact
 # same chart as the production basis-explorer right panel.
 SHARED_WATERFALL_JS = SRC_DIR / "static" / "js" / "property" / "phc_basis_waterfall.js"
+# The renderer reads its colours through the main app's ``Theme`` helper
+# (window.Theme), so that is served alongside it and loaded first.
+SHARED_THEME_JS = SRC_DIR / "static" / "js" / "theme.js"
 
 # Bind the data-access backend selected by MKM_REPO_BACKEND (default 'file').
 use_configured_backend()
@@ -933,6 +936,13 @@ def api_waterfall(asset: str, rid: str):
 def shared_waterfall_js():
     """Serve the main app's spread-waterfall renderer verbatim (shared utility)."""
     return SHARED_WATERFALL_JS.read_text(encoding="utf-8"), 200, \
+        {"Content-Type": "application/javascript"}
+
+
+@app.route("/shared/theme.js")
+def shared_theme_js():
+    """Serve the main app's Theme helper, which the waterfall renderer needs."""
+    return SHARED_THEME_JS.read_text(encoding="utf-8"), 200, \
         {"Content-Type": "application/javascript"}
 
 
