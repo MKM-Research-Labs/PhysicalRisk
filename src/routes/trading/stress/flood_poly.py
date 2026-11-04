@@ -22,7 +22,7 @@
 
 from flask import jsonify
 
-from src.models.stress.flood_poly import client_params
+from models.stress.flood_poly import client_params
 
 from .. import trading_bp
 
