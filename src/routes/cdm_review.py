@@ -33,13 +33,14 @@ the platform (and its tests) should not pay for unless the tool is opened.
 import importlib.util
 import sys
 import threading
-from pathlib import Path
 
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from werkzeug.utils import redirect
 
+from config import config
+
 PREFIX = "/cdm-asset-review"
-TOOL_DIR = Path(__file__).resolve().parents[2] / "tools" / "cdm_property_editor"
+TOOL_DIR = config.get_project_root() / "tools" / "cdm_property_editor"
 # Unique module name: the tool's ``app.py`` must not shadow the repo's ``app``.
 MODULE_NAME = "cdm_asset_review_app"
 
