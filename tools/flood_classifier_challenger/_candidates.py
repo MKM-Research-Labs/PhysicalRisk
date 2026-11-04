@@ -37,7 +37,11 @@ from config.models import (
     CHALLENGER_LOGIT_PARAMS,
     CHALLENGER_RF_PARAMS,
     flood_poly_coeffs,
+    flood_poly_envelope,
     flood_poly_exp_clamp,
+    flood_poly_level_floor,
+    flood_poly_storm_hours,
+    flood_poly_terms,
 )
 from models.stress.flood_classifier._trainer import GBM_PARAMS
 
@@ -83,7 +87,9 @@ class _IsotonicRF:
 
 
 class _FloodPolynomial:
-    """The production fallback: P = σ(a·h + b·t + c·h·t + d·h² + e·t² + f).
+    """The production polynomial (MKM-FPO-001 v2.0): P = 1 at or above severe,
+    σ(Σ c·h^i·t^j) over ``flood_poly_terms`` below it, h held at the level floor
+    and t at the support envelope.
 
     Its h and t are exactly the classifier features log_h_s and log_t_end.
     Fixed coefficients, so ``fit`` does nothing.
@@ -93,11 +99,14 @@ class _FloodPolynomial:
         return self
 
     def predict(self, X):
-        a, b, c, d, e, f = flood_poly_coeffs
         h, t = X[:, 0], X[:, 1]
-        z = np.clip(a * h + b * t + c * h * t + d * h**2 + e * t**2 + f,
-                    -flood_poly_exp_clamp, flood_poly_exp_clamp)
-        return 1.0 / (1.0 + np.exp(-z))
+        hf = np.maximum(h, np.log(flood_poly_level_floor))
+        env_h = np.log([r for r, _ in flood_poly_envelope])
+        env_t = np.log((np.array([hr for _, hr in flood_poly_envelope]) + 1) / flood_poly_storm_hours)
+        t = np.maximum(t, np.interp(hf, env_h, env_t, left=-np.inf))
+        z = sum(c * hf**i * t**j for (i, j), c in zip(flood_poly_terms, flood_poly_coeffs))
+        p = 1.0 / (1.0 + np.exp(-np.clip(z, -flood_poly_exp_clamp, flood_poly_exp_clamp)))
+        return np.where(h >= 0, 1.0, p)
 
 
 def _make_rf(params, seed, n_jobs):

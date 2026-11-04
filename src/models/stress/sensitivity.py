@@ -20,10 +20,11 @@
 
 """What-if sensitivity for the stress-test pipeline (MKM-ST-001).
 
-The pipeline's flood decision runs through ``FloodPoly`` — a logistic surrogate
-for the per-gauge GBM classifier — whose flood probability is
+The pipeline's flood decision runs through ``FloodPoly`` (MKM-FPO-001 v2.0), a
+logistic surrogate for the per-gauge GBM classifiers, whose flood probability is
 
-    P(flood) = σ(a·h + b·t + c·h·t + d·h² + e·t² + f)
+    P(flood) = 1                          if w >= s
+             = σ(Σ c·h^i·t^j)             otherwise (cubic in h and t)
 
 on two gauge-independent log features: ``h = ln(w / s)`` (water level ``w``
 against the severe threshold ``s``) and ``t = ln((hour+1) / T)`` (storm time).
@@ -32,36 +33,32 @@ calibration** ``s``: it is a per-gauge number, unvalidated on synthetic data, an
 it enters only through ``h``, so a relative error in ``s`` (or, symmetrically, in
 the stress water level ``w``) shifts ``h`` and moves every downstream flood label.
 
-The response is a saturating logistic, so it has one sharp regime and two flat
-ones — surfaced here in closed form:
+The response has three regimes, surfaced here in closed form:
 
-* **Transition band** (``w ≈ s``, ``h ≈ 0``): the slope ``∂P/∂h`` is at its
-  maximum. A one-percent error in the threshold or water level moves the flood
-  probability by several percentage points — this is where the classifier, and
-  therefore the whole stress catalogue, is most fragile.
+* **Below the level floor** (``w`` under ``flood_poly_level_floor`` of ``s``): the
+  level is held at the floor, so P is flat and negligible and the slope is zero.
 
-* **Saturated tails** (``|h|`` large — water far below or far above threshold):
-  ``σ'(z) → 0`` so the response collapses to near-zero. Well-separated events are
-  robust to threshold error; the model's own card notes it over-predicts in the
-  alert→severe transition and under-predicts at the tails.
+* **Approaching severe** (floor < ``w`` < ``s``): the fitted rise. The slope
+  ``∂P/∂h`` is non-negative throughout and steepest where P is mid-range, which
+  depends on the storm hour: early in a storm at a lower level, late in it near
+  severe. Earlier in a storm than any storm reached the level, the hour is held at
+  that support envelope, and the slope is the rate along it.
 
-This module is pure and data-free. It composes the calibrated ``FloodPoly``
-coefficients (``config.models.flood_poly_coeffs``) over a grid of candidate
-threshold/water-level errors and reports the flood-probability response and its
-closed-form slope ``∂P/∂h = σ'(z)·(a + c·t + 2d·h)``. Nothing here is wired into
-the pipeline; it is a diagnostic a validation report or the MRC calls.
+* **At severe** (``w = s``): a step to 1, because reaching severe is the flood.
+  A threshold error that moves ``s`` across the stress water level moves P by the
+  whole remaining gap to 1 -- the most fragile place in the catalogue.
+
+This module is pure and data-free. It evaluates the model itself
+(``models.stress.flood_poly``) over a grid of candidate threshold/water-level
+errors and reports the flood-probability response and its closed-form slope.
+Nothing here is wired into the pipeline; it is a diagnostic a validation report or
+the MRC calls.
 """
 import math
 from typing import Dict, Mapping, Sequence
 
-from config.models import flood_poly_coeffs, flood_poly_exp_clamp, flood_poly_storm_hours
-
-
-def _sigmoid(z: float) -> float:
-    """Logistic sigmoid with the model's overflow clamp."""
-    clamp = flood_poly_exp_clamp
-    z = max(-clamp, min(clamp, z))
-    return 1.0 / (1.0 + math.exp(-z))
+from config.models import flood_poly_storm_hours
+from models.stress.flood_poly import p_from_features, slope_from_features
 
 
 def _log_time(hour: int) -> float:
@@ -72,28 +69,20 @@ def _log_time(hour: int) -> float:
 def flood_probability(log_margin: float, log_time: float) -> float:
     """``FloodPoly`` probability at log-margin ``h`` and log-time ``t``.
 
-    ``P = σ(a·h + b·t + c·h·t + d·h² + e·t² + f)`` with the calibrated
-    coefficients. ``h = ln(w/s)`` is 0 at the severe threshold; ``t`` is 0 at the
-    final storm hour.
+    The model's own evaluation (``flood_poly.p_from_features``): 1 at or above the
+    severe threshold (``h >= 0``), the fitted logistic below it.
     """
-    k = flood_poly_coeffs
-    z = (k.a * log_margin + k.b * log_time + k.c * log_margin * log_time
-         + k.d * log_margin ** 2 + k.e * log_time ** 2 + k.f)
-    return _sigmoid(z)
+    return p_from_features(log_margin, log_time)
 
 
 def flood_probability_slope(log_margin: float, log_time: float) -> float:
-    """Closed-form ``∂P/∂h = σ'(z)·(a + c·t + 2d·h)`` — probability per unit ``h``.
+    """Closed-form ``dP/dh`` -- probability per unit ``h`` (``flood_poly.slope_from_features``).
 
-    Since ``h = ln(w/s)``, a small fractional change ε in the water level (or −ε
-    in the threshold) shifts ``h`` by ≈ ε, so ``ε·∂P/∂h`` is the probability move
-    for an ε-fractional calibration error.
+    Since ``h = ln(w/s)``, a small fractional change e in the water level (or -e in
+    the threshold) shifts ``h`` by about e, so ``e * dP/dh`` is the probability move
+    for an e-fractional calibration error.
     """
-    k = flood_poly_coeffs
-    z = (k.a * log_margin + k.b * log_time + k.c * log_margin * log_time
-         + k.d * log_margin ** 2 + k.e * log_time ** 2 + k.f)
-    s = _sigmoid(z)
-    return s * (1.0 - s) * (k.a + k.c * log_time + 2.0 * k.d * log_margin)
+    return slope_from_features(log_margin, log_time)
 
 
 def threshold_sensitivity(

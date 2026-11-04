@@ -136,7 +136,7 @@
                 var settled = 0;
                 var total = _startupDatasets.length;
 
-                // Prime storm control hours so FloodPoly and any other consumer reads
+                // Prime storm control hours so every consumer (animations, the storm tab) reads
                 // the same value the backend is using — single source of truth.
                 fetch(baseUrl + '/api/v1/trading/control/params', {mode: 'cors'})
                     .then(function(r) { return r.json(); })
