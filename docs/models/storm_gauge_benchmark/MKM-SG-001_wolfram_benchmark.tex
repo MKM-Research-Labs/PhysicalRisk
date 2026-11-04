@@ -1,0 +1,262 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Storm-Gauge Forward Model (MKM-SG-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of the Code and its v1.3 Document}
+\newcommand{\docversion}{0.1}
+\newcommand{\docdate}{04-November-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\input{evidence_tables_macros}
+% The shared history table sets every column to its natural width; wrap the description.
+\renewcommand{\mkmhistorypage}[1]{%
+    \section{Document History}
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{l|l|p{9cm}|l}
+            \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author} \\
+            \hline
+            #1
+        \end{tabular}
+    \end{table}
+}
+
+\begin{document}
+% Long code paths and identifiers cannot hyphenate; let the spacing stretch instead.
+\sloppy
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the Storm-Gauge Forward Model (MKM-SG-001): the package
+\texttt{src/models/stormgauge/}, which turns a storm's track, intensity and footprint
+into a water level at each gauge. It asks whether the code computes what its model
+document (\texttt{storm\_gauge.pdf}, v1.3 of 11 March 2026, as filed) says, and whether
+what the document says holds.
+
+\paragraph{The code computes its documented equations.} The haversine, the track
+interpolation, the three decay kernels, the intensity at the gauge and the power law
+agree with a 50-digit implementation of the document's equations to \bmCodeErr. Over
+\bmRuns{} runs of the full response (Eqs.~14--18), the water level agrees to
+$2\times10^{-14}$\,m, and every peak time and duration is identical
+(Table~\ref{tab:bm-checks}). \bmWolframConfirms{} That includes Wolfram's own
+implementation of the whole response, written separately from the reference.
+
+\paragraph{The document's account of the model does not hold:} \bmClaimsMet{} of
+\bmClaims{} claims are met (Table~\ref{tab:bm-claims}). What holds is the arithmetic: all
+\bmFigures{} figures in its four sensitivity tables reproduce, as do its kernel
+percentages, its calibration targets read as Eq.~13's steady state, and its timings.
+What does not hold is what the model is said to do, and where its output is said to go.
+\begin{itemize}[leftmargin=*,nosep]
+\item \textbf{Nothing uses it.} Section~2.2 and Q5--Q6 say the model's responses fill
+  \texttt{gaugets/} and feed the hazard curves, the flood risk model and MKM-TS-001.
+  Nothing in \texttt{src}, \texttt{tools} or \texttt{scripts} imports the package.
+  \texttt{gaugets/} is written by a scripted flood wave, not by this model.
+\item \textbf{A storm does not reach the levels the calibration names.} The targets
+  of \S3.5 (alert at $I\approx40$, severe at 85+) hold only for a level held at Eq.~13's
+  target indefinitely. A default storm crossing the gauge needs a peak of 56 to reach
+  alert and 94 to reach warning, and does not reach severe at all.
+\item \textbf{The dynamics are not as described.} Peak level follows peak intensity
+  by 3.5--5\,h, not $\tau_{\mathrm{lag}}=2$\,h. Doubling $\tau_{\mathrm{decay}}$ lowers
+  the peak by 19\% and shortens the time above alert, rather than doubling it. The run
+  ends with the storm, so durations and accumulation stop counting while the gauge is
+  still high.
+\item \textbf{Two of its inputs are unread:} the intensity-to-level scale, whose
+  Table~5 has six identical rows, and the storm's speed.
+\item \textbf{Two figures are overstated:} the effect of $\gamma$ (\S6.2), and the
+  sphere's accuracy at UK scale, which is 0.32\%, not under 0.3\%.
+\end{itemize}
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test, at commit \bmCodeCommit{}\bmCodeDirty.
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle sg001}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+The package v1.3 documents, imported as its own tests import it:
+\begin{itemize}[leftmargin=*,nosep]
+\item \texttt{forward\_model.StormGaugeModel}: the haversine, the decay kernels, the
+  intensity at a gauge, the power law, and \texttt{compute\_response}, which produces
+  the level series and its statistics;
+\item \texttt{storm\_factory.create\_storm}, which builds the storms the cases use;
+\item \texttt{data\_structures}: the storm, gauge and response types.
+\end{itemize}
+
+\subsection{What is not}
+\begin{itemize}[leftmargin=*,nosep]
+\item The calibration of $\gamma$, $\tau_{\mathrm{lag}}$ and $\tau_{\mathrm{decay}}$
+  to Environment Agency records (\S4.4), and the backtest of \S7.2, which are
+  empirical. Nothing in the repository runs the model against gauge records, so
+  neither can be reproduced from it.
+\item \texttt{find\_nearest\_track\_point}, which \texttt{compute\_response} does not
+  call.
+\item The scripted wave that does write \texttt{gaugets/}
+  (\texttt{port/rand/shared/gauge/gaugets\_random}), and MKM-SS-001's sequence
+  response, which re-implements Eq.~16 rather than calling this code.
+\end{itemize}
+This is a benchmark of the implementation (validation question Q8), not independent
+validation (Q9).
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+The reference implements v1.3's equations directly from its text:
+\begin{itemize}[leftmargin=*,nosep]
+\item the haversine of Eqs.~1--2, in its arctangent form, on a sphere of 6{,}371\,km;
+\item the track interpolation of Eqs.~3--6, with $\alpha$ clamped to $[0,1]$;
+\item the Gaussian, exponential and linear kernels of Eqs.~7--10, with $k=1$ on the
+  track;
+\item the intensity at the gauge, $I_s(t)\,k(\tilde d(t))$ (Eq.~11);
+\item the power law $\Delta L=(I/100)^{0.8}L_{\mathrm{range}}\,s$ of Eqs.~12--13,
+  with $L_{\mathrm{high}}=1.1L_{\mathrm{severe}}$ where a gauge has no historical high;
+\item the response of Eqs.~14--16 on \S5.2's grid $t_i=i\,\Delta t$,
+  $i=0,\ldots,\lfloor T/\Delta t\rfloor$: the target is Eq.~13 at the intensity
+  $\lfloor\tau_{\mathrm{lag}}/\Delta t\rfloor$ steps earlier, approached at rate
+  $\min(1,3\Delta t/\tau_{\mathrm{decay}})$ when rising and $\Delta t/\tau_{\mathrm{decay}}$
+  when falling;
+\item the peaks, the durations of Eq.~17 and the accumulation of Eq.~18.
+\end{itemize}
+
+\paragraph{Where the document is silent,} the reference assumes what the code does.
+Before the first track point the storm sits at it, and after the last at the last.
+Before $\tau_{\mathrm{lag}}$ has elapsed, Eq.~15 reads the first step. The cases
+exercise both: one track starts late, and the Gaussian profile does not start at zero.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+\paragraph{The cases.}
+\begin{itemize}[leftmargin=*,nosep]
+\item A default storm (Table~1: 24\,h, 25 track points, footprint 40\,km, triangular
+  profile, Gaussian kernel at 0.5) crosses the Thames west to east, at peaks of 30,
+  50, 80 and 100.
+\item The same storm with every other kernel and profile, and an irregular storm whose
+  track starts late, turns and ends early.
+\item Five gauges: on the track, 0.1, 0.2 and 0.4$^\circ$ north of it, and one with a
+  historical high and a sensitivity of 1.3.
+\item Four settings of $(\Delta t,\tau_{\mathrm{lag}},\tau_{\mathrm{decay}})$, one
+  with a lag that is not a whole number of steps; and durations of 24, 23.7 and 48\,h.
+\end{itemize}
+The closed-form families also run on distances and intensities below zero, at zero,
+and far beyond the footprint.
+
+\paragraph{The printed tables.} Tables~4 and~5 were produced by the house sensitivity
+generator; each figure is judged as the code's value, rounded and formatted as that
+generator does. Tables~6 and~7 were written by hand, and are judged to the places they
+print.
+
+\paragraph{The statements.} Each statement about the model's behaviour is judged by
+running the code, which the checks show computes the document's equations.
+\begin{itemize}[leftmargin=*,nosep]
+\item The calibration targets are solved twice: from Eq.~13 directly, and as the least
+  peak intensity at which a default storm crossing the gauge reaches each stage.
+\item The lag is measured over every case in which the gauge feels the storm.
+\item $\tau_{\mathrm{decay}}$ and $\tau_{\mathrm{lag}}$ are doubled on the peak-100
+  crossing.
+\item The durations are compared with the same storm run on to 72\,h.
+\item An input is unread if changing it changes no response.
+\item Where the output goes is found by searching the tree for anything that imports
+  the package.
+\end{itemize}
+
+\paragraph{Wolfram.} Wolfram works from each input's exact value, independently of the
+reference:
+\begin{itemize}[leftmargin=*,nosep]
+\item the great-circle distance, as $R$ times the angle between the two points' unit
+  vectors (not the haversine);
+\item the kernels and the power law;
+\item the whole response, written again in the Wolfram Language for three storms (the
+  default crossing, an exponential storm with a beta profile off the track, and the
+  irregular storm), returning the peak level, the accumulation and the final level;
+\item the true distance between six UK pairs, by \texttt{GeoDistance} on WGS84.
+\end{itemize}
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{The model document's claims}
+\input{evidence_tables_claims}
+
+\subsection{What the findings mean}
+
+\paragraph{The model is not on any production path.} The document places it at the
+centre of the chain: its responses stored in \texttt{gaugets/}, consumed by the hazard
+curves, the flood risk model and the time-series statistics (\S2.2, Q5, Q6). No module
+imports \texttt{models.stormgauge}. \texttt{gaugets/} is written by
+\texttt{port/src/gauge/gaugets.py} from \texttt{gaugets\_random}, a scripted wave with
+staggered peaks and a sinusoidal ripple. So the governance record describes as
+production a model that produces nothing. The code is correct; the record of where it
+is used is not.
+
+\paragraph{The calibration describes a steady state no storm reaches.} Eq.~16 closes
+only $3\Delta t/\tau_{\mathrm{decay}}=12.5\%$ of the gap to its target each half-hour.
+A triangular storm's target falls again long before the level arrives: the peak-100
+crossing rises to 74\% of its target. The intensity bands of \S3.5 are therefore
+Eq.~13's, not the model's. A storm must be far stronger than the bands say to reach
+each stage.
+
+\paragraph{The same smoothing explains the lag, $\tau_{\mathrm{decay}}$ and the
+durations.}
+\begin{itemize}[leftmargin=*,nosep]
+\item The level keeps rising for as long as the falling target is still above it.
+  That adds 1.5--3\,h to the 2\,h lag. No unit test checks the lag, although \S7.1
+  says one does.
+\item $\tau_{\mathrm{decay}}$ sets the rise as well as the fall. Doubling it halves
+  the rising rate, and so lowers the peak, before it lengthens anything.
+\item The grid stops at $T$ (\S5.2). At the end of the peak-100 crossing the gauge is
+  still 2.84\,m above base, 69\% of its rise, and above alert. Run on, it stays above
+  alert another hour.
+\end{itemize}
+
+\paragraph{The smaller findings.}
+\begin{itemize}[leftmargin=*,nosep]
+\item \texttt{intensity\_to\_level\_scale} is stored and never read; Table~5's caption
+  presents it as a sensitivity, and its rows are identical. The storm's
+  \texttt{speed\_kmh} is computed and never read.
+\item A $\pm$25\% change in $\gamma$ moves the contribution at $I=50$ by +14.9\% and
+  $-$12.9\%, and by 10--20\% across $I=40$--60, not 20--25\%.
+\item The sphere understates the default storm's own east--west track by 0.32\%,
+  slightly more than \S8(5)'s 0.3\%; north--south it errs by 0.06\%. That is
+  immaterial beside the findings above.
+\end{itemize}
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The code is shown to compute its documented
+  equations. Whether $\gamma=0.8$ and the time constants fit UK catchments is an
+  empirical question, and nothing in the repository tests it.
+\item \textbf{The claims are judged on the code's defaults.} Every behavioural claim
+  is judged on Table~1's default storm and Table~2's default gauge. A gauge with its own
+  historical high moves the steady-state bands. It does not change the smoothing that
+  keeps a storm from reaching them.
+\end{enumerate}
+
+\mkmhistorypage{04-Nov-2026 & 0.1 & First issue: tests the filed v1.3 & David K Kelly \\}
+
+\end{document}
