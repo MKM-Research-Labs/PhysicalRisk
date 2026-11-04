@@ -21,8 +21,8 @@
 
 The great-circle distance as R times the angle between the two points' unit vectors
 (not the haversine); the kernels and the power law from exact inputs; and the whole
-response -- track, distance, kernel, Eq. 13, the lag and Eq. 16's smoothing -- written
-again in the Wolfram Language for three storms. Then the true distance between the UK
+response -- track, distance, kernel, Eq. 13, the lag, Eq. 16's rise and fall and the
+recession -- written again in the Wolfram Language for three storms. Then the true distance between the UK
 pairs on the WGS84 ellipsoid, by GeoDistance, for the document's 0.3% claim (s8(5)).
 """
 
@@ -31,7 +31,7 @@ import mpmath as mp
 from config.models import (
     ORACLE_REFERENCE_DPS,
     ORACLE_SG_EARTH_R_KM,
-    ORACLE_SG_RISE,
+    ORACLE_SG_RECESSION,
     ORACLE_SG_UK_PAIRS,
     ORACLE_WOLFRAM_DIGITS,
 )
@@ -52,13 +52,13 @@ def _sphere(lon1, lat1, lon2, lat2):
     return f"N[{ORACLE_SG_EARTH_R_KM} VectorAngle[{_unit(lat1, lon1)}, {_unit(lat2, lon2)}], {_D}]"
 
 
-def _response(track, duration, g, footprint, kind, param, dt, lag, decay):
+def _response(track, duration, g, footprint, kind, param, dt, lag, rise, decay):
     """The response in the Wolfram Language: {peak level, accumulation, last level}."""
     w = wl_precise
     pts = "{" + ", ".join("{" + ", ".join(w(v) for v in (t, lon, lat, i)) + "}" for lon, lat, t, i in track) + "}"
     high = g["historical_high"] if g["historical_high"] is not None else None
     hi = w(high) if high is not None else f"(11/10) {w(g['severe_warning'])}"
-    dt_, lag_, dec = (wl_exact(x) for x in (dt, lag, decay))
+    dt_, lag_, ris, dec = (wl_exact(x) for x in (dt, lag, rise, decay))
     return (
         f"N[Module[{{tr = {pts}, n, k, at, ints, tg, lv, up, dn, rng}},"
         f" at[t0_] := Module[{{tt = Clip[t0, {{tr[[1, 1]], tr[[-1, 1]]}}], j, a, pt, x, p = {w(param)}}},"
@@ -67,18 +67,18 @@ def _response(track, duration, g, footprint, kind, param, dt, lag, decay):
         f"   pt = tr[[j]] + a (tr[[j + 1]] - tr[[j]]);"
         f"   x = {ORACLE_SG_EARTH_R_KM} VectorAngle[{_unit(g['latitude'], g['longitude'])},"
         f"     {{Cos[pt[[3]] Pi/180] Cos[pt[[2]] Pi/180], Cos[pt[[3]] Pi/180] Sin[pt[[2]] Pi/180], Sin[pt[[3]] Pi/180]}}]/{w(footprint)};"
-        f"   pt[[4]] If[x <= 0, 1, {_KERNEL[kind]}]];"
-        f" n = Floor[{w(duration)}/({dt_})] + 1; k = Floor[({lag_})/({dt_})];"
+        f"   If[t0 > {w(duration)}, 0, pt[[4]] If[x <= 0, 1, {_KERNEL[kind]}]]];"
+        f" n = Floor[({w(duration)} + {ORACLE_SG_RECESSION} ({dec}))/({dt_})] + 1; k = Floor[({lag_})/({dt_})];"
         f" ints = Table[at[i ({dt_})], {{i, 0, n - 1}}];"
         f" rng = {hi} - {w(g['base_level'])};"
         f" tg = Table[With[{{v = ints[[Max[1, i - k]]]}}, If[v <= 0, 0, (v/100)^(4/5) rng {w(g['sensitivity'])}]], {{i, 1, n}}];"
-        f" up = Min[1, {ORACLE_SG_RISE} ({dt_})/({dec})]; dn = ({dt_})/({dec});"
+        f" up = Min[1, ({dt_})/({ris})]; dn = Min[1, ({dt_})/({dec})];"
         f" lv = {w(g['base_level'])} + Rest[FoldList[#1 + (#2 - #1) If[#2 > #1, up, dn] &, 0, tg]];"
         f" {{Max[lv], ({dt_}) Total[Max[0, # - {w(g['flood_alert'])}] & /@ lv], Last[lv]}}], {_D}]")
 
 
-def _ref_response(track, duration, g, footprint, kind, param, dt, lag, decay):
-    times, ints, levels = ref.response(track, duration, g, footprint, kind, param, dt, lag, decay)
+def _ref_response(track, duration, g, footprint, kind, param, dt, lag, rise, decay):
+    times, ints, levels = ref.response(track, duration, g, footprint, kind, param, dt, lag, rise, decay)
     st = ref.statistics(times, ints, levels, g, dt)
     return [st["peak_level"], st["accumulation"], levels[-1]]
 
@@ -89,7 +89,7 @@ def response_cases(m):
     s2 = cases.storm(m, 80.0, kernel="exponential", profile="beta")
     s3 = cases.irregular(m, 23.7)
     gs = cases.gauges()
-    return [(s1, gs[0], (0.5, 2.0, 12.0)), (s2, gs[2], (0.25, 2.0, 12.0)), (s3, gs[-1], (1.0, 3.3, 6.0))]
+    return [(s1, gs[0], (0.5, 2.0, 1.0, 12.0)), (s2, gs[2], (0.25, 2.0, 1.0, 12.0)), (s3, gs[-1], (1.0, 3.3, 0.5, 6.0))]
 
 
 def items(m):
@@ -109,9 +109,9 @@ def _items(m):
     for i in (0.5, 20, 38.7, 50, 100):
         out.append((f"power/{i}", f"N[({wl_precise(i)}/100)^(4/5) ((11/10) {wl_precise(g['severe_warning'])} - "
                                   f"{wl_precise(g['base_level'])}), {_D}]", ref.contribution(i, g)))
-    for j, (s, gg, (dt, lag, decay)) in enumerate(response_cases(m)):
+    for j, (s, gg, setting) in enumerate(response_cases(m)):
         args = (cases.track(s), s.duration_hours, gg, s.footprint_km, s.decay_kernel.value, s.decay_parameter,
-                dt, lag, decay)
+                *setting)
         out.append((f"response/{j}", _response(*args), _ref_response(*args)))
     for i, (a, b, c, d) in enumerate(ORACLE_SG_UK_PAIRS):
         out.append((f"wgs84/{i}", f"N[QuantityMagnitude[GeoDistance[GeoPosition[{{{wl_precise(a)}, {wl_precise(b)}}}], "

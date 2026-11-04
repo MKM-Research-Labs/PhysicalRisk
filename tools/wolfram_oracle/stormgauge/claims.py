@@ -17,14 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""SG-001's model document, tested as stated (``storm_gauge.pdf`` v1.3).
+"""SG-001's model document, tested as stated (``storm_gauge_v2.0.pdf``).
 
-Tables 4-7 are judged as printed: Tables 4 and 5 against the code, rounded as their
-generator rounds; Tables 6 and 7, written by hand, to the places they print. The
-statements about behaviour -- the calibration targets, the lag between peaks, what
-doubling tau_decay does, the durations, and which inputs matter -- are judged by
-running the code, which the checks show computes the document's equations. Where the
-code goes is judged by searching the tree for anything that imports it.
+Every printed table is judged figure by figure. Tables 4, 5, 8 and 9 were generated
+from the code, so the code's value is rounded and formatted as their generator did.
+Tables 6 and 7 were written by hand, and are judged to the places they print. The
+statements -- the calibration bands, the lag, the recession, the unread speed, the
+sphere's error, the timings -- are judged by running the code, which the checks show
+computes the document's equations. Where the code goes is judged by searching the tree
+for anything that imports it.
 """
 
 import dataclasses
@@ -35,29 +36,31 @@ import mpmath as mp
 
 from config import config
 from config.models import (
-    ORACLE_SG_DECAY,
+    ORACLE_SG_ELLIPSOID_STATED,
     ORACLE_SG_GAMMA,
-    ORACLE_SG_GAMMA_SHIFT,
     ORACLE_SG_GAMMA_STATED,
-    ORACLE_SG_LAG,
-    ORACLE_SG_LAG_TOL_H,
+    ORACLE_SG_LAG_STATED_H,
     ORACLE_SG_PACKAGE,
     ORACLE_SG_PRINTED_GAUSS,
     ORACLE_SG_PRINTED_T4,
     ORACLE_SG_PRINTED_T5,
     ORACLE_SG_PRINTED_T6,
     ORACLE_SG_PRINTED_T7,
+    ORACLE_SG_PRINTED_T8,
+    ORACLE_SG_PRINTED_T9,
+    ORACLE_SG_STEADY_STATED,
+    ORACLE_SG_STORM_STATED,
     ORACLE_SG_T4,
     ORACLE_SG_T5,
+    ORACLE_SG_T5_SENSITIVITIES,
     ORACLE_SG_T7_GAMMAS,
-    ORACLE_SG_TARGET_TOL,
-    ORACLE_SG_TARGETS,
     ORACLE_SG_TIMING,
 )
 from tools.wolfram_oracle.stormgauge import cases
 from tools.wolfram_oracle.stormgauge import reference as ref
 
 STAGES = (("alert", "flood_alert"), ("warning", "flood_warning"), ("severe", "severe_warning"))
+CONSTANTS = {"lag": "response_lag_hours", "rise": "response_rise_hours", "decay": "response_decay_hours"}
 
 
 def printed(v, places):
@@ -72,52 +75,68 @@ def to_places(v, text):
 
 
 def _matched(got, want):
-    return {"matched": sum(a == b for a, b in zip(got, want)), "of": len(want)}
+    got, want = list(got), list(want)
+    return {"matched": sum(a == b for a, b in zip(got, want)), "of": len(want), "met": got == want}
+
+
+def _flat(rows):
+    return [c for row in rows for c in row]
+
+
+def _run(m, s, g=None, **kw):
+    return m["model"].StormGaugeModel(**kw).compute_response(s, cases.config(m, g or cases.gauge()))
+
+
+def _row(r):
+    """A response as Tables 8 and 9 print it."""
+    lag = r.peak_time_hours - r.peak_intensity_time_hours
+    return {"I": f"{r.peak_intensity:.1f}", "L": f"{r.peak_level:.2f}", "lag": f"{lag:.1f}",
+            "Da": f"{r.duration_above_alert:.1f}", "Dw": f"{r.duration_above_warning:.1f}",
+            "Ds": f"{r.duration_above_severe:.1f}", "A": f"{r.accumulation:.2f}"}
 
 
 def tables(m):
-    model, kern = m["model"].StormGaugeModel(), m["data"].DecayKernel
+    model, kern, data = m["model"].StormGaugeModel(), m["data"].DecayKernel, m["data"]
     t4 = [printed(model.compute_decay(d, ORACLE_SG_T4["footprint"], kern(k), ORACLE_SG_T4["param"]), 4)
           for d in ORACLE_SG_T4["distances"] for k in ref.KERNELS]
-    g = m["data"].GaugeConfig(gauge_id="T", gauge_name="T", latitude=51.5, longitude=-0.1, **ORACLE_SG_T5["gauge"])
-    rows = [[printed(m["model"].StormGaugeModel(intensity_to_level_scale=s).intensity_to_level(i, g), 3)
-             for i in ORACLE_SG_T5["intensities"]] for s in ORACLE_SG_T5["scales"]]
+    t5 = [printed(model.intensity_to_level(i, data.GaugeConfig(gauge_id="T", gauge_name="T", latitude=51.5,
+                                                                longitude=-0.1, sensitivity=s, **ORACLE_SG_T5["gauge"])), 3)
+          for s in ORACLE_SG_T5_SENSITIVITIES for i in ORACLE_SG_T5["intensities"]]
     t6 = [model.compute_decay(1.0, 1.0, kern(k), 0.5) for k in ref.KERNELS]
     with mp.workdps(50):
         t7 = [mp.mpf("0.5") ** mp.mpf(x) for x in ORACLE_SG_T7_GAMMAS]
         gauss = [100 * mp.exp(-mp.mpf(n) ** 2 / 2) for n in (1, 2)]
-    out = {
-        "t4": _matched(t4, [c for row in ORACLE_SG_PRINTED_T4 for c in row]),
-        "t5": _matched([c for row in rows for c in row], list(ORACLE_SG_PRINTED_T5) * len(rows)),
+    t8 = [tuple(_row(_run(m, cases.storm(m, float(pk)), cases.gauge(off))).values())
+          for (pk, off), _ in ORACLE_SG_PRINTED_T8]
+    s100 = cases.storm(m, 100.0)
+    t9 = [(lambda x: (x["L"], x["lag"], x["Da"], x["A"]))(_row(_run(m, s100, **{CONSTANTS[c]: float(h)})))
+          for (c, h), _ in ORACLE_SG_PRINTED_T9]
+    return {
+        "gauss": _matched([to_places(v, p) for v, p in zip(gauss, ORACLE_SG_PRINTED_GAUSS)], ORACLE_SG_PRINTED_GAUSS),
+        "t4": _matched(t4, _flat(ORACLE_SG_PRINTED_T4)),
+        "t5": _matched(t5, _flat(ORACLE_SG_PRINTED_T5)),
         "t6": _matched([to_places(v, p) for v, p in zip(t6, ORACLE_SG_PRINTED_T6)], ORACLE_SG_PRINTED_T6),
         "t7": _matched([to_places(v, p) for v, p in zip(t7, ORACLE_SG_PRINTED_T7)], ORACLE_SG_PRINTED_T7),
-        "gauss": _matched([to_places(v, p) for v, p in zip(gauss, ORACLE_SG_PRINTED_GAUSS)], ORACLE_SG_PRINTED_GAUSS),
+        "t8": _matched(_flat(t8), _flat(v for _, v in ORACLE_SG_PRINTED_T8)),
+        "t9": _matched(_flat(t9), _flat(v for _, v in ORACLE_SG_PRINTED_T9)),
     }
-    for v in out.values():
-        v["met"] = v["matched"] == v["of"]
-    return out
 
 
 def gamma_shift(intensity):
     """s6.2: the change in (I/100)^gamma when gamma moves by -25% and +25%."""
     with mp.workdps(50):
         x, g = mp.mpf(intensity) / 100, mp.mpf(ORACLE_SG_GAMMA)
-        return [float(x ** (g * (1 + s)) / x ** g - 1) for s in (-ORACLE_SG_GAMMA_SHIFT, ORACLE_SG_GAMMA_SHIFT)]
+        return [float(x ** (g * (1 + s)) / x ** g - 1) for s in (-0.25, 0.25)]
 
 
 def steady_targets():
     """s3.5: the intensity whose Eq. 13 target holds the level at each stage (Table 2's gauge)."""
     g = cases.gauge()
     with mp.workdps(50):
-        rng = ref.high(g) - mp.mpf(g["base_level"])
-        out = {k: float(100 * ((mp.mpf(g[s]) - mp.mpf(g["base_level"])) / rng) ** (1 / mp.mpf(ORACLE_SG_GAMMA)))
-               for k, s in STAGES}
-        out["high"] = float(100 * ((ref.high(g) - mp.mpf(g["base_level"])) / rng) ** (1 / mp.mpf(ORACLE_SG_GAMMA)))
-    return out
-
-
-def _run(m, s, g=None, **kw):
-    return m["model"].StormGaugeModel(**kw).compute_response(s, cases.config(m, g or cases.gauge()))
+        base = mp.mpf(g["base_level"])
+        rng = ref.high(g) - base
+        level = {**{k: mp.mpf(g[s]) for k, s in STAGES}, "high": ref.high(g)}
+        return {k: float(100 * ((v - base) / rng) ** (1 / mp.mpf(ORACLE_SG_GAMMA))) for k, v in level.items()}
 
 
 def storm_targets(m):
@@ -129,58 +148,33 @@ def storm_targets(m):
             out[key] = None
             continue
         lo, hi = 0.0, 100.0
-        while hi - lo > 1e-3:
+        while hi - lo > 1e-6:
             mid = (lo + hi) / 2
             lo, hi = (lo, mid) if _run(m, cases.storm(m, mid)).peak_level >= g[stage] else (mid, hi)
         out[key] = hi
     return out
 
 
-def _targets_met(steady):
-    t, tol = ORACLE_SG_TARGETS, ORACLE_SG_TARGET_TOL
-    return (steady["alert"] is not None and abs(steady["alert"] - t["alert"]) <= tol
-            and steady["warning"] is not None and t["warning"][0] - tol <= steady["warning"] <= t["warning"][1] + tol
-            and steady["severe"] is not None and abs(steady["severe"] - t["severe"]) <= tol
-            and abs(steady["high"] - t["high"]) <= tol)
+def _bands(got, stated):
+    return all(got.get(k) is not None and round(got[k], 1) == v for k, v in stated.items())
 
 
-def lag_gaps(m):
-    """s3.7, s7.1: hours from peak intensity to peak level, wherever the gauge feels the storm."""
-    gaps = []
+def recession(m):
+    """s3.6: every run ends with the gauge within 1% of its rise from base."""
+    worst = 0.0
     for s in cases.storms(m):
         for g in cases.gauges():
             r = _run(m, s, g)
-            if r.peak_intensity > 1:
-                gaps.append(r.peak_time_hours - r.peak_intensity_time_hours)
-    return min(gaps), max(gaps)
+            rise = r.peak_level - g["base_level"]
+            if rise > 0:
+                worst = max(worst, (r.level_timeseries[-1]["level"] - g["base_level"]) / rise)
+    return worst
 
 
-def sensitivities(m):
-    """s6.3 on a default storm crossing the gauge at peak 100: doubling tau_decay, doubling
-    tau_lag, and what the simulation stops short of -- the same storm run on to 72 h."""
-    s = cases.storm(m, 100.0)
-    base = _run(m, s)
-    slow = _run(m, s, response_decay_hours=2 * ORACLE_SG_DECAY)
-    late = _run(m, s, response_lag_hours=2 * ORACLE_SG_LAG)
-    longer = _run(m, dataclasses.replace(s, duration_hours=72.0))
-    g = cases.gauge()
-    rise = base.peak_level - g["base_level"]
-    end = base.level_timeseries[-1]["level"] - g["base_level"]
-    return {"dur": base.duration_above_alert, "dur_slow": slow.duration_above_alert,
-            "peak_change": slow.peak_level / base.peak_level - 1,
-            "lag_peak_change": late.peak_level / base.peak_level - 1,
-            "lag_shift": late.peak_time_hours - base.peak_time_hours,
-            "end_rise": end, "end_share": end / rise, "dur_72": longer.duration_above_alert,
-            "acc": base.accumulation, "acc_72": longer.accumulation}
-
-
-def unread_inputs(m):
-    """Table 5's scale and Table 1's speed: does changing either change any response?"""
+def speed_unread(m):
+    """s4.1: changing the storm's speed changes no response."""
     s, g = cases.storm(m, 80.0), cases.gauge(0.1)
-    base = _run(m, s, g).to_dict()
-    scaled = _run(m, s, g, intensity_to_level_scale=10.0).to_dict()
-    fast = _run(m, dataclasses.replace(s, speed_kmh=300.0), g).to_dict()
-    return {"scale": base == scaled, "speed": base == fast}
+    return _run(m, s, g).to_dict() == _run(m, dataclasses.replace(s, speed_kmh=300.0), g).to_dict()
 
 
 def timing(m):
@@ -198,35 +192,41 @@ def timing(m):
 
 
 def importers():
-    """Every file outside the package (and the models package's docstring) importing it."""
+    """Every file outside the package that imports it."""
     out = subprocess.run(["git", "grep", "-lE", r"^\s*(from|import)\s+\S*stormgauge", "--", "src", "tools", "scripts"],
                          capture_output=True, text=True, cwd=config.get_project_root()).stdout.split()
     return [f for f in out if not f.startswith(ORACLE_SG_PACKAGE)]
 
 
+def ellipsoid(pct):
+    """s8(5): the sphere's worst error east-west, and north-south, against WGS84 (per cent)."""
+    if pct is None:
+        return {"east_west": None, "north_south": None, "met": None}
+    ew, ns = max(pct, key=abs), pct[1]
+    return {"east_west": ew, "north_south": ns,
+            "met": round(abs(ew), 2) == ORACLE_SG_ELLIPSOID_STATED["east_west"]
+            and round(abs(ns), 2) == ORACLE_SG_ELLIPSOID_STATED["north_south"]}
+
+
 def assess(m):
-    """Each claim as a dict with its figures and ``met``."""
+    """Each claim as a dict with its figures and ``met``; the sphere's waits for Wolfram."""
     steady, in_storm = steady_targets(), storm_targets(m)
-    shift50 = gamma_shift(50)
-    mid = [x for i in (40, 50, 60) for x in gamma_shift(i)]
-    lo, hi = ORACLE_SG_GAMMA_STATED
-    gaps, sens, unread, t = lag_gaps(m), sensitivities(m), unread_inputs(m), timing(m)
-    imp = importers()
+    g50 = gamma_shift(50)
+    mid = [abs(x) for i in (40, 50, 60) for x in gamma_shift(i)]
+    gaps = {_row(_run(m, cases.storm(m, float(pk)), cases.gauge(off)))["lag"] for (pk, off), _ in ORACLE_SG_PRINTED_T8}
+    t, imp, tail = timing(m), importers(), recession(m)
+    f = ORACLE_SG_TIMING["factor"]
     return {
         **tables(m),
-        "gamma": {"at50": shift50, "range": (min(abs(x) for x in mid), max(abs(x) for x in mid)),
-                  "met": all(lo - 0.005 <= abs(x) <= hi + 0.005 for x in shift50)},
-        "steady": {**steady, "met": _targets_met(steady)},
-        "storm": {**in_storm, "met": _targets_met({**in_storm, "high": steady["high"]})},
-        "lag": {"gaps": gaps, "met": all(abs(x - ORACLE_SG_LAG) <= ORACLE_SG_LAG_TOL_H for x in gaps)},
-        "decay": {**{k: sens[k] for k in ("dur", "dur_slow", "peak_change")},
-                  "met": 1.5 <= sens["dur_slow"] / sens["dur"] <= 2.5 and abs(sens["peak_change"]) < 0.05},
-        "lagpeak": {"change": sens["lag_peak_change"], "shift": sens["lag_shift"],
-                    "met": abs(sens["lag_peak_change"]) < 0.01},
-        "duration": {**{k: sens[k] for k in ("dur", "dur_72", "end_rise", "end_share", "acc", "acc_72")},
-                     "met": sens["dur"] == sens["dur_72"] and sens["acc"] == sens["acc_72"]},
-        "unread": {**unread, "met": not (unread["scale"] or unread["speed"])},
-        "timing": {**t, "met": t["per_gauge_ms"] < ORACLE_SG_TIMING["per_gauge_ms"]
-                   and t["all_ms"] < ORACLE_SG_TIMING["all_ms"]},
-        "lineage": {"importers": imp, "met": bool(imp)},
+        "gamma": {"at50": g50, "range": (min(mid), max(mid)),
+                  "met": [round(100 * x, 1) for x in g50] == list(ORACLE_SG_GAMMA_STATED["at50"])
+                  and (round(100 * min(mid)), round(100 * max(mid))) == ORACLE_SG_GAMMA_STATED["range"]},
+        "steady": {**steady, "met": _bands(steady, ORACLE_SG_STEADY_STATED)},
+        "storm": {**in_storm, "met": _bands(in_storm, ORACLE_SG_STORM_STATED)},
+        "lag": {"gaps": sorted(gaps), "met": gaps == {f"{ORACLE_SG_LAG_STATED_H:.1f}"}},
+        "recession": {"worst": tail, "met": tail < 0.01},
+        "speed": {"met": speed_unread(m)},
+        "timing": {**t, "met": t["per_gauge_ms"] <= f * ORACLE_SG_TIMING["per_gauge_ms"]
+                   and t["all_ms"] <= f * ORACLE_SG_TIMING["all_ms"]},
+        "lineage": {"importers": imp, "met": not imp},
     }

@@ -126,7 +126,7 @@ def deterministic(m):
         "kernel": _worst((model.compute_decay(d, f, kern(k), p), ref.kernel(d, f, k, p)) for d, f, k, p in grid),
         "intensity": _worst((model.compute_intensity_at_gauge(t, g["longitude"], g["latitude"], s),
                              ref.intensity_at(track(s), t, g["longitude"], g["latitude"], s.footprint_km,
-                                              s.decay_kernel.value, s.decay_parameter))
+                                              s.decay_kernel.value, s.decay_parameter, s.duration_hours))
                             for s in storms(m) for g in gs for t in times),
         "level": _worst((model.intensity_to_level(i, config(m, g)), ref.contribution(i, g))
                         for i in (-5, 0, 1e-6, 0.5, 20, 38.7, 50, 99.9, 100, 120) for g in gs),
@@ -134,11 +134,11 @@ def deterministic(m):
     return out
 
 
-def _compare(m, s, g, dt, lag, decay):
-    r = m["model"].StormGaugeModel(time_resolution_hours=dt, response_lag_hours=lag,
+def _compare(m, s, g, dt, lag, rise, decay):
+    r = m["model"].StormGaugeModel(time_resolution_hours=dt, response_lag_hours=lag, response_rise_hours=rise,
                                    response_decay_hours=decay).compute_response(s, config(m, g))
     times, ints, levels = ref.response(track(s), s.duration_hours, g, s.footprint_km, s.decay_kernel.value,
-                                       s.decay_parameter, dt, lag, decay)
+                                       s.decay_parameter, dt, lag, rise, decay)
     st = ref.statistics(times, ints, levels, g, dt)
     lv = max(float(abs(p["level"] - w)) for p, w in zip(r.level_timeseries, levels))
     stats = max(rel_err(r.peak_level, st["peak_level"]), rel_err(r.accumulation, st["accumulation"]),
@@ -157,7 +157,7 @@ def responses(m):
     for duration in ORACLE_SG_DURATIONS:
         for s in storms(m, duration):
             for g in gauges():
-                for dt, lag, decay in ORACLE_SG_SETTINGS:
-                    a, b, c = _compare(m, s, g, dt, lag, decay)
+                for setting in ORACLE_SG_SETTINGS:
+                    a, b, c = _compare(m, s, g, *setting)
                     lv, stats, off, cases = max(lv, a), max(stats, b), off + c, cases + 1
     return {"level_m": lv, "stats": stats, "mismatches": off, "cases": cases}

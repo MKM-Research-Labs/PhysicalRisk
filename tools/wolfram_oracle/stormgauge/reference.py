@@ -17,21 +17,19 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""SG-001's formulae, from its model document (``storm_gauge.pdf`` v1.3, s3), at 50 digits.
+"""SG-001's formulae, from its model document (``storm_gauge_v2.0.pdf``, s3), at 50 digits.
 
 Written from the document, not the code: the haversine of Eqs. 1-2 in its arctangent
-form, the track interpolation of Eqs. 3-6, the kernels of Eqs. 7-10, the intensity at
-the gauge (Eq. 11), the power law of Eqs. 12-13, the lagged, asymmetrically smoothed
-response of Eqs. 14-16 on s5.2's grid, and the statistics of s3.7 (Eqs. 17-18).
-
-Where the document is silent the reference says what it assumes: before the first
-track point the storm sits at it, after the last at the last (s5.3 clamps alpha), and
-before tau_lag has elapsed Eq. 15 reads the first step.
+form, the track interpolation of Eqs. 3-6 (at the first point before it, the last
+after it, nothing after the storm's duration), the kernels of Eqs. 7-10, the intensity
+at the gauge (Eq. 11), the power law of Eqs. 12-13, the lagged response of Eqs. 14-16
+with its own rise and fall constants on s3.6's grid -- the storm's duration and five
+fall constants more -- and the statistics of s3.7 (Eqs. 17-18).
 """
 
 import mpmath as mp
 
-from config.models import ORACLE_SG_EARTH_R_KM, ORACLE_SG_GAMMA, ORACLE_SG_RISE
+from config.models import ORACLE_SG_EARTH_R_KM, ORACLE_SG_GAMMA, ORACLE_SG_RECESSION
 
 KERNELS = ("gaussian", "exponential", "linear")
 
@@ -75,8 +73,10 @@ def position(track, t):
             return tuple(p[k] + a * (q[k] - p[k]) for k in (0, 1, 3))
 
 
-def intensity_at(track, t, glon, glat, footprint, kind, param):
-    """Eq. 11."""
+def intensity_at(track, t, glon, glat, footprint, kind, param, duration):
+    """Eq. 11; zero after the storm's duration (s3.2)."""
+    if _m(t) > _m(duration):
+        return mp.mpf(0)
     lon, lat, i = position(track, t)
     return i * kernel(haversine(glon, glat, lon, lat), footprint, kind, param)
 
@@ -96,15 +96,15 @@ def contribution(i, gauge, gamma=ORACLE_SG_GAMMA):
     return (i / 100) ** mp.mpf(gamma) * rng * _m(gauge.get("sensitivity", 1.0))
 
 
-def response(track, duration, gauge, footprint, kind, param, dt, lag, decay):
-    """Eqs. 14-18 on s5.2's grid t_i = i dt, i = 0..floor(T/dt)."""
-    dt, lag, decay = _m(dt), _m(lag), _m(decay)
-    n = int(mp.floor(_m(duration) / dt)) + 1
+def response(track, duration, gauge, footprint, kind, param, dt, lag, rise, decay):
+    """Eqs. 14-18 on s3.6's grid t_i = i dt, i = 0..floor((T + 5 tau_decay)/dt)."""
+    dt, lag, rise, decay = _m(dt), _m(lag), _m(rise), _m(decay)
+    n = int(mp.floor((_m(duration) + ORACLE_SG_RECESSION * decay) / dt)) + 1
     times = [i * dt for i in range(n)]
-    ints = [intensity_at(track, t, gauge["longitude"], gauge["latitude"], footprint, kind, param)
+    ints = [intensity_at(track, t, gauge["longitude"], gauge["latitude"], footprint, kind, param, duration)
             for t in times]
     k = int(mp.floor(lag / dt))
-    up, down = min(mp.mpf(1), ORACLE_SG_RISE * dt / decay), dt / decay
+    up, down = min(mp.mpf(1), dt / rise), min(mp.mpf(1), dt / decay)
     c, levels = mp.mpf(0), []
     for i in range(n):
         target = contribution(ints[max(0, i - k)], gauge)
