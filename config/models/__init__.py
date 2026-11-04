@@ -31,6 +31,7 @@ Subsections:
     Flood Velocity / Manning  — floodrisk/velocity.py
     Property Valuation        — valuation/property_value.py
     Insurance Premium         — valuation/insurance.py
+    Storm-Gauge Forward Model — stormgauge/forward_model/
 """
 
 from config.damage import DAMAGE_POINTS, DEPTH_POINTS  # noqa: F401
@@ -38,6 +39,7 @@ from config.damage import DAMAGE_POINTS, DEPTH_POINTS  # noqa: F401
 from config.models._flood import *  # noqa: F401,F403
 from config.models._valuation import *  # noqa: F401,F403
 from config.models._misc import *  # noqa: F401,F403
+from config.models._stormgauge import *  # noqa: F401,F403
 from config.models._wolfram_oracle import *  # noqa: F401,F403
 from config.models._wolfram_oracle_prs import *  # noqa: F401,F403
 from config.models._wolfram_oracle_si import *  # noqa: F401,F403

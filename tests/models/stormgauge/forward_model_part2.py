@@ -113,10 +113,44 @@ class TestComputeResponse:
         assert resp.storm_id == simple_storm.storm_id
 
     def test_timeseries_length(self, model, simple_storm, gauge):
+        """The run continues five fall constants past the storm's end (v2.0)."""
         resp = model.compute_response(simple_storm, gauge)
-        expected_steps = int(simple_storm.duration_hours / model.time_resolution_hours) + 1
+        horizon = simple_storm.duration_hours + 5 * model.response_decay_hours
+        expected_steps = int(horizon / model.time_resolution_hours) + 1
         assert len(resp.level_timeseries) == expected_steps
         assert len(resp.intensity_timeseries) == expected_steps
+
+    def test_no_forcing_after_the_storm(self, model, simple_storm, gauge):
+        resp = model.compute_response(simple_storm, gauge)
+        after = [p["intensity"] for p in resp.intensity_timeseries
+                 if p["time_hours"] > simple_storm.duration_hours]
+        assert after and all(i == 0.0 for i in after)
+
+    def test_recession_completes(self, model, simple_storm, gauge):
+        """Durations are not cut off at the storm's end: the gauge is back near base."""
+        resp = model.compute_response(simple_storm, gauge)
+        rise = resp.peak_level - gauge.base_level
+        assert resp.level_timeseries[-1]["level"] - gauge.base_level < 0.01 * rise
+
+    def test_fall_constant_does_not_slow_the_rise(self, simple_storm, gauge):
+        from models.stormgauge.forward_model import StormGaugeModel
+        quick = StormGaugeModel(time_resolution_hours=1.0, response_decay_hours=12.0)
+        slow = StormGaugeModel(time_resolution_hours=1.0, response_decay_hours=24.0)
+        a = quick.compute_response(simple_storm, gauge)
+        b = slow.compute_response(simple_storm, gauge)
+        assert b.peak_level == pytest.approx(a.peak_level, rel=1e-12)
+        assert b.duration_above_alert > a.duration_above_alert
+
+    def test_constant_forcing_reaches_its_target(self, model, gauge):
+        """Held long enough, the level is Eq. 13's target: the calibration bands hold."""
+        held = Storm(
+            storm_id="S-HELD", name="Held", start_time=datetime(2025, 1, 1), duration_hours=24.0,
+            track=[TrackPoint(gauge.longitude, gauge.latitude, 0.0, 60.0),
+                   TrackPoint(gauge.longitude, gauge.latitude, 24.0, 60.0)],
+            peak_intensity=60.0, footprint_km=50.0,
+        )
+        resp = model.compute_response(held, gauge)
+        assert resp.peak_level == pytest.approx(gauge.base_level + model.intensity_to_level(60, gauge), rel=1e-6)
 
     def test_peak_level_at_least_base(self, model, simple_storm, gauge):
         resp = model.compute_response(simple_storm, gauge)
