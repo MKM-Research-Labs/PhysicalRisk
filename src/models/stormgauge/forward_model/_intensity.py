@@ -23,6 +23,8 @@
 import math
 from typing import List, Tuple
 
+from config.models import stormgauge_earth_radius_km, stormgauge_gamma, stormgauge_high_of_severe
+
 from ..data_structures import DecayKernel, GaugeConfig, Storm, TrackPoint
 
 
@@ -31,7 +33,7 @@ class _IntensityMixin:
 
     def haversine_km(self, lon1: float, lat1: float, lon2: float, lat2: float) -> float:
         """Calculate distance in km between two points using Haversine formula."""
-        R = 6371  # Earth radius in km
+        R = stormgauge_earth_radius_km
 
         lat1_rad = math.radians(lat1)
         lat2_rad = math.radians(lat2)
@@ -108,9 +110,10 @@ class _IntensityMixin:
         Compute storm intensity experienced at gauge location at given time.
 
         Interpolates storm position along track based on time, then applies
-        spatial decay based on distance.
+        spatial decay based on distance. After the storm's duration there is no
+        forcing: the gauge is left to recede.
         """
-        if not storm.track:
+        if not storm.track or time_hours > storm.duration_hours:
             return 0.0
 
         # Find track points bracketing current time
@@ -158,22 +161,19 @@ class _IntensityMixin:
         """
         Convert storm intensity (0-100) to water level contribution.
 
-        The mapping is calibrated such that:
-        - Intensity ~40 approaches flood alert
-        - Intensity ~60-70 approaches flood warning
-        - Intensity ~85+ approaches severe warning
-        - Intensity 100 reaches historical high
+        The mapping's targets, at Table 2's default stages, are flood alert at
+        intensity 38.7, flood warning at 64.7, severe warning at 86.0 and the
+        historical high at 100.
 
-        Returns the water level above base level.
+        Returns the target water level above base level.
         """
         if intensity <= 0:
             return 0.0
 
-        max_level = gauge.historical_high or (gauge.severe_warning * 1.1)
+        max_level = gauge.historical_high or (gauge.severe_warning * stormgauge_high_of_severe)
         level_range = max_level - gauge.base_level
 
-        gamma = 0.8
-        normalised = (intensity / 100.0) ** gamma
+        normalised = (intensity / 100.0) ** stormgauge_gamma
 
         level_contribution = normalised * level_range * gauge.sensitivity
 
