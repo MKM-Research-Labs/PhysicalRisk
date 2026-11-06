@@ -16,6 +16,8 @@
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Spatial Interpolation Model parameters (MKM-SP-001 v2.0, ``models/floodrisk/spatial``).
 
 Eq. 1's sphere (m); s3.2's IDW power and the distance within which a gauge's own value
