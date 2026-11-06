@@ -16,6 +16,8 @@
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Run the SP-001 benchmark and write its evidence.
 
     python -m tools.wolfram_oracle sp001 [--out DIR] [--no-live] [--no-pdf]
@@ -52,7 +54,8 @@ def evaluate(sp):
 
 def rows_for_csv(r):
     rows = [{"check": k, "value": v} for k, v in r["det"].items()]
-    rows += [{"check": f"projection_{k}", "value": v} for k, v in r["proj"].items()]
+    rows += [{"check": f"projection_{k}", "value": v} for k, v in r["proj"].items() if k != "table4"]
+    rows += [{"check": f"table4_{km}km", "value": f"{pct}% {m} m"} for km, pct, m in r["proj"]["table4"]]
     return rows + [{"check": f"tree_{k}", "value": v} for k, v in r["tree"].items() if k != "distances_m"]
 
 

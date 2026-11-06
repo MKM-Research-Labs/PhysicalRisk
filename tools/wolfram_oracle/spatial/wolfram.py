@@ -16,13 +16,15 @@
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """What Wolfram computes for SP-001, independently of the reference.
 
 The great-circle distance as R times the angle between the two points' unit vectors
-(not the haversine); Eq. 1 from exact inputs; Eq. 3 on that distance; the nearest point
+(not the haversine); Eq. 2 from exact inputs; Eq. 3 from exact degrees; the nearest point
 on a segment where the squared chord along it is stationary (FindRoot); and the true distance between
-the UK pairs on the WGS84 ellipsoid, by GeoDistance, for the document's claims that the
-haversine is sufficient (s5.1(2)) and exact (Q2).
+the UK pairs on the WGS84 ellipsoid, by GeoDistance, for the sphere's error the document
+states (s5).
 """
 
 import mpmath as mp
@@ -31,6 +33,7 @@ from config.models import (
     ORACLE_REFERENCE_DPS,
     ORACLE_SP_CORR,
     ORACLE_SP_CORR_POINTS,
+    ORACLE_SP_DEG_KM,
     ORACLE_SP_EARTH_R_M,
     ORACLE_SP_IDW,
     ORACLE_SP_SEGMENTS,
@@ -96,9 +99,10 @@ def _items():
             for p, pw in (("2", 2), ("5/2", 2.5)):
                 out.append((f"idw/{i}/{pw}", _idw(c, p), ref.idw(c, pw)))
     pts, L, r0 = ORACLE_SP_CORR_POINTS, ORACLE_SP_CORR["length_m"], ORACLE_SP_CORR["base"]
-    doc = ref.correlation(pts, L, r0)
-    for (i, j), v in doc.items():
-        out.append((f"corr/{i}/{j}", f"N[{wl_precise(r0)} Exp[-{_angle(*pts[i], *pts[j])}/{wl_precise(L)}], {_D}]", v))
+    w = wl_precise
+    for (i, j), v in ref.correlation_degrees(pts, L, r0).items():
+        d = f"Sqrt[({w(pts[i][0])} - {w(pts[j][0])})^2 + ({w(pts[i][1])} - {w(pts[j][1])})^2]"
+        out.append((f"corr/{i}/{j}", f"N[{w(r0)} Exp[-{w(ORACLE_SP_DEG_KM)} {d}/({w(L)}/1000)], {_D}]", v))
     for k, (p, a, b) in enumerate(segment_cases()):
         out.append((f"segment/{k}", _segment(p, a, b), ref.on_segment(p, a, b)[0]))
     for i, (a, b, c, d) in enumerate(ORACLE_SP_UK_PAIRS):

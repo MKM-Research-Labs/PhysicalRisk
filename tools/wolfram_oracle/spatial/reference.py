@@ -16,15 +16,17 @@
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-"""SP-001's formulae, from its model document (``spatial_model.pdf`` v1.0, s3), at 50 digits.
+# SOFTWARE.
 
-Written from the document, not the code: the haversine of Eq. 2 in its arctangent form
-on a sphere of 6,371,000 m; the IDW of Eq. 1 with the haversine distance, power p and
-s3.1's threshold (the first gauge closer than it returns its own value); the WSE at a
-gauge as its depth plus its elevation (s4.1); the correlation of Eq. 3 with d the
-haversine distance; the nearest gauge by that distance (s3.3, s4.2); and the true
+"""SP-001's formulae, from its model document (``spatial_model_v2.0.pdf``, s3), at 50 digits.
+
+Written from the document, not the code: the haversine of Eq. 1 in its arctangent form
+on a sphere of 6,371,000 m; the IDW of Eq. 2 with the haversine distance, power p and
+s3.2's threshold (the first gauge closer than it returns its own value); the WSE at a
+gauge as its depth plus its elevation (s3.2); the correlation of Eq. 3, on Euclidean
+degrees at 111 km a degree; the nearest gauge by Eq. 1 (s3.3); and the true
 nearest point on a segment drawn straight in latitude and longitude, found by
-minimising the haversine distance along it -- what the flat-Earth projection of s5.2(3)
+minimising the haversine distance along it -- what the flat-Earth projection of s3.5
 approximates.
 """
 
@@ -62,14 +64,8 @@ def wse(target, gauges, p=ORACLE_SP_POWER, d_min=ORACLE_SP_MIN_DISTANCE_M):
     return idw([(haversine(*target, lat, lon), _m(el) + _m(dep)) for lat, lon, el, dep in gauges], p, d_min)
 
 
-def correlation(points, length_m, rho0):
-    """Eq. 3 with d the haversine distance: {(i, j): rho_ij} for i < j."""
-    return {(i, j): _m(rho0) * mp.exp(-haversine(*points[i], *points[j]) / _m(length_m))
-            for i in range(len(points)) for j in range(i + 1, len(points))}
-
-
 def correlation_degrees(points, length_m, rho0):
-    """The code's convention (DD-001 v2.0, Eq. 9): Euclidean degrees at 111 km a degree."""
+    """Eq. 3 (as DD-001 v2.0's Eq. 9): Euclidean degrees at 111 km a degree; {(i, j): rho_ij}, i < j."""
     out = {}
     for i in range(len(points)):
         for j in range(i + 1, len(points)):

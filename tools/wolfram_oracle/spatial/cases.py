@@ -16,15 +16,15 @@
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """SP-001's code against its document, case by case.
 
 Each family calls the production function and the 50-digit reference with the same
 inputs; the largest relative error (metres for distances) is the family's result. The
-correlation is compared twice: against Eq. 3 as the document states it, and against
-the 111-km-a-degree convention the code follows, so that a disagreement is shown to be
-the formula and not an arithmetic slip. The spatial index and the projection are judged
-by what they return: the gauge the tree calls nearest, and the distance to the point the
-projection finds.
+correlation is Eq. 3 as v2.0 states it: Euclidean degrees at 111 km a degree. The spatial index and the projection are judged
+by what they return: the gauge the index calls nearest and its distance, and the
+distance to the point the projection finds.
 """
 
 import importlib
@@ -122,7 +122,7 @@ def projection(sp):
         got = sp.nearest_point_on_polyline(p[0], p[1], list(ORACLE_SP_POLYLINE))
         want = ref.on_polyline(p, ORACLE_SP_POLYLINE)
         seg_off += got[3] != want[1]
-    return {"near": max(_proj_err(d, td) for _, d, td, _, _ in near),
+    return {"table4": table4(rows), "near": max(_proj_err(d, td) for _, d, td, _, _ in near),
             "far": max(_proj_err(d, td) for _, d, td, _, _ in far),
             "far_m": max(float(abs(mp.mpf(d) - td)) for _, d, td, _, _ in far),
             "t": max(float(abs(mp.mpf(t) - tt)) for *_, t, tt in near),
@@ -130,38 +130,47 @@ def projection(sp):
 
 
 def _tree_pick(sp, target, gauges):
+    """The index's answer: (row, distance m)."""
     import pandas as pd
     tree = sp.build_spatial_index(pd.DataFrame({"latitude": [g[0] for g in gauges],
                                                 "longitude": [g[1] for g in gauges]}))
-    return int(tree.query(np.deg2rad(target))[1])
+    return sp.nearest_gauge(tree, *target)
 
 
 def tree(sp):
-    """s3.3: the gauge the KDTree calls nearest against the nearest by Eq. 2."""
+    """s3.3: the gauge the index calls nearest, and its distance, against Eq. 1's."""
     c = ORACLE_SP_TREE_CASE
     dist = [float(ref.haversine(*c["target"], *g)) for g in c["gauges"]]
-    case = {"picked": _tree_pick(sp, c["target"], c["gauges"]), "nearest": ref.nearest(c["target"], c["gauges"]),
+    case = {"picked": _tree_pick(sp, c["target"], c["gauges"])[0], "nearest": ref.nearest(c["target"], c["gauges"]),
             "distances_m": dist}
     r = ORACLE_SP_TREE_RANDOM
     rng = np.random.default_rng(r["seed"])
     wrong = total = 0
-    excess = 0.0
+    dist_err = 0.0
     for _ in range(r["networks"]):
         gauges = [tuple(x) for x in np.column_stack([rng.uniform(*r["lat"], r["gauges"]), rng.uniform(*r["lon"], r["gauges"])])]
         for q in np.column_stack([rng.uniform(*r["lat"], r["queries"]), rng.uniform(*r["lon"], r["queries"])]):
             q = tuple(q)
-            got, want = _tree_pick(sp, q, gauges), ref.nearest(q, gauges)
+            (got, d), want = _tree_pick(sp, q, gauges), ref.nearest(q, gauges)
             total += 1
-            if got != want:
-                wrong += 1
-                excess = max(excess, float(ref.haversine(*q, *gauges[got]) / ref.haversine(*q, *gauges[want]) - 1))
-    return {**case, "wrong": wrong, "queries": total, "worst_excess": excess}
+            wrong += got != want
+            dist_err = max(dist_err, rel_err(d, ref.haversine(*q, *gauges[want])))
+    return {**case, "wrong": wrong, "queries": total, "distance_err": dist_err}
+
+
+def table4(rows):
+    """Table 5 as printed: the worst error at each offset, per cent (4 dp) and metres (3 dp)."""
+    out = []
+    for km in sorted({r[0] for r in rows}):
+        at = [r for r in rows if r[0] == km]
+        pct = max((_proj_err(d, td) for _, d, td, _, _ in at if td > 1), default=0.0)
+        out.append((km, f"{100 * pct:.4f}", f"{max(float(abs(mp.mpf(d) - td)) for _, d, td, _, _ in at):.3f}"))
+    return out
 
 
 def deterministic(sp):
     """Each closed-form family's worst error, code against reference."""
     code = correlation_code(sp)
-    doc = ref.correlation(ORACLE_SP_CORR_POINTS, ORACLE_SP_CORR["length_m"], ORACLE_SP_CORR["base"])
     deg = ref.correlation_degrees(ORACLE_SP_CORR_POINTS, ORACLE_SP_CORR["length_m"], ORACLE_SP_CORR["base"])
     return {
         "haversine_m": max(float(abs(mp.mpf(sp.haversine_distance(*p)) - ref.haversine(*p))) for p in POINTS),
@@ -169,6 +178,5 @@ def deterministic(sp):
                       for c in ORACLE_SP_IDW for p in ORACLE_SP_POWERS),
         "wse": _worst((_wse_code(sp, t, g), ref.wse(t, g)) for t, g in wse_cases()),
         "corr_degrees": _worst((code[i][j], v) for (i, j), v in deg.items()),
-        "corr_doc": _worst((code[i][j], v) for (i, j), v in doc.items()),
         "corr_diagonal": float(max(abs(code[i][i] - 1) for i in range(len(code)))),
     }

@@ -1,8 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 
 \newcommand{\doctitle}{Spatial Interpolation Model (MKM-SP-001)}
-\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of the Code and its v1.0 Document}
-\newcommand{\docversion}{0.1}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of the Code and its v2.0 Document}
+\newcommand{\docversion}{0.2}
 \newcommand{\docdate}{06-November-2026}
 \newcommand{\docauthor}{David K Kelly}
 
@@ -40,40 +40,46 @@
 
 This document benchmarks the Spatial Interpolation Model (MKM-SP-001): the module
 \texttt{src/models/floodrisk/spatial.py}. It asks two questions. Does the code compute what
-its model document (\texttt{spatial\_model.pdf}, v1.0, 27-March-2026) says? And does what
-the document says hold?
+its model document (\texttt{spatial\_model\_v2.0.pdf}) says? And does what the document
+says hold?
 
-\paragraph{The code computes the document's distance and IDW.} The haversine (Eq.~2) and
-inverse-distance weighting (Eq.~1) agree with a 50-digit implementation of the document's
-equations to \bmCodeErr. That holds both for gauges given as distances and for gauges given
-as coordinates. \bmWolframConfirms{} The three sensitivity tables reproduce: all
-\bmFigures{} figures.
+\paragraph{Version~0.1} tested the filed v1.0 of that document. The code computed its
+distance and IDW exactly, but 10 of the document's 15 claims failed:
+\begin{itemize}[leftmargin=*,nosep]
+\item The spatial index treated a degree of latitude and of longitude as the same length.
+  It named the wrong nearest gauge in 176 of 1{,}000 queries over the Thames basin.
+\item The correlation was Euclidean degrees at 111\,km a degree, not the equation printed.
+\item The coordinate path fixed the power and threshold.
+\item Nothing returned the nearest gauge.
+\item Nothing in the platform used the interpolation, the index or the correlation, and
+  the tests, validation and kriging comparison the document cited did not exist.
+\end{itemize}
+The model was revised as v2.0:
+\begin{itemize}[leftmargin=*,nosep]
+\item the index on the unit sphere, with a lookup returning the nearest gauge and its
+  distance;
+\item the power and threshold taken from coordinates too;
+\item its constants moved to config;
+\item the document rewritten to say what the module computes, how accurate it is, and
+  what uses it.
+\end{itemize}
+This version tests v2.0.
 
-\paragraph{The document's claims do not hold:} \bmClaimsMet{} of \bmClaims{} are met
+\paragraph{The code computes its documented equations.} The haversine agrees with a
+50-digit implementation of v2.0's equations to \bmHavErr\,m. IDW from distances and from
+coordinates, and the correlation, agree to \bmCodeErr. The index names the nearest gauge in
+all \bmTreeQueries{} queries (Table~\ref{tab:bm-checks}). \bmWolframConfirms{}
+
+\paragraph{The document's claims hold:} \bmClaimsMet{} of \bmClaims{}
 (Table~\ref{tab:bm-claims}).
 \begin{itemize}[leftmargin=*,nosep]
-\item \textbf{The spatial index finds the wrong gauge.} The KDTree indexes latitude and
-  longitude as though a degree of each were the same length. Over the Thames basin it names
-  the wrong nearest gauge in \bmTreeWrong{} of \bmTreeQueries{} queries.
-\item \textbf{The correlation is not Eq.~3.} The code measures distance as Euclidean
-  degrees at 111\,km a degree, so east--west separations are overstated by 61\% at
-  51.5$^\circ$N. Against Eq.~3 on the document's own distance, it is up to \bmCorrErr{} off.
-  MKM-DD-001 v2.0 already documents the code's convention.
-\item \textbf{The interpolation is not configurable from coordinates.} The power and the
-  1\,m threshold are fixed in the path that takes coordinates.
-\item \textbf{No function returns the nearest gauge.} \S4.2 lists the nearest gauge's
-  distance and identity as outputs.
-\item \textbf{The haversine is not exact.} It assumes a sphere, against Q2's statement,
-  though it is sufficient at these scales, as \S5.1 says.
-\item \textbf{The model is not used for its stated purpose.} Nothing in the platform calls
-  the interpolation, the index or the correlation. What is used is the haversine and the
-  polyline projection, by the property, gauge and seismic code.
-\item \textbf{The validation evidence does not exist.} No test queries the tree (Q4),
-  nothing validates the interpolation against observations (Q5), and nothing compares it
-  with kriging (Q7).
+\item All \bmFigures{} figures in its tables reproduce from the code.
+\item Its statements about the model are true: both interpolation paths take the power, and
+  the correlation's conversion overstates east--west separation by 61\%. The sphere errs by
+  the 0.32\% it states, and nothing in the platform calls what it says nothing calls.
+\item Its statements about the evidence are true: the tests query the index, and there is
+  no validation against observations and no kriging comparison.
 \end{itemize}
-The projection's flat-Earth error, which the document flags beyond 50\,km, is real but
-small.
 
 \paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
 (Table~\ref{tab:bm-checks}).
@@ -94,17 +100,18 @@ Every function in \texttt{spatial.py}:
 \item \texttt{haversine\_distance};
 \item the interpolation, from coordinates (\texttt{spatial\_interpolate\_wse}) and from
   distances (\texttt{idw\_interpolate\_from\_gauges});
-\item the spatial index (\texttt{build\_spatial\_index});
+\item the index (\texttt{build\_spatial\_index}, \texttt{nearest\_gauge});
 \item the correlation matrix (\texttt{build\_correlation\_matrix});
 \item the projection onto a segment and a polyline (\texttt{nearest\_point\_on\_segment},
   \texttt{nearest\_point\_on\_polyline}).
 \end{itemize}
+Its parameters are read from \texttt{config.models} (\texttt{\_spatial.py}).
 
 \subsection{What is not}
 \begin{itemize}[leftmargin=*,nosep]
-\item Whether IDW suits flood surfaces: the document's assumptions of smooth variation and
-  isotropy (\S5) are judgements, not computations.
-\item Q3's gauge metadata, which belongs to the gauge pipeline.
+\item Whether IDW or the correlation suits flood risk. v2.0 states that neither is
+  validated or used (\S5, Q5).
+\item The callers' own use of the distance and projection.
 \end{itemize}
 This is a benchmark of the implementation (validation question Q8), not independent
 validation (Q9).
@@ -113,17 +120,16 @@ validation (Q9).
 \mkmframework
 % =========================================================================
 
-The reference implements the document's equations directly from its text:
+The reference implements v2.0's equations directly from its text:
 \begin{itemize}[leftmargin=*,nosep]
-\item the haversine of Eq.~2, in its arctangent form, on a sphere of 6{,}371{,}000\,m;
-\item the IDW of Eq.~1 with that distance and power $p$. The first gauge closer than the
+\item the haversine of Eq.~1, in its arctangent form, on a sphere of 6{,}371{,}000\,m;
+\item the IDW of Eq.~2 with that distance and power $p$. The first gauge closer than the
   threshold (default 1\,m) returns its own value;
-\item a gauge's water surface elevation as its depth plus its elevation (\S4.1);
-\item the correlation of Eq.~3, $\rho_0\exp(-d/L)$, with $d$ the distance of Eq.~1;
-\item the nearest gauge by that distance (\S3.3, \S4.2);
-\item for the projection, the true nearest point on a segment drawn straight in latitude
-  and longitude, found by minimising the haversine distance along it. That is what the
-  flat-Earth projection approximates.
+\item a gauge's water surface elevation as its depth plus its elevation (\S3.2);
+\item the correlation of Eq.~3, on Euclidean degrees at 111\,km a degree;
+\item the nearest gauge by Eq.~1 (\S3.3);
+\item for the projection (\S3.5), the true nearest point on a segment drawn straight in
+  latitude and longitude, found by minimising the haversine distance along it.
 \end{itemize}
 
 % =========================================================================
@@ -136,26 +142,24 @@ The reference implements the document's equations directly from its text:
   threshold and on it. The coordinate path: four gauges around a target on the Thames,
   with the target on a gauge, 0.5\,m from one, far off, and with a single gauge.
 \item The correlation: five properties within 15\,km, $L=2$\,km, $\rho_0=0.6$.
-\item The spatial index: one case built to expose it, a gauge 0.010$^\circ$ north and one
-  0.012$^\circ$ east of the target. Then 20 seeded random networks of 50 gauges over the
-  Thames basin, queried at 50 random points each.
+\item The index: the case v1.0 got wrong, a gauge 0.010$^\circ$ north and one 0.012$^\circ$
+  east of the target. Then 20 seeded random networks of 50 gauges over the Thames basin,
+  queried at 50 random points each.
 \item The projection: four segments (east--west, north--south, diagonal and 1\,km long).
   Points sit 10\,m to 200\,km from each midpoint, to the north, east and north-west.
   Nine points are projected onto a river-like polyline.
 \end{itemize}
 
-\paragraph{The printed tables.} Tables~1--3 were generated from the code. Each figure is
-judged as the code's value, rounded and formatted as their generator did.
+\paragraph{The printed tables.} Tables~2--5 were generated from the code. Each figure is
+judged as the code's value printed to the places the table shows.
 
 \paragraph{The statements.}
 \begin{itemize}[leftmargin=*,nosep]
-\item What the model returns and accepts is judged from the code.
+\item What the model accepts and returns is judged from the code.
 \item What uses the model is judged by searching \texttt{src} and \texttt{scripts} for
-  callers of each function.
-\item Q4, Q5 and Q7 are judged by searching the repository. Q4 needs a test that queries
-  the tree, Q5 any code that calls the interpolation, and Q7 any mention of kriging.
-\item ``Sufficient'' (\S5.1) has no figure in the document. It is judged here as within
-  0.5\% of WGS84.
+  files that import the module and name each function.
+\item Q4, Q5 and Q7 are judged by searching the repository: for tests that query the
+  index, for any code that calls the interpolation, and for any mention of kriging.
 \end{itemize}
 
 \paragraph{Wolfram.} Wolfram works from each input's exact value, independently of the
@@ -163,9 +167,10 @@ reference:
 \begin{itemize}[leftmargin=*,nosep]
 \item the great-circle distance, as $R$ times the angle between the two points' unit
   vectors (not the haversine);
-\item Eq.~1 at powers 2 and 5/2;
-\item Eq.~3 on that distance;
-\item the nearest point on the diagonal segment, by \texttt{FindMinimum};
+\item Eq.~2 at powers 2 and 5/2;
+\item Eq.~3 from exact degrees;
+\item the nearest point on the diagonal segment, where the squared chord along it is
+  stationary (\texttt{FindRoot});
 \item the true distance between six UK pairs under 100\,km, by \texttt{GeoDistance} on
   WGS84.
 \end{itemize}
@@ -176,36 +181,24 @@ reference:
 
 \input{evidence_tables_findings}
 
-The code computes the IDW and the haversine exactly. The correlation agrees exactly with
-the 111\,km-a-degree convention and not with Eq.~3, so the gap is in the formula, not the
-arithmetic.
-
 \subsection{The model document's claims}
 \input{evidence_tables_claims}
-
-\paragraph{What the tables do not show.} Table~2 calls its varied gauge the nearest. Beyond
-2\,km the 2\,km gauge is nearer, so its last two rows measure something else. Tables~2
-and~3 print to 0.1\,m, which hides most of what they vary: Table~3 prints 12.4 four times
-over a change of 7\,cm.
-
-\paragraph{Empty input.} With no gauges, \texttt{spatial\_interpolate\_wse} returns 0\,m.
-That is a valid water surface elevation (sea level), not a missing value. The document
-does not mention it.
 
 % =========================================================================
 \mkmlimitations
 % =========================================================================
 
 \begin{enumerate}[leftmargin=*]
-\item \textbf{Benchmark, not validation.} The code is shown to compute the document's
-  distance and IDW. Whether IDW represents a flood surface is not tested, and nothing in
-  the repository tests it.
+\item \textbf{Benchmark, not validation.} The code is shown to compute its documented
+  equations, and the document to describe it. Whether IDW represents a flood surface is
+  not tested. v2.0 says so, and nothing in the repository tests it.
 \item \textbf{Searches are of this repository.} ``Nothing calls it'' means nothing in
   PhysicalRisk at the commit above.
-\item \textbf{The spatial index is judged on random networks.} How often it errs depends
-  on gauge density and latitude. The figure is for the Thames basin.
+\item \textbf{The index is judged on random networks} over the Thames basin. It is exact
+  by construction (\S3.3), so the networks test the code, not the method.
 \end{enumerate}
 
-\mkmhistorypage{06-Nov-2026 & 0.1 & First issue: tests the filed v1.0 & David K Kelly \\}
+\mkmhistorypage{06-Nov-2026 & 0.1 & First issue: tests the filed v1.0; 10 of its 15 claims fail (not filed) & David K Kelly \\
+06-Nov-2026 & 0.2 & Tests v2.0, the revised model & David K Kelly \\}
 
 \end{document}

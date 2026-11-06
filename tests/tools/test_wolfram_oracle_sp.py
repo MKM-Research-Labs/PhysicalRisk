@@ -16,11 +16,13 @@
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 """Tests for tools.wolfram_oracle.spatial, the SP-001 benchmark.
 
 The reference is checked against cases it does not compute from -- a degree on the
 equator, IDW's threshold and its symmetric case, a point past a segment's end -- and the
-gate runs the production code against it. Wolfram is stood in for by the answers the
+gate runs the production code against it: every claim of v2.0 holds. Wolfram is stood in for by the answers the
 filed run recorded, and the random spatial-index networks are cut from twenty to two.
 """
 
@@ -40,9 +42,6 @@ from config import config
 from config.models import ORACLE_SP_CODE_TOL, ORACLE_SP_OUT_DIR, ORACLE_SP_TREE_RANDOM
 
 RECORDED = config.get_project_root() / ORACLE_SP_OUT_DIR / "spatial_wolfram.json"
-# v1.0's claims that the benchmark finds do not hold.
-NOT_MET = {"t2_label", "configurable", "tree", "correlation", "outputs", "lineage", "unit_tests", "validation",
-           "kriging"}
 
 
 @pytest.fixture(scope="module")
@@ -73,11 +72,11 @@ class TestReference:
         g = ((51.5, -0.1, 3.0, 1.25),)
         assert ref.wse((51.5, -0.1), g) == 4.25
 
-    def test_the_two_correlations(self):
+    def test_the_correlation_at_111_km_a_degree(self):
         pts = ((51.5, -0.1), (51.5, -0.1), (51.5, 0.0))
-        assert ref.correlation(pts, 2000, 0.6)[(0, 1)] == mp.mpf(0.6)
-        deg = ref.correlation_degrees(pts, 2000, 0.6)[(0, 2)]
-        assert float(deg) == pytest.approx(0.6 * math.exp(-0.1 * 111 / 2), rel=1e-12)
+        corr = ref.correlation_degrees(pts, 2000, 0.6)
+        assert corr[(0, 1)] == mp.mpf(0.6)
+        assert float(corr[(0, 2)]) == pytest.approx(0.6 * math.exp(-0.1 * 111 / 2), rel=1e-12)
 
     def test_nearest_and_the_segment(self):
         assert ref.nearest((51.5, -0.1), ((51.51, -0.1), (51.5, -0.088))) == 1
@@ -89,22 +88,23 @@ class TestReference:
 
 
 class TestTheCode:
-    def test_the_code_computes_the_documents_distance_and_idw(self, sp):
+    def test_the_code_computes_the_document(self, sp):
         with mp.workdps(50):
             det = cases.deterministic(sp)
         assert det["haversine_m"] < 1e-6 and det["corr_diagonal"] == 0
         assert all(det[k] <= ORACLE_SP_CODE_TOL for k in ("idw", "wse", "corr_degrees"))
-        assert det["corr_doc"] > 0.5
 
     def test_the_projection(self, sp):
         with mp.workdps(50):
             p = cases.projection(sp)
         assert p["near"] < 1e-4 < p["far"] * 10 and p["polyline_segments_off"] == 0 and p["cases"] == 84
+        assert p["table4"][-1] == (200, "0.0195", "38.953")
 
-    def test_the_spatial_index_picks_the_wrong_gauge(self, sp, quick):
+    def test_the_index_names_the_nearest_gauge(self, sp, quick):
         with mp.workdps(50):
             t = cases.tree(sp)
-        assert (t["picked"], t["nearest"]) == (0, 1) and t["queries"] == 100 and t["wrong"] > 0
+        assert (t["picked"], t["nearest"]) == (1, 1) and t["queries"] == 100 and t["wrong"] == 0
+        assert t["distance_err"] < 1e-9
 
 
 class TestClaims:
@@ -114,26 +114,26 @@ class TestClaims:
             mp_.setattr(cases, "ORACLE_SP_TREE_RANDOM", {**ORACLE_SP_TREE_RANDOM, "networks": 2})
             return claims.assess(sp, cases.projection(sp), cases.tree(sp), cases.deterministic(sp))
 
-    def test_what_v1_gets_wrong(self, assessed):
-        assert {k for k, v in assessed.items() if not v["met"]} == NOT_MET
-        assert sum(assessed[k]["of"] for k in ("t1", "t2", "t3")) == 26
-        assert assessed["lineage"]["users"]["haversine_distance"]
-
-    def test_the_format(self):
-        assert claims.fmt(0.5) == "0.5000" and claims.fmt(1.0) == "1.00" and claims.fmt(12.438) == "12.4"
+    def test_every_claim_of_v2_holds(self, assessed):
+        assert {k for k, v in assessed.items() if not v["met"]} == set()
+        assert sum(assessed[k]["of"] for k in ("t1", "t2", "t3", "t4")) == 27
+        assert assessed["lineage"]["areas"] == ["gauge", "property", "seismic"]
 
     def test_the_sphere_waits_for_wolfram(self):
-        assert claims.ellipsoid(None)["sufficient"] is None
+        assert claims.ellipsoid(None)["met"] is None
         got = claims.ellipsoid([-0.317, -0.06])
-        assert got["sufficient"] and not got["exact"] and got["worst"] == -0.317
+        assert got["met"] and got["worst"] == -0.317
+        assert not claims.ellipsoid([-0.5])["met"]
 
-    def test_evidence_found_is_reported(self, assessed, monkeypatch):
-        monkeypatch.setattr(claims.subprocess, "run", lambda *a, **k: type("R", (), {"stdout": "src/x/krige.py\n"})())
-        assert claims.kriging() == {"files": ["src/x/krige.py"], "met": True}
-        assert claims.validation()["met"] and claims.unit_tests()["met"]
-        c = {**assessed, "kriging": claims.kriging()}
-        table = latex._claims_table(c, claims.ellipsoid(None))
-        assert "src/x/krige.py" in table.replace("\\_", "_") and "pending" in table
+    def test_a_caller_or_a_comparison_is_reported(self, assessed, monkeypatch):
+        """Every search finds src/port/src/x/krige.py, which imports the module and calls everything."""
+        monkeypatch.setattr(claims.subprocess, "run",
+                            lambda *a, **k: type("R", (), {"stdout": "src/port/src/x/krige.py\n"})())
+        assert claims.kriging() == {"files": ["src/port/src/x/krige.py"], "met": False}
+        assert not claims.validation()["met"] and claims.unit_tests()["met"] and not claims.lineage()["met"]
+        c = {**assessed, "kriging": claims.kriging(), "validation": claims.validation(), "lineage": claims.lineage()}
+        table = latex._claims_table(c, claims.ellipsoid(None)).replace("\\_", "_")
+        assert table.count("src/port/src/x/krige.py") == 3 and "pending" in table
 
 
 class TestRun:
@@ -147,5 +147,5 @@ class TestRun:
         shutil.copy(RECORDED, tmp_path / RECORDED.name)
         assert runner.main(["--out", str(tmp_path), "--no-pdf", "--no-live"]) == 0
         macros = (tmp_path / "evidence_tables_macros.tex").read_text()
-        assert r"\bmOutcome}{1 fail}" in macros and r"\bmClaimsMet}{5}" in macros
+        assert r"\bmOutcome}{all pass}" in macros and r"\bmClaimsMet}{13}" in macros
         assert "WGS84" in (tmp_path / "evidence_tables_claims.tex").read_text()

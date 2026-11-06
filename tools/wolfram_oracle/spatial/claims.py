@@ -16,41 +16,43 @@
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-"""SP-001's model document, tested as stated (``spatial_model.pdf``, v1.0).
+# SOFTWARE.
 
-Its three sensitivity tables were generated from the code, so each figure is judged as
-the code's value, rounded and formatted as their generator did. The statements about the
-model -- what it computes, what it returns, how accurate it is, what uses it, what tests
-and validates it -- are judged by running the code, which the checks show computes the
-document's IDW and haversine, and by searching the repository.
+"""SP-001's model document, tested as stated (``spatial_model_v2.0.pdf``).
+
+Its four sensitivity tables were generated from the code, so each figure is judged as the code's
+value printed to the places the table shows. The statements about the model -- what it
+accepts and returns, how accurate it is, what uses it, and what tests and validation
+exist -- are judged by running the code, which the checks show computes the document's
+equations, and by searching the repository.
 """
 
 import inspect
+import math
 import subprocess
 
 from config import config
 from config.models import (
-    ORACLE_SP_FLAT_EARTH_KM,
+    ORACLE_SP_CODE_TOL,
+    ORACLE_SP_EW_STATED,
+    ORACLE_SP_NEAREST_TOL,
     ORACLE_SP_PRINTED_T1,
     ORACLE_SP_PRINTED_T2,
     ORACLE_SP_PRINTED_T3,
+    ORACLE_SP_PRINTED_T4,
     ORACLE_SP_SOURCES,
-    ORACLE_SP_SUFFICIENT_PCT,
+    ORACLE_SP_SPHERE_STATED_PCT,
     ORACLE_SP_T1,
     ORACLE_SP_T2_DISTANCES,
     ORACLE_SP_T3_GAUGES,
     ORACLE_SP_TESTS,
+    ORACLE_SP_USED_BY,
 )
 
-# What the document says the model is for: interpolation, the index and the correlation.
-DOCUMENTED = ("spatial_interpolate_wse", "idw_interpolate_from_gauges", "build_spatial_index",
-              "build_correlation_matrix")
+# v2.0 s2.2: retained with no production caller; and used by the property, gauge and seismic code.
+RETAINED = ("spatial_interpolate_wse", "idw_interpolate_from_gauges", "build_spatial_index",
+            "nearest_gauge", "build_correlation_matrix")
 SHARED = ("haversine_distance", "nearest_point_on_polyline", "nearest_point_on_segment")
-
-
-def fmt(v):
-    """The generator's number format (docs/models/sensitivities latex_table)."""
-    return f"{v:.1f}" if abs(v) >= 10 else (f"{v:.2f}" if abs(v) >= 1 else f"{v:.4f}")
 
 
 def _matched(got, want):
@@ -58,28 +60,39 @@ def _matched(got, want):
     return {"matched": sum(a == b for a, b in zip(got, want)), "of": len(want), "met": got == want}
 
 
-def tables(sp):
+def tables(sp, table4):
     idw = sp.idw_interpolate_from_gauges
-    t1 = [c for p in ORACLE_SP_T1["powers"] for c in (fmt(p), fmt(round(idw(list(ORACLE_SP_T1["base"]), power=p), 3)))]
-    t2 = [fmt(round(idw([(float(d), 12.5), (2000.0, 11.8), (5000.0, 10.2)], power=2.0), 3)) for d in ORACLE_SP_T2_DISTANCES]
-    t3 = [fmt(round(idw(list(ORACLE_SP_T3_GAUGES[:n]), power=2.0), 3)) for n in range(1, len(ORACLE_SP_T3_GAUGES) + 1)]
-    nearest = sum(d <= 2000 for d in ORACLE_SP_T2_DISTANCES)
-    return {"t1": _matched(t1, [c for row in ORACLE_SP_PRINTED_T1 for c in row]),
-            "t2": _matched(t2, ORACLE_SP_PRINTED_T2), "t3": _matched(t3, ORACLE_SP_PRINTED_T3),
-            "t2_label": {"nearest": nearest, "of": len(ORACLE_SP_T2_DISTANCES),
-                         "met": nearest == len(ORACLE_SP_T2_DISTANCES)}}
+    t1 = [f"{idw(list(ORACLE_SP_T1['base']), power=p):.3f}" for p in ORACLE_SP_T1["powers"]]
+    t2 = [f"{idw([(float(d), 12.5), (2000.0, 11.8), (5000.0, 10.2)]):.3f}" for d in ORACLE_SP_T2_DISTANCES]
+    t3 = [f"{idw(list(ORACLE_SP_T3_GAUGES[:n])):.3f}" for n in range(1, len(ORACLE_SP_T3_GAUGES) + 1)]
+    rows = {km: (pct, m) for km, pct, m in table4}
+    t4 = [c for km, *_ in ORACLE_SP_PRINTED_T4 for c in rows[km]]
+    return {"t1": _matched(t1, ORACLE_SP_PRINTED_T1), "t2": _matched(t2, ORACLE_SP_PRINTED_T2),
+            "t3": _matched(t3, ORACLE_SP_PRINTED_T3),
+            "t4": _matched(t4, [c for _, *cells in ORACLE_SP_PRINTED_T4 for c in cells])}
 
 
 def configurable(sp):
-    """s3.1, s4.1: the power and threshold are inputs of the lat/lon interpolation."""
-    params = inspect.signature(sp.spatial_interpolate_wse).parameters
-    return {"params": list(params), "met": "power" in params and "min_distance" in params}
+    """s3.2: both interpolation paths take the power and the threshold."""
+    paths = (sp.spatial_interpolate_wse, sp.idw_interpolate_from_gauges)
+    return {"met": all({"power", "min_distance"} <= set(inspect.signature(f).parameters) for f in paths)}
 
 
 def outputs(sp):
-    """s4.2: something returns the nearest gauge's distance and identity."""
+    """s4.2: the index returns the nearest gauge's row and distance."""
     names = sorted(n for n, f in inspect.getmembers(sp, inspect.isfunction) if f.__module__ == sp.__name__)
-    return {"functions": names, "met": any("gauge" in n and "nearest" in n for n in names)}
+    return {"functions": names, "met": "nearest_gauge" in names}
+
+
+def empty(sp):
+    """s3.2: with no gauges, both paths return 0.0."""
+    return {"met": sp.spatial_interpolate_wse(51.5, -0.1, {}, {}) == 0.0 and sp.idw_interpolate_from_gauges([]) == 0.0}
+
+
+def east_west():
+    """s3.4: the degree conversion overstates east-west separation at 51.5 N by 61%."""
+    pct = 100 * (1 / math.cos(math.radians(ORACLE_SP_EW_STATED["latitude"])) - 1)
+    return pct, round(pct) == ORACLE_SP_EW_STATED["pct"]
 
 
 def _grep(pattern, paths, flags=("-lE",)):
@@ -87,52 +100,62 @@ def _grep(pattern, paths, flags=("-lE",)):
                           cwd=config.get_project_root()).stdout.splitlines()
 
 
+def _area(path):
+    """src/models/<area>/... or src/port/src/<area>/..."""
+    return path.split("/")[3] if path.startswith("src/port/src/") else path.split("/")[2]
+
+
 def lineage():
-    """Who calls each function, outside the module itself (src and scripts)."""
+    """s2.2: nothing calls the retained functions; the shared ones serve the stated areas.
+    A caller is a file that imports the module and names the function (other modules
+    have functions of their own called ``nearest_gauge``)."""
     src = ORACLE_SP_SOURCES[0]
-    users = {f: [p for p in _grep(f, ["src", "scripts"], ("-lw",)) if p != src] for f in DOCUMENTED + SHARED}
-    return {"users": users, "met": any(users[f] for f in DOCUMENTED)}
+    importers = set(_grep(r"floodrisk\.spatial|floodrisk import .*\bspatial\b", ["src", "scripts"])) - {src}
+    users = {f: sorted(importers & set(_grep(f, ["src", "scripts"], ("-lw",)))) for f in RETAINED + SHARED}
+    areas = sorted({_area(p) for f in SHARED for p in users[f]})
+    return {"users": users, "areas": areas,
+            "met": not any(users[f] for f in RETAINED) and tuple(areas) == ORACLE_SP_USED_BY}
 
 
 def unit_tests():
-    """Q4: the tests check haversine accuracy, IDW convergence and KDTree correctness --
-    judged on the KDTree, whose tests would have to query it."""
-    queried = _grep(r"\.query\(", list(ORACLE_SP_TESTS))
-    return {"tree_queried": bool(queried), "met": bool(queried)}
+    """Q4: the tests query the index for the nearest gauge."""
+    found = _grep("nearest_gauge", list(ORACLE_SP_TESTS), ("-lw",))
+    return {"met": bool(found)}
 
 
 def validation():
-    """Q5: something compares an interpolated value with an observation -- any code that
-    calls the interpolation, outside its unit tests and the benchmarks."""
+    """Q5: v2.0 says nothing validates the interpolation against observations -- judged
+    as no code calling it outside its unit tests and the benchmarks."""
     callers = [p for p in _grep("idw_interpolate_from_gauges|spatial_interpolate_wse", ["*.py"], ("-lwE",))
-               if p != ORACLE_SP_SOURCES[0] and p not in ORACLE_SP_TESTS and not p.startswith(("tools/wolfram_oracle", "docs/"))]
-    return {"callers": callers, "met": bool(callers)}
+               if p != ORACLE_SP_SOURCES[0] and p not in ORACLE_SP_TESTS and not p.startswith("tools/wolfram_oracle")]
+    return {"callers": callers, "met": not callers}
 
 
 def kriging():
-    """Q7: a comparison with kriging exists anywhere in the repository."""
-    hits = [p for p in _grep("kriging", ["."], ("-liE",)) if not p.startswith(("tools/wolfram_oracle", "docs/models/spatial_benchmark"))]
-    return {"files": hits, "met": bool(hits)}
+    """Q7: v2.0 says no comparison with kriging exists."""
+    hits = [p for p in _grep("kriging", ["."], ("-liE",)) if not p.startswith(("tools/wolfram_oracle", "docs/models/spatial_benchmark", "tests/tools/test_wolfram_oracle"))]
+    return {"files": hits, "met": not hits}
 
 
 def ellipsoid(pct):
-    """s5.1(2): sufficient below 100 km; Q2: exact for the Earth's geometry."""
+    """s5: the sphere errs by up to 0.32% against WGS84 for UK pairs under 100 km."""
     if pct is None:
-        return {"worst": None, "sufficient": None, "exact": None}
+        return {"worst": None, "met": None}
     worst = max(pct, key=abs)
-    return {"worst": worst, "sufficient": abs(worst) <= ORACLE_SP_SUFFICIENT_PCT, "exact": worst == 0}
+    return {"worst": worst, "met": round(abs(worst), 2) == ORACLE_SP_SPHERE_STATED_PCT}
 
 
 def assess(sp, proj, tree, det):
     """Each claim as a dict with its figures and ``met``; the sphere's waits for Wolfram."""
+    ew, ew_met = east_west()
     return {
-        **tables(sp),
+        **tables(sp, proj["table4"]),
         "configurable": configurable(sp),
-        "tree": {**tree, "met": tree["wrong"] == 0 and tree["picked"] == tree["nearest"]},
-        "correlation": {"err": det["corr_doc"], "met": det["corr_doc"] <= 1e-12},
+        "index": {**tree, "met": tree["wrong"] == 0 and tree["picked"] == tree["nearest"]
+                  and tree["distance_err"] <= ORACLE_SP_NEAREST_TOL},
+        "correlation": {"err": det["corr_degrees"], "ew": ew, "met": det["corr_degrees"] <= ORACLE_SP_CODE_TOL and ew_met},
         "outputs": outputs(sp),
-        "flat_earth": {"near": proj["near"], "far": proj["far"], "far_m": proj["far_m"],
-                       "km": ORACLE_SP_FLAT_EARTH_KM, "met": proj["near"] < 1e-4},
+        "empty": empty(sp),
         "lineage": lineage(),
         "unit_tests": unit_tests(),
         "validation": validation(),
