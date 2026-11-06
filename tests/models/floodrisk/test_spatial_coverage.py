@@ -41,6 +41,7 @@ from models.floodrisk.spatial import (
     build_spatial_index,
     haversine_distance,
     idw_interpolate_from_gauges,
+    nearest_gauge,
     spatial_interpolate_wse,
 )
 
@@ -69,12 +70,30 @@ class TestBuildSpatialIndexCoverage:
         assert isinstance(tree, cKDTree)
         assert tree.n == 1
 
-    def test_kdtree_coords_are_radians(self):
-        """Lines 43-45: coordinates are converted to radians."""
-        df = pd.DataFrame({'latitude': [0.0], 'longitude': [180.0]})
+    def test_kdtree_stores_unit_vectors(self):
+        """v2.0: each gauge is a point on the unit sphere, not (lat, lon) in radians."""
+        df = pd.DataFrame({'latitude': [0.0, 90.0], 'longitude': [180.0, 0.0]})
         tree = build_spatial_index(df)
-        # 180 degrees in radians is pi
-        assert tree.data[0][1] == pytest.approx(np.pi, rel=1e-6)
+        assert tree.data[0] == pytest.approx([-1.0, 0.0, 0.0], abs=1e-12)
+        assert tree.data[1] == pytest.approx([0.0, 0.0, 1.0], abs=1e-12)
+
+    def test_nearest_gauge_is_nearest_by_great_circle(self):
+        """A gauge 0.010 deg north (1,112 m) and one 0.012 deg east (831 m): v1.0's
+        degree index chose the first; the nearest is the second."""
+        df = pd.DataFrame({'latitude': [51.51, 51.5], 'longitude': [-0.1, -0.088]})
+        row, dist = nearest_gauge(build_spatial_index(df), 51.5, -0.1)
+        assert row == 1
+        assert dist == pytest.approx(haversine_distance(51.5, -0.1, 51.5, -0.088), rel=1e-9)
+
+    def test_nearest_gauge_agrees_with_haversine_on_a_random_network(self):
+        rng = np.random.default_rng(7)
+        lat, lon = rng.uniform(51.2, 51.8, 60), rng.uniform(-1.0, 0.5, 60)
+        tree = build_spatial_index(pd.DataFrame({'latitude': lat, 'longitude': lon}))
+        for qlat, qlon in zip(rng.uniform(51.2, 51.8, 100), rng.uniform(-1.0, 0.5, 100)):
+            d = [haversine_distance(qlat, qlon, a, b) for a, b in zip(lat, lon)]
+            row, dist = nearest_gauge(tree, qlat, qlon)
+            assert row == int(np.argmin(d))
+            assert dist == pytest.approx(min(d), rel=1e-9)
 
 
 # ---------------------------------------------------------------------------
@@ -169,6 +188,19 @@ class TestSpatialInterpolateWSEEdgeCases:
 # idw_interpolate_from_gauges — edge cases (line 163)
 # ---------------------------------------------------------------------------
 
+    def test_power_and_threshold_are_inputs(self):
+        """v2.0: the coordinate path takes the power and threshold the distance path does."""
+        depth = {'A': 1.0, 'B': 2.0}
+        meta = {'A': {'latitude': 51.5, 'longitude': -0.1, 'elevation': 3.0},
+                'B': {'latitude': 51.52, 'longitude': -0.1, 'elevation': 3.0}}
+        pairs = [(haversine_distance(51.505, -0.1, 51.5, -0.1), 4.0),
+                 (haversine_distance(51.505, -0.1, 51.52, -0.1), 5.0)]
+        for p in (1.0, 3.0):
+            assert spatial_interpolate_wse(51.505, -0.1, depth, meta, power=p) == pytest.approx(
+                idw_interpolate_from_gauges(pairs, power=p))
+        assert spatial_interpolate_wse(51.505, -0.1, depth, meta, min_distance=1e6) == 4.0
+
+
 class TestIDWInterpolateEdgeCases:
 
     def test_empty_returns_zero(self):
@@ -200,3 +232,7 @@ class TestIDWInterpolateEdgeCases:
         # Closest gauge (100m, WSE=2) dominates
         assert 2.0 < result < 6.0
         assert result < 4.0  # skewed toward closest
+
+    def test_infinitely_distant_gauges_carry_no_weight(self):
+        """Every weight 1/inf^p is 0, so there is nothing to average."""
+        assert idw_interpolate_from_gauges([(float('inf'), 7.5)]) == 0.0
