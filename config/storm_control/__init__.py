@@ -22,12 +22,12 @@
 Storm Sequence Control — JSON overlay for storm stress parameters.
 
 Loads ``storm_control.json`` from the catchment input directory and patches
-the live Python config modules (``config.port``, ``config.models``, and
-generator-local constants) so that the rest of the codebase continues to
-use ``from config import X`` without any changes.
+the live Python config modules (``config.port`` and ``config.models``) so that
+the rest of the codebase continues to use ``from config import X`` without any
+changes. The storm sequence generator (MKM-SS-001) reads every parameter from
+``config.port`` on each draw, so an override reaches it whenever it is applied.
 """
 
-import importlib
 import json
 import logging
 import sys
@@ -41,15 +41,11 @@ from config.storm_control._mappings import (
     _CONFIG_MODELS_KEYS,
     _CONFIG_PORT_KEYS,
     _CONTROL_FILENAME,
-    _GENERATOR_PATCHES,
+    _TABLE_KEYS,
+    _TUPLE_TABLES,
 )
-from config.storm_control._helpers import (
-    _enum_keys_to_str,
-    _patch_module,
-    _safe_getattr,
-    _str_keys_to_gap_type,
-)
-from config.storm_control._defaults import get_defaults
+from config.storm_control._helpers import _patch_module
+from config.storm_control._defaults import _port_default, get_defaults
 
 
 def _resolve_path(catchment_id: str = "thames") -> Path:
@@ -97,6 +93,13 @@ def apply_storm_control(catchment_id: str = "thames") -> None:
     for section_params in sections.values():
         flat.update(section_params)
 
+    # Tables: lay the file's rows over the source table
+    for json_key in _TABLE_KEYS:
+        if json_key in flat:
+            base = _port_default(_CONFIG_PORT_KEYS[json_key], {})
+            rows = {k: (tuple(v) if json_key in _TUPLE_TABLES else v) for k, v in flat[json_key].items()}
+            flat[json_key] = {**base, **rows}
+
     # Patch config.port
     _patch_module(cp, flat, _CONFIG_PORT_KEYS, "config.port")
 
@@ -114,31 +117,5 @@ def apply_storm_control(catchment_id: str = "thames") -> None:
             if json_key in flat and hasattr(config_pkg, attr):
                 setattr(config_pkg, attr, flat[json_key])
                 logger.debug("config.%s patched", attr)
-
-    # Patch generator-local constants
-    for json_key, (mod_path, attr) in _GENERATOR_PATCHES.items():
-        if json_key not in flat:
-            continue
-        value = flat[json_key]
-        # Convert string-keyed dicts back to enum-keyed where needed
-        if json_key == "gap_params":
-            value = _str_keys_to_gap_type(value)
-        elif json_key == "duration_params":
-            # duration_params uses tuple values
-            value = {k: tuple(v) for k, v in value.items()}
-        elif json_key == "base_intensity_params":
-            value = {k: tuple(v) for k, v in value.items()}
-
-        mod = sys.modules.get(mod_path)
-        if mod is not None:
-            setattr(mod, attr, value)
-            logger.debug("%s.%s patched from storm_control.json", mod_path, attr)
-        else:
-            try:
-                mod = importlib.import_module(mod_path)
-                setattr(mod, attr, value)
-                logger.debug("%s.%s patched (lazy import)", mod_path, attr)
-            except ImportError:
-                logger.debug("Could not import %s — skipping patch", mod_path)
 
     logger.info("storm_control.json applied (%d params)", len(flat))

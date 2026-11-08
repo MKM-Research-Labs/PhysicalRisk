@@ -203,79 +203,41 @@ class TestDisplayNameLastResort:
         assert visual.get_catchment_display_name() == "catchment"
 
 
-class TestStormControlLazyPatch:
-    """Applying storm_control.json to a generator module that is not imported yet.
+class TestStormControlTables:
+    """storm_control.json reaches the storm sequence generator (MKM-SS-001 v3.0 Q4).
 
-    The patcher walks a table of module paths. Most are already in ``sys.modules`` by
-    the time it runs; the ones that are not have to be imported on demand, and a module
-    that cannot be imported at all must be skipped rather than abort the apply — a
-    generator absent from this deployment should not stop the others being configured.
+    The generator reads every table from ``config.port`` on each draw, so patching
+    ``config.port`` is all an override needs, whatever was imported first. A control
+    file's table rows are laid over the source table, so a file that sets one category
+    does not drop the others.
     """
 
     @staticmethod
-    def _control(monkeypatch, module_path):
-        import types
-
+    def _apply(monkeypatch, section):
         from config import storm_control
 
-        monkeypatch.setattr(
-            storm_control, "_GENERATOR_PATCHES",
-            {"some_key": (module_path, "SOME_CONSTANT")})
-        monkeypatch.setattr(
-            storm_control, "load_storm_control",
-            lambda _catchment: {"sections": {"s": {"some_key": "patched"}}})
-        return storm_control
-
-    def test_an_already_imported_module_is_patched_in_place(self, monkeypatch):
-        import sys
-        import types
-
-        storm_control = self._control(monkeypatch, "mkm_fake_target")
-        target = types.ModuleType("mkm_fake_target")
-        target.SOME_CONSTANT = "original"
-        monkeypatch.setitem(sys.modules, "mkm_fake_target", target)
+        monkeypatch.setattr(storm_control, "load_storm_control", lambda _c: {"sections": {"s": section}})
         storm_control.apply_storm_control("thames")
-        assert target.SOME_CONSTANT == "patched"
 
-    def test_a_not_yet_imported_module_is_imported_then_patched(self, monkeypatch):
-        """The lazy branch: the generator has not been loaded when config is applied.
+    def test_a_table_row_is_laid_over_the_source_table(self, monkeypatch):
+        import config.port as cp
 
-        ``wave`` stands in for a generator module — a real, importable module that the
-        platform does not otherwise load, so ``sys.modules.get`` misses and the import
-        actually happens. Using a fake name would exercise the ImportError branch
-        instead, which is the next test.
-        """
-        import sys
+        self._apply(monkeypatch, {"duration_params": {"minimal": [3, 7, 14]},
+                                  "sequence_probability": {"minimal": 0.1}})
+        assert cp.STORM_DURATION_PARAMS["minimal"] == (3, 7, 14)
+        assert cp.STORM_DURATION_PARAMS["catastrophic"] == (48, 120, 240)
+        assert cp.SEQUENCE_PROBABILITY == {**cp.SEQUENCE_PROBABILITY, "minimal": 0.1}
+        assert cp.SEQUENCE_PROBABILITY["catastrophic"] == 0.85
 
-        storm_control = self._control(monkeypatch, "wave")
-        monkeypatch.delitem(sys.modules, "wave", raising=False)
-        storm_control.apply_storm_control("thames")
-        assert sys.modules["wave"].SOME_CONSTANT == "patched"
-        del sys.modules["wave"].SOME_CONSTANT
+    def test_an_override_reaches_a_generator_imported_before_it(self, monkeypatch):
+        from port.src.storm_multi.generators.batch_generator import generate_event_set
 
-    def test_a_key_absent_from_the_control_file_is_skipped(self, monkeypatch):
-        """Only the keys the file actually carries are patched.
-
-        Without the skip, a control file listing three of thirty parameters would
-        overwrite the other twenty-seven with nothing.
-        """
-        import types
-
-        from config import storm_control
-
-        target = types.ModuleType("mkm_untouched")
-        target.SOME_CONSTANT = "original"
-        monkeypatch.setattr(storm_control, "_GENERATOR_PATCHES",
-                            {"absent_key": ("mkm_untouched", "SOME_CONSTANT")})
-        monkeypatch.setattr(
-            storm_control, "load_storm_control",
-            lambda _c: {"sections": {"s": {"other_key": 1}}})
-        storm_control.apply_storm_control("thames")
-        assert target.SOME_CONSTANT == "original"
-
-    def test_an_unimportable_module_is_skipped_not_fatal(self, monkeypatch):
-        storm_control = self._control(monkeypatch, "mkm_module_that_does_not_exist")
-        storm_control.apply_storm_control("thames")   # must not raise
+        cats = ("moderate", "severe", "extreme", "catastrophic")
+        self._apply(monkeypatch, {"sequence_probability": {c: 0.0 for c in cats},
+                                  "duration_params": {c: [2, 3, 4] for c in cats}})
+        seqs = generate_event_set(200, seed=1)
+        assert all(q.num_storms == 1 for q in seqs)
+        assert max(s.duration_hours for q in seqs for s in q.storms) <= 4
 
     def test_no_control_file_is_not_an_error(self, monkeypatch):
         """A deployment that never wrote one runs on the Python defaults."""

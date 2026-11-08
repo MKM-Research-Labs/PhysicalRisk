@@ -48,11 +48,11 @@ def findings(r):
          "(standard errors)", f"{mc['z_types']:.2f}", z, mc["z_types"] <= ORACLE_SS_Z_LIMIT),
         ("Storm counts in the default batch against the exact law (standard errors)", f"{mc['z_counts']:.2f}", z,
          mc["z_counts"] <= ORACLE_SS_Z_LIMIT),
-        ("Multi-storm sequences left no room for a gap, against the exact share (standard errors)",
-         f"{mc['z_zero']:.2f}", z, mc["z_zero"] <= ORACLE_SS_Z_LIMIT),
+        ("Multi-storm sequences with every storm capped, against the exact share (standard errors)",
+         f"{mc['z_pinned']:.2f}", z, mc["z_pinned"] <= ORACLE_SS_Z_LIMIT),
         (f"\\S5.4, the validator on all {v['total']:,} sequences generated: invalid", str(v["invalid"]), "0",
          v["invalid"] == 0),
-        ("\\S5.4, the validator: injected faults caught (late end, overlap, gap count, type)",
+        ("\\S5.4, the validator: injected faults caught (late end, overlap, gap count, type, short gap)",
          f"{v['caught']} of {v['faults']}", f"{v['faults']} of {v['faults']}", v["caught"] == v["faults"]),
     ]
     if r["wolfram"] is None:
@@ -80,47 +80,56 @@ def _counts(d):
     return ", ".join(f"{d[t]:,.0f}" for t in _TYPES)
 
 
+def _exact(d):
+    return ", ".join(f"{d[t]:,.2f}".rstrip("0").rstrip(".") for t in _TYPES)
+
+
 def _override(o):
     runs = o["runs"]
     if any("error" in x for x in runs.values()):
-        return "an override exists; exercising it failed"
-    took = "takes effect" if runs["after"]["probability"] else "does not take effect"
-    return (f"\\texttt{{storm\\_control.json}} overrides every table, applied by {_files(o['callers'])}. "
-            f"Applied before the generator is imported (as at start-up), the sequence probability {took}; "
-            f"applied after (as when the screen saves), {'it does not' if not runs['before']['probability'] else 'it does'}; "
-            "the duration table never does")
+        return "exercising it failed"
+
+    def took(r):
+        return "both take effect" if r["probability"] and r["durations"] else (
+            "the probability only" if r["probability"] else "neither takes effect")
+    return (f"applied by {_files(o['callers'])}. Applied before the generator is imported, {took(runs['after'])}; "
+            f"after, {took(runs['before'])}")
+
+
+def _least(rec):
+    return ", ".join(f"{t} {rec['least'][t]:g}\\,h" for t in ("doublet", "cluster", "persistent"))
 
 
 def rows(c, e, v):
-    cont, rec, cor, pb = c["continuous"], c["recovery"], c["correlation"], c["precipitation"]["got"]
+    rec, cor, pr = c["recovery"], c["correlation"], c["precipitation"]
     cap, sc, cl = c["cap"], c["scaling"], e["classifier"]
     return [
-        ("Eq.~4, Tables~2--6, 8", "the code's parameters", "all as stated" if c["parameters"]["met"]
+        ("Eq.~4, Tables~2--6, 8", "the parameters in \\texttt{config.port}", "all as stated" if c["parameters"]["met"]
          else "differ: " + ", ".join(c["parameters"]["differ"]), _met(c["parameters"]["met"])),
-        ("Eq.~5, \\S3.5", "durations and gaps are triangular draws",
-         f"rounded to whole hours: {cont['whole']:,} of {cont['durations']:,} uncapped durations are whole; "
-         "gaps are rounded before Eq.~8 scales them", _met(cont["met"])),
+        ("Eq.~5, \\S3.5", "durations and raw gaps are whole hours; a capped duration takes the cap",
+         f"{c['whole']['whole']:,} of {c['whole']['durations']:,} uncapped durations are whole", _met(c["whole"]["met"])),
         ("\\S3.1, \\S3.4.1, \\S3.5.1", "every sequence ends by 156\\,h, leaving 12\\,h to drain",
          f"latest end {c['window']['end']:.1f}\\,h; least drainage {c['window']['drain']:.1f}\\,h",
          _met(c["window"]["met"])),
-        ("\\S3.5, Table~4", "gaps of 6--36\\,h or 24--72\\,h let the catchment drain between storms",
-         f"{100 * rec['zero']:.1f}\\% of multi-storm sequences have no gap at all ({100 * rec['cat_persistent']:.0f}\\% "
-         f"of catastrophic persistent ones); {100 * rec['compressed']:.1f}\\% have gaps shorter than drawn",
+        ("\\S3.5, Table~4, \\S6.3", "every gap is at least 24\\,h (doublet, cluster) or 6\\,h (persistent); every "
+         "storm is capped, holding each gap at that minimum, in 63.4\\% of multi-storm sequences",
+         f"least gap {_least(rec)}; {rec['pinned']:.1f}\\% exactly, {rec['seen']:.1f}\\% in the default batch",
          _met(rec["met"])),
-        ("Table~8", "a later storm is at least as strong as the first with probability 0.70",
-         f"{cor['exact']:.2f} exactly; the code {cor['seen']:.3f} over {cor['storms']:,} storms. 0.70 is "
-         "Eq.~13's chance of exceeding the base", _met(cor["met"])),
-        ("Table~7", "$P_{\\mathrm{base}}$: Thames 35, Rhine 40, Danube 45, Mississippi 55\\,mm",
-         "the code: " + ", ".join(f"{v:g}" for v in pb.values()), _met(c["precipitation"]["met"])),
+        ("Table~8", "a later storm is at least as strong as the first with probability 0.85",
+         f"{cor['exact']:.2f} exactly; the code {cor['seen']:.3f} over {cor['storms']:,} storms", _met(cor["met"])),
+        ("Table~7", "$P_{\\mathrm{base}}$: Thames 35, Mekong 90, Ha Long 100\\,mm; 35\\,mm where a catchment "
+         "has no storm module", "the code: " + ", ".join(f"{x:g}" for x in pr["got"].values())
+         + f"; {pr['fallback']:g} for the Rhine", _met(pr["met"])),
         ("\\S6.1, Table~9", f"expected counts {_counts(ORACLE_SS_TABLE9)} (isolated, doublet, cluster, persistent)",
-         f"exactly {_counts(c['table9']['exact'])}", _met(c["table9"]["met"])),
-        ("\\S7.2", "over 100 seeds, every type within 2\\% of Table~9",
-         f"worst {c['seeds']['worst_pct']:.0f}\\% off", _met(c["seeds"]["met"])),
-        ("\\S6.2", "the cap binds on $\\approx$99\\% of catastrophic durations at $n=5$, and $\\approx$35\\% of all draws",
-         f"{cap['cat5']:.0f}\\%, and {cap['share']:.1f}\\%", _met(cap["met"])),
-        ("\\S6.3", "gaps are scaled in $\\approx$20\\% of moderate-to-severe persistent sequences, $\\approx$60\\% "
-         "of catastrophic ones", f"shorter than drawn in {sc['modsev']:.1f}\\% and {sc['cat']:.0f}\\%",
-         _met(sc["met"])),
+         f"exactly {_exact(c['table9']['exact'])}", _met(c["table9"]["met"])),
+        ("\\S7.2", "pooled over 100 seeds, every type within 1\\% of Table~9",
+         f"worst {c['seeds']['worst_pct']:.2f}\\% off (one seed: {c['seeds']['per_seed_pct']:.1f}\\%)",
+         _met(c["seeds"]["met"])),
+        ("\\S6.2", "the cap binds on every catastrophic duration at $n=5$, and on 60.5\\% of all draws",
+         f"{cap['cat5']:.1f}\\%, and {cap['share']:.2f}\\%", _met(cap["met"])),
+        ("\\S6.3", "gaps are shortened in 81.1\\% of multi-storm sequences; 99.0\\% of moderate-to-severe "
+         "persistent ones, 100.0\\% of catastrophic", f"{sc['all']:.2f}\\%; {sc['modsev']:.2f}\\%, "
+         f"{sc['cat']:.8f}\\%", _met(sc["met"])),
         ("\\S5.3", "a fixed seed reproduces the batch", "it does" if c["reproducible"]["met"] else "it does not",
          _met(c["reproducible"]["met"])),
         ("\\S5.4, \\S7.1", "the validator finds no invalid sequence",
@@ -131,12 +140,11 @@ def rows(c, e, v):
          else "missing: " + _files(e["modules"]["missing"]), _met(e["modules"]["met"])),
         ("\\S2.2, \\S5.5", "the consumers' paths, the command line and its output files",
          "do not exist: " + _files(e["paths"]["gone"]) if e["paths"]["gone"] else "all exist", _met(e["paths"]["met"])),
-        ("Q4", "no mechanism exists for runtime override of the tables", _override(e["override"]),
-         _met(e["override"]["met"])),
-        ("\\S7.3, \\S7.4", "classifier AUC-ROC $\\approx$0.993 across all 52 Thames gauges; GAUGE-8f1d368d",
-         (f"the training summary: {cl['trained']} gauges, mean {cl['auc']}; "
-          f"GAUGE-8f1d368d {'present' if cl['example'] else 'absent'}") if cl["found"] else "no training summary",
-         _met(cl["met"])),
+        ("Q4", "\\texttt{storm\\_control.json} overrides every table, applied on importing \\texttt{config} and when "
+         "the screen saves, whichever was imported first", _override(e["override"]), _met(e["override"]["met"])),
+        ("\\S7.3, \\S7.4", "the training summary on file: 11 Thames gauges, mean AUC-ROC 0.9935; GAUGE-1aaf8b08",
+         (f"{cl['trained']} gauges, mean {cl['auc']}; GAUGE-1aaf8b08 {'present' if cl['example'] else 'absent'}")
+         if cl["found"] else "no training summary", _met(cl["met"])),
     ]
 
 
@@ -161,9 +169,9 @@ def macros(provs, r, version, mode, c, e):
         "bmOutcome": ("all pass" if not failed else f"{failed} fail") + ("" if version else "; Wolfram pending"),
         "bmReplayN": f"{r['replay']['sequences']:,}".replace(",", "{,}"),
         "bmCodeErr": sci(r["replay"]["worst"]),
-        "bmZeroPct": f"{100 * c['recovery']['zero']:.0f}\\%",
-        "bmCapPct": f"{c['cap']['share']:.0f}\\%",
-        "bmModSevPct": f"{c['scaling']['modsev']:.0f}\\%",
+        "bmPinnedPct": f"{c['recovery']['pinned']:.1f}\\%",
+        "bmCapPct": f"{c['cap']['share']:.1f}\\%",
+        "bmShortPct": f"{c['scaling']['all']:.1f}\\%",
         "bmSubsequent": f"{c['correlation']['exact']:.2f}",
         "bmSeasonMonths": str(r["season"]),
         "bmIsolated": f"{c['table9']['exact']['isolated']:,.0f}".replace(",", "{,}"),

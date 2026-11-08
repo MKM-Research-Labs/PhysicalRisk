@@ -22,8 +22,8 @@
 
 The exact half of the reference is checked against probabilities worked by hand -- Table 9's
 type mix, a cap that always binds, two uniforms compared -- and the replay against the
-production code on a small batch. The gate pins which of v2.0's claims fail, so a change
-to the code or the document shows up here. Wolfram is stood in for by the answers the filed
+production code on a small batch. The gate pins which of v3.0's claims fail (none), so a
+change to the code or the document shows up here. Wolfram is stood in for by the answers the filed
 run recorded, and the batches are cut from 10,000 sequences to a few hundred.
 """
 
@@ -43,8 +43,10 @@ from config import config
 from config.models import ORACLE_SS_OUT_DIR, ORACLE_SS_WEIGHTS
 
 RECORDED = config.get_project_root() / ORACLE_SS_OUT_DIR / "storm_sequence_wolfram.json"
-FAILING = {"continuous", "recovery", "correlation", "precipitation", "table9", "seeds", "cap", "scaling",
-           "override", "paths", "classifier"}
+FAILING = set()
+# s7.2 states a pooled figure for 100 seeds of 10,000; the cut-down runs here (3 of 300)
+# are compared with Table 9's 10,000 counts, so that one claim fails by construction.
+QUICK_FAILING = FAILING | {"seeds"}
 
 
 @pytest.fixture(scope="module")
@@ -74,14 +76,14 @@ class TestReference:
         assert sum(types.values()) == 1 and types["persistent"] == Q(119, 1000)
 
     def test_a_cap_that_always_binds(self):
-        assert ref.capped("catastrophic", 5) == 1 and ref.capped("moderate", 1) == 0
-        assert ref.gaps("catastrophic", "persistent", 5) == (1, 0)
+        assert ref.capped("catastrophic", "persistent", 5) == 1 and ref.capped("moderate", "isolated", 1) == 0
+        assert ref.cap_of("persistent", 5) == Q(132, 5) and ref.gaps("catastrophic", "persistent", 5)[0] == 1
 
     def test_two_uniforms_compared(self):
         assert ref.subsequent_vs_first() == Q(17, 20)
 
     def test_compressed_is_a_share(self):
-        assert ref.compressed(ORACLE_SS_WEIGHTS, ("catastrophic",), "persistent") == 1
+        assert Q(99, 100) < ref.compressed(ORACLE_SS_WEIGHTS, ("catastrophic",), "persistent") < 1
         assert 0 < ref.compressed(ORACLE_SS_WEIGHTS, ("moderate",), "doublet") < Q(1, 10)
 
 
@@ -100,9 +102,9 @@ class TestTheCode:
         with mp.workdps(50):
             rp = cases.replay(code)
         mc = cases.monte_carlo(code, rp["batch"], ref.batch(ORACLE_SS_WEIGHTS))
-        assert mc["seeds"] == 3 and mc["z_types"] < 4 and mc["z_counts"] < 4 and mc["z_zero"] < 4
+        assert mc["seeds"] == 3 and mc["z_types"] < 4 and mc["z_counts"] < 4 and mc["z_pinned"] < 4
         v = cases.validator(code, rp["batch"])
-        assert v["invalid"] == 0 and v["caught"] == v["faults"] == 4
+        assert v["invalid"] == 0 and v["caught"] == v["faults"] == 5
 
     def test_z_at_the_edges(self):
         assert cases._z(5, 5, 1) == 0 and cases._z(4, 5, 1) == float("inf")
@@ -112,9 +114,9 @@ class TestEvidence:
     def test_the_classifier_summary(self, tmp_path, monkeypatch):
         monkeypatch.setattr(evidence.config, "get_classifiers_dir", lambda: tmp_path)
         assert evidence.classifier() == {"found": False, "met": False}
-        gauges = [{"gauge_id": f"GAUGE-{i}"} for i in range(51)] + [{"gauge_id": "GAUGE-8f1d368d"}]
+        gauges = [{"gauge_id": f"GAUGE-{i}"} for i in range(10)] + [{"gauge_id": "GAUGE-1aaf8b08"}]
         (tmp_path / "training_summary.json").write_text(json.dumps(
-            {"num_trained": 52, "avg_auc_roc": 0.9931, "gauges": gauges}))
+            {"num_trained": 11, "avg_auc_roc": 0.9935, "gauges": gauges}))
         assert evidence.classifier()["met"]
 
     def test_a_missing_module_or_name_is_reported(self, monkeypatch):
@@ -127,12 +129,16 @@ class TestEvidence:
                             lambda *a, **k: type("R", (), {"returncode": 1, "stderr": "x\nBoom", "stdout": ""})())
         assert evidence._override_run("after") == {"error": "Boom"}
         assert "failed" in latex._override({"callers": [], "runs": {"after": {"error": "Boom"}}})
+        neither = {"probability": False, "durations": False}
+        text = latex._override({"callers": ["c.py"], "runs": {"after": {"probability": True, "durations": False},
+                                                             "before": neither}})
+        assert "the probability only" in text and "neither" in text
 
 
 class TestRun:
     def test_wolfram_agrees_with_the_reference(self):
         assert oracle.judge(_recorded()) < 1e-25
-        assert len(oracle.items()) == 45
+        assert len(oracle.items()) == 49
 
     def test_a_run_without_and_with_wolfram(self, tmp_path, quick):
         assert cli.main(["ss001", "--out", str(tmp_path), "--no-pdf", "--no-live"]) == 0
@@ -140,17 +146,17 @@ class TestRun:
         shutil.copy(RECORDED, tmp_path / RECORDED.name)
         assert runner.main(["--out", str(tmp_path), "--no-pdf", "--no-live"]) == 0
         macros = (tmp_path / "evidence_tables_macros.tex").read_text()
-        assert r"\bmOutcome}{all pass}" in macros and r"\bmClaimsFailed}{11}" in macros
+        assert r"\bmOutcome}{all pass}" in macros and r"\bmClaimsFailed}{1}" in macros
         assert "storm\\_control.json" in (tmp_path / "evidence_tables_claims.tex").read_text()
 
 
 class TestClaims:
-    def test_which_claims_of_v2_fail(self, code, quick):
+    def test_which_claims_of_v3_fail(self, code, quick):
         with mp.workdps(50):
             rp = cases.replay(code)
         exact = ref.batch(ORACLE_SS_WEIGHTS)
         c = claims.assess(code, rp, cases.monte_carlo(code, rp["batch"], exact), exact)
         e = evidence.assess(code)
-        assert {k for k, v in {**c, **e}.items() if not v["met"]} == FAILING
-        assert e["override"]["runs"]["after"]["probability"] and not e["override"]["runs"]["after"]["durations"]
-        assert c["precipitation"]["got"]["rhine"] == 35.0 and round(c["cap"]["share"], 1) == 50.7
+        assert {k for k, v in {**c, **e}.items() if not v["met"]} == QUICK_FAILING
+        assert all(r["probability"] and r["durations"] for r in e["override"]["runs"].values())
+        assert c["precipitation"]["got"]["mekong"] == 90.0 and round(c["cap"]["share"], 1) == 60.5

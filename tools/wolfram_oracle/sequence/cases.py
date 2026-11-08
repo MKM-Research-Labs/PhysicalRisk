@@ -38,6 +38,7 @@ from tools.wolfram_oracle.sequence import reference as ref
 
 from config.models import (
     ORACLE_SS_BASE,
+    ORACLE_SS_CAP_TOL,
     ORACLE_SS_CATEGORIES,
     ORACLE_SS_COUNT,
     ORACLE_SS_FORCED_COUNT,
@@ -46,7 +47,6 @@ from config.models import (
     ORACLE_SS_SEED,
     ORACLE_SS_SEEDS,
     ORACLE_SS_WEIGHTS,
-    ORACLE_SS_ZERO_GAP_H,
 )
 
 TYPES = ("isolated", "doublet", "cluster", "persistent")
@@ -117,28 +117,33 @@ def _z(k, n, p):
     return abs(k / n - p) / math.sqrt(p * (1 - p) / n) if 0 < p < 1 else (0.0 if k == n * p else math.inf)
 
 
+def pinned(seq):
+    """Every storm at Eq. 6's cap, so every gap is held at its minimum."""
+    cap = float(ref.cap_of(seq.sequence_type, seq.num_storms))
+    return all(abs(s.duration_hours - cap) < ORACLE_SS_CAP_TOL for s in seq.storms)
+
+
 def _shares(seqs):
     types = {t: sum(s.sequence_type == t for s in seqs) for t in TYPES}
     counts = {n: sum(s.num_storms == n for s in seqs) for n in range(1, 6)}
     multi = [s for s in seqs if s.num_storms > 1]
-    zero = sum(sum(s.inter_storm_gaps_hours) < ORACLE_SS_ZERO_GAP_H for s in multi)
-    return types, counts, len(multi), zero
+    return types, counts, len(multi), sum(pinned(s) for s in multi)
 
 
 def monte_carlo(code, batch, exact):
     """The code's batches against the exact law: type mix over ORACLE_SS_SEEDS seeds; storm
-    counts and gap-less sequences in the default batch."""
+    counts and sequences with every storm capped in the default batch."""
     seeds = [batch] + [code.batch.generate_event_set(ORACLE_SS_COUNT, seed=ORACLE_SS_SEED + k)
                        for k in range(1, ORACLE_SS_SEEDS)]
     per_seed = [_shares(s)[0] for s in seeds]
     pooled = {t: sum(p[t] for p in per_seed) for t in TYPES}
     total = ORACLE_SS_COUNT * len(seeds)
     z_types = max(_z(pooled[t], total, exact["types"][t]) for t in TYPES)
-    types, counts, multi, zero = _shares(batch)
+    types, counts, multi, pin = _shares(batch)
     z_counts = max(_z(counts[n], ORACLE_SS_COUNT, exact["counts"][n]) for n in counts)
     return {"seeds": len(seeds), "per_seed": per_seed, "pooled": pooled, "z_types": z_types,
-            "types": types, "counts": counts, "z_counts": z_counts, "multi": multi, "zero": zero,
-            "z_zero": _z(zero, multi, exact["zero_share"])}
+            "types": types, "counts": counts, "z_counts": z_counts, "multi": multi, "pinned": pin,
+            "z_pinned": _z(pin, multi, exact["pinned_share"])}
 
 
 def _broken(seq, how):
@@ -151,6 +156,8 @@ def _broken(seq, how):
         s.inter_storm_gaps_hours = s.inter_storm_gaps_hours + [1.0]
     elif how == "type":
         s.sequence_type = "tornado"
+    elif how == "short":
+        s.inter_storm_gaps_hours = [0.5] + s.inter_storm_gaps_hours[1:]
     return s
 
 
@@ -158,6 +165,6 @@ def validator(code, seqs):
     """validate_event_set on everything generated; and each fault caught when injected."""
     v = code.validation.validate_event_set(seqs)
     sample = next(s for s in seqs if s.num_storms > 1)
-    faults = ("late", "overlap", "gaps", "type")
+    faults = ("late", "overlap", "gaps", "type", "short")
     caught = sum(bool(code.validation.validate_sequence(_broken(sample, f))) for f in faults)
     return {"total": v["total"], "invalid": v["invalid"], "faults": len(faults), "caught": caught}

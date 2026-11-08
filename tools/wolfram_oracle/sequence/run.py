@@ -62,8 +62,8 @@ def rows_for_csv(r, c):
     rows = [{"check": f"replay_{k}", "value": r["replay"][k]} for k in ("sequences", "structure_off", "worst")]
     rows += [{"check": f"exact_type_{t}", "value": float(p)} for t, p in r["exact"]["types"].items()]
     rows += [{"check": f"exact_count_{n}", "value": float(p)} for n, p in r["exact"]["counts"].items()]
-    rows += [{"check": f"exact_{k}", "value": float(r["exact"][k])} for k in ("cap_share", "zero_share", "compressed_share")]
-    rows += [{"check": f"mc_{k}", "value": r["mc"][k]} for k in ("z_types", "z_counts", "z_zero", "multi", "zero")]
+    rows += [{"check": f"exact_{k}", "value": float(r["exact"][k])} for k in ("cap_share", "pinned_share", "compressed_share")]
+    rows += [{"check": f"mc_{k}", "value": r["mc"][k]} for k in ("z_types", "z_counts", "z_pinned", "multi", "pinned")]
     rows += [{"check": f"seed{k}_{t}", "value": n} for k, p in enumerate(r["mc"]["per_seed"]) for t, n in p.items()]
     return rows + [{"check": f"validator_{k}", "value": v} for k, v in r["validator"].items()]
 

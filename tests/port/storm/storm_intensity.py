@@ -23,12 +23,14 @@
 import numpy as np
 import pytest
 
-from port.src.storm_multi.core.data_structures import SequenceType
-from port.src.storm_multi.generators.intensity_sampler import (
+from config.port import (
     DEFAULT_TYPE_WEIGHTS,
     INTENSITY_VARIATION,
     SEQUENCE_PROBABILITY,
     SEQUENCE_TYPE_WEIGHTS,
+)
+from port.src.storm_multi.core.data_structures import SequenceType
+from port.src.storm_multi.generators.intensity_sampler import (
     get_storm_count,
     sample_sequence_type,
     sample_storm_intensity,

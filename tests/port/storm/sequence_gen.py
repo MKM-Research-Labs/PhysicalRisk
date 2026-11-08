@@ -160,3 +160,29 @@ class TestBuildIsolated:
             "STORM-clamp001", SequenceType.ISOLATED, 1, "catastrophic", 3.0, "2026-01-01T00:00:00"
         )
         assert result.storms[0].duration_hours <= MAX_PRECIP_END_HOUR
+
+
+class TestGapRoom:
+    """v3.0: the window reserves every gap's minimum before it caps the storms (Eq. 6)."""
+
+    @pytest.mark.parametrize("seq_type,g_min", [("doublet", 24), ("cluster", 24), ("persistent", 6)])
+    def test_every_gap_is_at_least_its_minimum(self, seq_type, g_min):
+        gen = SequenceGenerator(seed=7)
+        for _ in range(200):
+            seq = gen.generate("catastrophic", 5.0, force_sequence_type=seq_type)
+            assert min(seq.inter_storm_gaps_hours) >= g_min - 1e-9
+            cap = (156 - (seq.num_storms - 1) * g_min) / seq.num_storms
+            assert max(s.duration_hours for s in seq.storms) <= cap + 1e-9
+            assert seq.storms[-1].start_time_hours + seq.storms[-1].duration_hours <= 156 + 1e-9
+
+    def test_gaps_that_overflow_are_shortened_toward_the_minimum(self):
+        """Catastrophic storms are always capped, so R = (n - 1) g_min and every gap is 6 h."""
+        seq = SequenceGenerator(seed=3).generate("catastrophic", 5.0, force_sequence_type="persistent")
+        assert seq.inter_storm_gaps_hours == pytest.approx([6.0] * (seq.num_storms - 1))
+
+    def test_a_window_that_cannot_hold_the_minimum_gaps_is_refused(self, monkeypatch):
+        import config.port as cp
+
+        monkeypatch.setattr(cp, "STORM_GAP_PARAMS", {**cp.STORM_GAP_PARAMS, "short": (40, 50, 60)})
+        with pytest.raises(ValueError, match="cannot fit"):
+            SequenceGenerator(seed=1).generate("moderate", 1.0, force_sequence_type="persistent")

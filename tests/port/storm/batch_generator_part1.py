@@ -24,11 +24,9 @@ Tests for Phase 2: batch generation — correctness, distribution, validation.
 
 import pytest
 
+from config.port import DEFAULT_INTENSITY_WEIGHTS
 from port.src.storm_multi.core.data_structures import StormSequence
-from port.src.storm_multi.generators.batch_generator import (
-    DEFAULT_INTENSITY_WEIGHTS,
-    generate_event_set,
-)
+from port.src.storm_multi.generators.batch_generator import generate_event_set
 from port.src.storm_multi.utils.validation import (
     MAX_PRECIP_END_HOUR,
     validate_event_set,

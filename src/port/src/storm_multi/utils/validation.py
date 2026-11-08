@@ -27,11 +27,27 @@ temporal ordering, and structural consistency rules from the spec.
 
 from typing import List
 
-from config.port import EVENT_WINDOW_HOURS, MIN_DRAINAGE_WINDOW_HOURS
+import config.port as cp
 
-from ..core.data_structures import StormSequence
+from ..core.data_structures import SEQUENCE_GAP_TYPE, SequenceType, StormSequence
 
-MAX_PRECIP_END_HOUR = EVENT_WINDOW_HOURS - MIN_DRAINAGE_WINDOW_HOURS  # 156
+# The window at the source defaults. The checks read config.port on each call, so a
+# storm_control.json override of the window is honoured; this name is kept for callers.
+MAX_PRECIP_END_HOUR = cp.EVENT_WINDOW_HOURS - cp.MIN_DRAINAGE_WINDOW_HOURS  # 156
+_FP_TOL = 1e-9   # floating-point accumulation in capped durations and scaled gaps
+
+
+def precip_end_hour() -> float:
+    """W_P: the hour by which all precipitation must end (Eq. 2)."""
+    return cp.EVENT_WINDOW_HOURS - cp.MIN_DRAINAGE_WINDOW_HOURS
+
+
+def min_gap_hours(sequence_type: str) -> float:
+    """The shortest gap a sequence of this type may have: its gap type's minimum."""
+    if sequence_type not in VALID_SEQUENCE_TYPES or sequence_type == "isolated":
+        return 0.0
+    return cp.STORM_GAP_PARAMS[SEQUENCE_GAP_TYPE[SequenceType(sequence_type)].value][0]
+
 
 VALID_SEQUENCE_TYPES = {"isolated", "doublet", "cluster", "persistent"}
 VALID_INTENSITY_CATEGORIES = {
@@ -85,24 +101,28 @@ def validate_sequence(sequence: StormSequence) -> List[str]:
                 f"before storm {i-1} ends at {prev_end}h"
             )
 
-    # Drainage window: last storm must end by MAX_PRECIP_END_HOUR
-    # Allow 1e-9 tolerance for floating-point accumulation in duration caps.
-    _FP_TOL = 1e-9
+    # Every gap at least its type's minimum (v3.0: the window reserves it)
+    g_min = min_gap_hours(sequence.sequence_type)
+    for j, g in enumerate(sequence.inter_storm_gaps_hours):
+        if g < g_min - _FP_TOL:
+            errors.append(f"Gap {j} is {g}h, below the {g_min}h minimum")
+
+    # Drainage window: last storm must end by W_P
+    w_p = precip_end_hour()
     if sequence.storms:
         last = sequence.storms[-1]
         last_end = last.start_time_hours + last.duration_hours
-        if last_end > MAX_PRECIP_END_HOUR + _FP_TOL:
+        if last_end > w_p + _FP_TOL:
             errors.append(
-                f"Last storm ends at hour {last_end}, "
-                f"exceeds MAX_PRECIP_END_HOUR={MAX_PRECIP_END_HOUR}"
+                f"Last storm ends at hour {last_end}, exceeds MAX_PRECIP_END_HOUR={w_p}"
             )
 
         # Drainage window check
-        drainage = EVENT_WINDOW_HOURS - last_end
-        if drainage < MIN_DRAINAGE_WINDOW_HOURS - _FP_TOL:
+        drainage = cp.EVENT_WINDOW_HOURS - last_end
+        if drainage < cp.MIN_DRAINAGE_WINDOW_HOURS - _FP_TOL:
             errors.append(
                 f"Drainage window {drainage}h < "
-                f"minimum {MIN_DRAINAGE_WINDOW_HOURS}h"
+                f"minimum {cp.MIN_DRAINAGE_WINDOW_HOURS}h"
             )
 
     # Intensity categories valid
@@ -160,9 +180,9 @@ def fits_in_window(
 ) -> bool:
     """Check if storms + gaps fit within the precipitation window.
 
-    All precipitation must end by hour MAX_PRECIP_END_HOUR (156).
+    All precipitation must end by hour W_P (156 at the defaults).
     """
     total = sum(storm_durations) + sum(gap_durations)
-    return total <= MAX_PRECIP_END_HOUR
+    return total <= precip_end_hour()
 
 

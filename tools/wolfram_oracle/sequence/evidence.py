@@ -18,12 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""SS-001's model document, tested as stated: what the repository holds.
+"""SS-001's model document (v3.0), tested as stated: what the repository holds.
 
-The modules, paths and command line it names; the override control Q4 says does not
-exist; the run time Q2 states; and the classifier result s7.3 cites as evidence. The
-override is exercised in a separate interpreter, because applying it patches live
-configuration modules for the rest of the process.
+The modules, paths and command line it names; the override control Q4 describes; the
+run time Q2 states; and the classifier result s7.3 cites. The override is exercised in a
+separate interpreter, because applying it patches live configuration modules for the
+rest of the process.
 """
 
 import json
@@ -43,6 +43,7 @@ from config.models import (
     ORACLE_SS_PACKAGE,
     ORACLE_SS_SECONDS,
     ORACLE_SS_STATED_FILES,
+    ORACLE_SS_STATED_FLAGS,
     ORACLE_SS_STATED_MODULES,
     ORACLE_SS_STATED_PATHS,
 )
@@ -84,13 +85,16 @@ def _override_run(order):
 
 
 def override():
-    """Q4: no mechanism exists for runtime override of the tables. Judged by applying a
-    storm_control.json that switches sequences off and shortens every storm, with the
+    """Q4: storm_control.json overrides every table, applied on importing config and when
+    the Trading Control screen saves, and takes effect whichever was imported first. Judged
+    by applying one that switches sequences off and shortens every storm, with the
     generator imported before it is applied and after."""
     callers = [p for p in _grep(r"apply_storm_control\(", ["src", "app", "phys.py", "config/__init__.py"])
                if "storm_control" not in p]
     runs = {o: _override_run(o) for o in ("before", "after")}
-    return {"callers": callers, "runs": runs, "met": not callers}
+    took = all("error" not in r and r["probability"] and r["durations"] for r in runs.values())
+    return {"callers": callers, "runs": runs,
+            "met": took and set(callers) == {"config/__init__.py", "src/routes/trading/control.py"}}
 
 
 def speed(code):
@@ -117,19 +121,18 @@ def modules():
 
 
 def paths():
-    """s2.2, s5.5: the consumers at the paths given; the command line app.py port --stressm
-    [--num-storms N] [--train-classifier]; the output files it names."""
+    """s2.2, s5.5: the consumers at the paths given; the command line phys.py port --stressm
+    [--num-sims N] [--gauge-id GID] [--seed N]; the output files it names."""
     root = config.get_project_root()
     gone = [p for p in ORACLE_SS_STATED_PATHS if not (root / p).exists()]
-    gone += [] if (root / "app.py").exists() else ["app.py"]
-    gone += [f for f in ("--num-storms", "--train-classifier") if not _grep(f'"{f}"', ["app", "phys.py"], ("-lF",))]
+    gone += [f for f in ORACLE_SS_STATED_FLAGS if not _grep(f'"{f}"', ["app/commands/port/parser.py"], ("-lF",))]
     gone += [f for f in ORACLE_SS_STATED_FILES if not _grep(f, ["src"], ("-lF",))]
     consumers = sorted({p for p in _grep(r"storm_multi\.generators", ["src"]) if "storm_multi/" not in p})
     return {"gone": gone, "consumers": consumers, "met": not gone}
 
 
 def classifier():
-    """s7.3-s7.4: mean AUC-ROC ~0.993 across all 52 Thames gauges; GAUGE-8f1d368d as the example."""
+    """s7.3-s7.4: mean AUC-ROC 0.9935 across the 11 Thames gauges trained; GAUGE-1aaf8b08 as the example."""
     path = config.get_classifiers_dir() / ORACLE_SS_CLASSIFIER_SUMMARY
     if not path.exists():
         return {"found": False, "met": False}
@@ -139,7 +142,7 @@ def classifier():
     auc = s.get("avg_auc_roc")
     return {"found": True, "trained": trained, "auc": auc, "example": ORACLE_SS_EXAMPLE_GAUGE in ids,
             "met": trained == ORACLE_SS_GAUGES_STATED and auc is not None
-            and round(auc, 3) == ORACLE_SS_AUC_STATED and ORACLE_SS_EXAMPLE_GAUGE in ids}
+            and round(auc, 4) == ORACLE_SS_AUC_STATED and ORACLE_SS_EXAMPLE_GAUGE in ids}
 
 
 def assess(code):

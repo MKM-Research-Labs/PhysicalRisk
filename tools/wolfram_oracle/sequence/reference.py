@@ -18,17 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""SS-001's v2.0 equations, implemented from the document's text.
+"""SS-001's v3.0 equations, implemented from the document's text.
 
 Two halves. The exact half gives each probability the document's tables imply, in
 rational arithmetic: the sequence-type mix (Eq. 4, Table 2), the chance a duration is
-capped (Eq. 6), and the chance the gaps are scaled (Eq. 8) or left no room at all. The
-code rounds each duration and gap to whole hours, which the document does not say; the
-exact half follows the code there, so that it measures the code's law. The replay half
-re-runs Eqs. 4-19 on the same random stream as the code, drawing in the code's order, so
-each generated sequence can be compared number for number. Its timings are exact
-rationals: a capped duration is W_P/n exactly, so "no room left for gaps" is decided
-without rounding.
+capped (Eq. 6), the chance every storm is capped (so every gap is held at its minimum),
+and the chance the gaps are shortened (Eq. 8). Durations and gaps are whole hours
+(Eqs. 5, 8a), as the document says. The replay half re-runs Eqs. 4-19 on the same random
+stream as the code, drawing in the code's order, so each generated sequence can be
+compared number for number. Its timings are exact rationals: a capped duration is
+(W_P - (n - 1) g_min) / n exactly, so "every storm capped" is decided without rounding.
 """
 
 from fractions import Fraction as Q
@@ -101,23 +100,33 @@ def type_law(cat):
     return out
 
 
-def capped(cat, n):
-    """Eq. 6: P(the rounded duration exceeds W_P / n)."""
-    cap = Q(W_P, n)
+def g_min(t):
+    """The shortest gap a sequence of type t may have: its gap type's minimum (Table 4)."""
+    return 0 if t == "isolated" else ORACLE_SS_GAP[ORACLE_SS_GAP_OF[t]][0]
+
+
+def cap_of(t, n):
+    """Eq. 6's cap: (W_P - (n - 1) g_min) / n."""
+    return Q(W_P - (n - 1) * g_min(t), n)
+
+
+def capped(cat, t, n):
+    """Eq. 6: P(the rounded duration exceeds the cap)."""
+    cap = cap_of(t, n)
     return sum((pk for k, pk in rounded(*ORACLE_SS_DURATION[cat]).items() if k > cap), Q(0))
 
 
 def gaps(cat, t, n):
-    """(P(no room for gaps: the durations fill W_P), P(the raw gaps are scaled, Eq. 8))."""
-    cap = Q(W_P, n)
+    """(P(every storm is capped, so every gap is held at g_min), P(the gaps are shortened, Eq. 7))."""
+    cap = cap_of(t, n)
     d = {}
     for k, pk in rounded(*ORACLE_SS_DURATION[cat]).items():
         d[min(Q(k), cap)] = d.get(min(Q(k), cap), 0) + pk
     sd = power(d, n)
     sg = power(rounded(*ORACLE_SS_GAP[ORACLE_SS_GAP_OF[t]]), n - 1)
-    zero = sd.get(Q(W_P), Q(0))
-    scaled = sum((ps * pg for s, ps in sd.items() if s < W_P for g, pg in sg.items() if g > W_P - s), Q(0))
-    return zero, scaled
+    pinned = sd.get(n * cap, Q(0))
+    shortened = sum((ps * pg for s, ps in sd.items() for g, pg in sg.items() if g > W_P - s), Q(0))
+    return pinned, shortened
 
 
 def subsequent_vs_first():
@@ -128,11 +137,11 @@ def subsequent_vs_first():
 
 def batch(weights):
     """The default batch's exact composition: type shares, storm-count shares, the share of
-    duration draws capped, and the shares of multi-storm sequences with no gap at all and
-    with gaps shorter than drawn (scaled, or no room)."""
+    duration draws capped, and the shares of multi-storm sequences with every storm capped
+    (every gap at its minimum) and with gaps shorter than drawn."""
     total = sum(Q(w) for w in weights.values())
     types, counts = {}, {}
-    draws = cap_draws = multi = zero = squeezed = Q(0)
+    draws = cap_draws = multi = pinned = shortened = Q(0)
     for cat, w in weights.items():
         wc = Q(w) / total
         for (t, n), p in type_law(cat).items():
@@ -140,24 +149,23 @@ def batch(weights):
             types[t] = types.get(t, 0) + pr
             counts[n] = counts.get(n, 0) + pr
             draws += pr * n
-            cap_draws += pr * n * capped(cat, n)
+            cap_draws += pr * n * capped(cat, t, n)
             if n > 1:
                 z, s = gaps(cat, t, n)
                 multi += pr
-                zero += pr * z
-                squeezed += pr * (z + s)
-    return {"types": types, "counts": counts, "cap_share": cap_draws / draws, "zero_share": zero / multi,
-            "compressed_share": squeezed / multi}
+                pinned += pr * z
+                shortened += pr * s
+    return {"types": types, "counts": counts, "cap_share": cap_draws / draws, "pinned_share": pinned / multi,
+            "compressed_share": shortened / multi}
 
 
 def compressed(weights, cats, t):
-    """P(the gaps are scaled or left no room | type t, category in cats), batch-weighted."""
+    """P(the gaps are shortened | type t, category in cats), batch-weighted."""
     num = den = Q(0)
     for cat in cats:
         for (tt, n), p in type_law(cat).items():
             if tt == t:
-                z, s = gaps(cat, t, n)
-                num += Q(weights[cat]) * p * (z + s)
+                num += Q(weights[cat]) * p * gaps(cat, t, n)[1]
                 den += Q(weights[cat]) * p
     return num / den
 
@@ -174,7 +182,7 @@ def _sequence(rng, cat, f0, force):
         t = "isolated"
     ns = ORACLE_SS_COUNTS[t]
     n = ns[0] if len(ns) == 1 else int(rng.choice(list(ns)))
-    cap = Q(W_P, n)                                                             # Eq. 6
+    cap, gm = cap_of(t, n), g_min(t)                                            # Eq. 6
     d, f = [], []
     for i in range(n):
         d.append(min(Q(round(rng.triangular(*ORACLE_SS_DURATION[cat]))), cap))  # Eqs. 5-6
@@ -186,10 +194,10 @@ def _sequence(rng, cat, f0, force):
             delta = rng.uniform(0.0, v) if rng.random() < float(ORACLE_SS_CORR_PROB) else rng.uniform(-v, 0.0)
         f.append(max(mp.mpf(ORACLE_SS_FLOOR), mp.mpf(f0) * (1 + mp.mpf(delta))))
     r = W_P - sum(d)
-    g = [Q(0)] * (n - 1)
-    if n > 1 and r > 0:
-        raw = [Q(round(rng.triangular(*ORACLE_SS_GAP[ORACLE_SS_GAP_OF[t]]))) for _ in range(n - 1)]
-        g = [x * r / sum(raw) for x in raw] if sum(raw) > r else raw          # Eqs. 7-8
+    g = [Q(round(rng.triangular(*ORACLE_SS_GAP[ORACLE_SS_GAP_OF[t]]))) for _ in range(n - 1)]
+    excess = sum((x - gm for x in g), Q(0))
+    if sum(g, Q(0)) > r and excess > 0:                                         # Eq. 7
+        g = [gm + (x - gm) * (r - (n - 1) * gm) / excess for x in g]            # Eq. 8
     starts = [Q(0)]
     for i in range(1, n):                                                       # Eqs. 9-10
         starts.append(starts[-1] + d[i - 1] + g[i - 1])

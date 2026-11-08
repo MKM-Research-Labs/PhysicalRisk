@@ -19,36 +19,20 @@
 # SOFTWARE.
 
 """
-Intensity sampler for Storm Generator v2.0 multi-storm sequences.
+Intensity sampler for the Storm Sequence Generator (MKM-SS-001 v3.0).
 
-Controls whether a storm becomes part of a sequence, what type of
-sequence, how many storms, and the correlated intensity relationship
-between successive storms in a sequence.
+Controls whether a storm becomes part of a sequence, what type of sequence, how many
+storms, and the correlated intensity relationship between successive storms. Every
+parameter is read from ``config.port`` on each call, so a ``storm_control.json``
+override takes effect whenever it is applied, whatever was imported first.
 """
 
 
 import numpy as np
 
-from config.port import (
-    CORRELATION_PROB,
-    DEFAULT_TYPE_WEIGHTS,
-    FIRST_STORM_DOMINANT_PROB,
-    INTENSITY_VARIATION,
-    SEQUENCE_PROBABILITY,
-)
+import config.port as cp
 
 from ..core.data_structures import SequenceType
-
-# SEQUENCE_PROBABILITY, DEFAULT_TYPE_WEIGHTS, INTENSITY_VARIATION,
-# FIRST_STORM_DOMINANT_PROB, CORRELATION_PROB imported from config/port.py
-
-# Weights for [doublet, cluster, persistent] by intensity
-SEQUENCE_TYPE_WEIGHTS = {
-    "moderate": [0.50, 0.35, 0.15],
-    "severe": [0.30, 0.50, 0.20],
-    "extreme": [0.20, 0.45, 0.35],
-    "catastrophic": [0.15, 0.45, 0.40],
-}
 
 
 def should_generate_sequence(
@@ -61,7 +45,7 @@ def should_generate_sequence(
     reflecting that severe weather systems tend to produce multiple
     precipitation events.
     """
-    prob = SEQUENCE_PROBABILITY.get(intensity_category, 0.15)
+    prob = cp.SEQUENCE_PROBABILITY.get(intensity_category, 0.15)
     return rng.random() < prob
 
 
@@ -74,7 +58,7 @@ def sample_sequence_type(
     Returns doublet, cluster, or persistent based on intensity-dependent
     weights. More severe storms tend toward cluster/persistent patterns.
     """
-    weights = SEQUENCE_TYPE_WEIGHTS.get(intensity_category, DEFAULT_TYPE_WEIGHTS)
+    weights = cp.SEQUENCE_TYPE_WEIGHTS.get(intensity_category, cp.DEFAULT_TYPE_WEIGHTS)
     types = [SequenceType.DOUBLET, SequenceType.CLUSTER, SequenceType.PERSISTENT]
     idx = rng.choice(len(types), p=weights)
     return types[idx]
@@ -104,32 +88,27 @@ def sample_storm_intensity(
     storm_index: int,
     rng: np.random.RandomState,
 ) -> float:
-    """Sample intensity for a storm within a sequence.
+    """Sample intensity for a storm within a sequence (Eqs. 12-13).
 
-    For storm 0 (or with FIRST_STORM_DOMINANT_PROB): intensity may be
-    slightly reduced (up to -20%).
-    For subsequent storms (70% of the time): intensity is maintained or
-    increased (up to +20%), modeling compounding from antecedent wetness.
-
-    Args:
-        base_intensity: Base intensity factor for the sequence.
-        storm_index: 0-based index of the storm in the sequence.
-        rng: Random state.
+    Storm 0: a downward variation, Uniform(-v, 0). It is redrawn from the same law with
+    probability 1 - FIRST_STORM_DOMINANT_PROB, which leaves its law unchanged.
+    Later storms: Uniform(0, v) with probability CORRELATION_PROB, else Uniform(-v, 0).
+    A later storm is then at least as strong as the first with probability
+    CORRELATION_PROB + (1 - CORRELATION_PROB) / 2 (0.85 at the defaults).
 
     Returns:
-        Adjusted intensity factor (always positive).
+        Adjusted intensity factor, floored at 0.1.
     """
+    v = cp.INTENSITY_VARIATION
     if storm_index == 0:
-        # First storm: slight downward variation possible
-        variation = rng.uniform(-INTENSITY_VARIATION, 0.0)
-        if rng.random() >= FIRST_STORM_DOMINANT_PROB:
-            variation = rng.uniform(-INTENSITY_VARIATION, 0.0)
+        variation = rng.uniform(-v, 0.0)
+        if rng.random() >= cp.FIRST_STORM_DOMINANT_PROB:
+            variation = rng.uniform(-v, 0.0)
         return max(0.1, base_intensity * (1.0 + variation))
 
-    # Subsequent storms: 70% chance of maintaining/increasing
-    if rng.random() < CORRELATION_PROB:
-        variation = rng.uniform(0.0, INTENSITY_VARIATION)
+    if rng.random() < cp.CORRELATION_PROB:
+        variation = rng.uniform(0.0, v)
     else:
-        variation = rng.uniform(-INTENSITY_VARIATION, 0.0)
+        variation = rng.uniform(-v, 0.0)
 
     return max(0.1, base_intensity * (1.0 + variation))

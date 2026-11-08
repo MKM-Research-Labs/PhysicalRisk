@@ -194,8 +194,40 @@ DEFAULT_TYPE_WEIGHTS: List[float] = [0.60, 0.30, 0.10]
 
 # Intensity correlation within sequences (Spec Section 3.3)
 INTENSITY_VARIATION: float = 0.20          # +/- 20% around base intensity
-FIRST_STORM_DOMINANT_PROB: float = 0.30    # 30% chance first storm is strongest
-CORRELATION_PROB: float = 0.70             # 70% chance subsequent storms >= first
+# The first storm's variation is redrawn from the same law with probability
+# 1 - FIRST_STORM_DOMINANT_PROB. The redraw cannot change the law, so this has no
+# effect on the output distribution (MKM-SS-001 v3.0 s3.7); it is kept so the random
+# stream, and the Trading Control screen that exposes it, are unchanged.
+FIRST_STORM_DOMINANT_PROB: float = 0.30
+# P(delta_i >= 0) for a later storm. P(later storm >= first) is then 0.85, not 0.70.
+CORRELATION_PROB: float = 0.70
+
+# [doublet, cluster, persistent] weights by category (Table 2); a category not
+# listed uses DEFAULT_TYPE_WEIGHTS.
+SEQUENCE_TYPE_WEIGHTS: Dict[str, List[float]] = {
+    "moderate": [0.50, 0.35, 0.15],
+    "severe": [0.30, 0.50, 0.20],
+    "extreme": [0.20, 0.45, 0.35],
+    "catastrophic": [0.15, 0.45, 0.40],
+}
+
+# Storm duration, triangular (min, mode, max) in hours, by category (Table 3).
+STORM_DURATION_PARAMS: Dict[str, tuple] = {
+    "minimal": (2, 6, 12),
+    "baseline": (6, 12, 24),
+    "moderate": (12, 30, 60),
+    "severe": (24, 48, 96),
+    "extreme": (36, 72, 144),
+    "catastrophic": (48, 120, 240),
+}
+
+# Inter-storm gap, triangular (min, mode, max) in hours, by gap type (Table 4).
+# The minimum is also the shortest gap a sequence may have: the window reserves it.
+STORM_GAP_PARAMS: Dict[str, tuple] = {
+    "short": (6, 18, 36),       # persistent: minimal drainage
+    "medium": (24, 48, 72),     # doublet, cluster: partial drainage
+    "long": (48, 96, 144),      # no sequence type uses it at present
+}
 
 
 # ===========================================================================
@@ -208,6 +240,16 @@ DEFAULT_INTENSITY_WEIGHTS: Dict[str, float] = {
     "severe": 0.35,
     "extreme": 0.20,
     "catastrophic": 0.05,
+}
+
+# Base intensity F0 ~ max(0.1, Normal(mean, std)) by category (Table 5).
+BASE_INTENSITY_PARAMS: Dict[str, tuple] = {
+    "minimal": (0.3, 0.10),
+    "baseline": (0.6, 0.15),
+    "moderate": (1.0, 0.20),
+    "severe": (1.8, 0.30),
+    "extreme": (3.0, 0.50),
+    "catastrophic": (5.0, 0.80),
 }
 
 

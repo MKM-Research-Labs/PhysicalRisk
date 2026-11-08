@@ -22,10 +22,11 @@
 
 Every probability is exact, from Wolfram's own TriangularDistribution and
 UniformDistribution: the default batch's type mix from Eq. 4 and Table 2; the chance a
-duration is capped, as one tail of the triangular law (the reference sums the rounded
-law instead); the chance the durations fill W_P or the raw gaps overflow what is left,
-by convolving the rounded laws; and the chance a later storm is at least as strong as
-the first, by Probability over the mixture of Eq. 13.
+duration exceeds Eq. 6's cap (W_P - (n - 1) g_min) / n, as one tail of the triangular law
+(the reference sums the rounded law instead); the chance every storm is capped and the
+chance the raw gaps overflow what the storms leave, by convolving the rounded laws; and
+the chance a later storm is at least as strong as the first, by Probability over the
+mixture of Eq. 13.
 """
 
 from fractions import Fraction as Q
@@ -66,9 +67,9 @@ def _type_share(t):
     return f"N[{' + '.join(terms)}, {_D}]"
 
 
-def _cap(cat, n):
+def _cap(cat, t, n):
     a, c, b = ORACLE_SS_DURATION[cat]
-    return (f"N[With[{{k = Floor[{ref.W_P}/{n}] + 1}}, 1 - CDF[TriangularDistribution[{{{a}, {b}}}, {c}], "
+    return (f"N[With[{{k = Floor[{_q(ref.cap_of(t, n))}] + 1}}, 1 - CDF[TriangularDistribution[{{{a}, {b}}}, {c}], "
             f"k - 1/2]], {_D}]")
 
 
@@ -80,15 +81,15 @@ def _rounded(name, a, c, b, value):
 def _gaps(cat, t, n):
     a, c, b = ORACLE_SS_DURATION[cat]
     ga, gc, gb = ORACLE_SS_GAP[ORACLE_SS_GAP_OF[t]]
-    w = ref.W_P
+    w, cap = ref.W_P, _q(ref.cap_of(t, n))
     return (
         "Module[{conv, pd, pg, sd, sg}, "
         "conv[p_, q_] := List @@@ Normal[Merge[Flatten[Outer[(#1[[1]] + #2[[1]]) -> #1[[2]] #2[[2]] &, p, q, 1]], "
         "Total]]; "
-        + _rounded("pd", a, c, b, f"Min[k, {w}/{n}]") + " " + _rounded("pg", ga, gc, gb, "k") + " "
+        + _rounded("pd", a, c, b, f"Min[k, {cap}]") + " " + _rounded("pg", ga, gc, gb, "k") + " "
         f"sd = Nest[conv[#, pd] &, pd, {n - 1}]; sg = Nest[conv[#, pg] &, pg, {n - 2}]; "
-        f"N[{{Total[Cases[sd, {{{w}, p_}} :> p]], "
-        f"Total[Flatten[Outer[If[#1[[1]] < {w} && #2[[1]] > {w} - #1[[1]], #1[[2]] #2[[2]], 0] &, sd, sg, 1]]]}}, {_D}]]")
+        f"N[{{Total[Cases[sd, {{x_, p_}} /; x == {n} {cap} :> p]], "
+        f"Total[Flatten[Outer[If[#2[[1]] > {w} - #1[[1]], #1[[2]] #2[[2]], 0] &, sd, sg, 1]]]}}, {_D}]]")
 
 
 def _subsequent():
@@ -102,7 +103,8 @@ def items():
     """(id, expression, reference) for every oracle."""
     out = [(f"type/{t}", _type_share(t), ref.batch(ORACLE_SS_WEIGHTS)["types"][t]) for t in _TYPES]
     for cat in ORACLE_SS_WEIGHTS:
-        out += [(f"cap/{cat}/{n}", _cap(cat, n), ref.capped(cat, n)) for n in range(1, 6)]
+        out += [(f"cap/{cat}/{t}/{n}", _cap(cat, t, n), ref.capped(cat, t, n))
+                for t in _TYPES for n in ORACLE_SS_COUNTS[t]]
         for t in ref.MULTI:
             out += [(f"gaps/{cat}/{t}/{n}", _gaps(cat, t, n), ref.gaps(cat, t, n)) for n in ORACLE_SS_COUNTS[t]]
     return out + [("subsequent", _subsequent(), ref.subsequent_vs_first())]
