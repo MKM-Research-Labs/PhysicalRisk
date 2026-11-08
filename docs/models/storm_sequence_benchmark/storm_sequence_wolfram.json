@@ -1,0 +1,201 @@
+{
+ "wolfram_version": "15.0.0 for Mac OS X ARM (64-bit) (May 26, 2026)",
+ "results": [
+  {
+   "id": "type/isolated",
+   "value": "0.5225"
+  },
+  {
+   "id": "type/doublet",
+   "value": "0.146875"
+  },
+  {
+   "id": "type/cluster",
+   "value": "0.211625"
+  },
+  {
+   "id": "type/persistent",
+   "value": "0.119"
+  },
+  {
+   "id": "cap/moderate/isolated/1",
+   "value": "0"
+  },
+  {
+   "id": "cap/moderate/doublet/2",
+   "value": "0"
+  },
+  {
+   "id": "cap/moderate/cluster/3",
+   "value": "0.3835069444444444444444444444444"
+  },
+  {
+   "id": "cap/moderate/cluster/4",
+   "value": "0.8955439814814814814814814814815"
+  },
+  {
+   "id": "cap/moderate/persistent/4",
+   "value": "0.4515625"
+  },
+  {
+   "id": "cap/moderate/persistent/5",
+   "value": "0.7566550925925925925925925925926"
+  },
+  {
+   "id": "gaps/moderate/doublet/2",
+   "value": "{0, 0.009305829746732986512988683127572}"
+  },
+  {
+   "id": "gaps/moderate/cluster/3",
+   "value": "{0.07242842309792182409550754458162, 0.9636101687694167767069496947974}"
+  },
+  {
+   "id": "gaps/moderate/cluster/4",
+   "value": "{0.7051756674354076914877457458383, 0.9999996687591721937984351215548}"
+  },
+  {
+   "id": "gaps/moderate/persistent/4",
+   "value": "{0.0415787544310092926025390625, 0.9386528287150362105890943461835}"
+  },
+  {
+   "id": "gaps/moderate/persistent/5",
+   "value": "{0.2480217668469271588083972793783, 0.9998721403918788271362518290481}"
+  },
+  {
+   "id": "cap/severe/isolated/1",
+   "value": "0"
+  },
+  {
+   "id": "cap/severe/doublet/2",
+   "value": "0.2518084490740740740740740740741"
+  },
+  {
+   "id": "cap/severe/cluster/3",
+   "value": "0.9095775462962962962962962962963"
+  },
+  {
+   "id": "cap/severe/cluster/4",
+   "value": "1."
+  },
+  {
+   "id": "cap/severe/persistent/4",
+   "value": "0.9361979166666666666666666666667"
+  },
+  {
+   "id": "cap/severe/persistent/5",
+   "value": "0.9963831018518518518518518518519"
+  },
+  {
+   "id": "gaps/severe/doublet/2",
+   "value": "{0.0724522521302860296639231824417, 0.4788300099146291624934657683661}"
+  },
+  {
+   "id": "gaps/severe/cluster/3",
+   "value": "{0.7875231785126916580808748348829, 0.999915741235220050897506550684}"
+  },
+  {
+   "id": "gaps/severe/cluster/4",
+   "value": "{1., 0.999999999989779724832751950446}"
+  },
+  {
+   "id": "gaps/severe/persistent/4",
+   "value": "{0.7681935942864022505136183750482, 0.9999885992387714179464379352289}"
+  },
+  {
+   "id": "gaps/severe/persistent/5",
+   "value": "{0.9820458564755810435438846354834, 0.999999999999637784444297065952}"
+  },
+  {
+   "id": "cap/extreme/isolated/1",
+   "value": "0"
+  },
+  {
+   "id": "cap/extreme/doublet/2",
+   "value": "0.7607381687242798353909465020576"
+  },
+  {
+   "id": "cap/extreme/cluster/3",
+   "value": "0.9999356995884773662551440329218"
+  },
+  {
+   "id": "cap/extreme/cluster/4",
+   "value": "1."
+  },
+  {
+   "id": "cap/extreme/persistent/4",
+   "value": "1."
+  },
+  {
+   "id": "cap/extreme/persistent/5",
+   "value": "1."
+  },
+  {
+   "id": "gaps/extreme/doublet/2",
+   "value": "{0.602440284135050974614303375163, 0.9293740673472143725627880140975}"
+  },
+  {
+   "id": "gaps/extreme/cluster/3",
+   "value": "{1., 0.999999952904972029320987654321}"
+  },
+  {
+   "id": "gaps/extreme/cluster/4",
+   "value": "{1., 0.999999999989779724832751950446}"
+  },
+  {
+   "id": "gaps/extreme/persistent/4",
+   "value": "{1., 0.999999999665102023319615912209}"
+  },
+  {
+   "id": "gaps/extreme/persistent/5",
+   "value": "{1., 0.999999999999767431960638622161}"
+  },
+  {
+   "id": "cap/catastrophic/isolated/1",
+   "value": "0.3026150173611111111111111111111"
+  },
+  {
+   "id": "cap/catastrophic/doublet/2",
+   "value": "0.9752423321759259259259259259259"
+  },
+  {
+   "id": "cap/catastrophic/cluster/3",
+   "value": "1."
+  },
+  {
+   "id": "cap/catastrophic/cluster/4",
+   "value": "1."
+  },
+  {
+   "id": "cap/catastrophic/persistent/4",
+   "value": "1."
+  },
+  {
+   "id": "cap/catastrophic/persistent/5",
+   "value": "1."
+  },
+  {
+   "id": "gaps/catastrophic/doublet/2",
+   "value": "{0.9561837752987164365247770919067, 0.9973044893834237426614783155793}"
+  },
+  {
+   "id": "gaps/catastrophic/cluster/3",
+   "value": "{1., 0.999999952904972029320987654321}"
+  },
+  {
+   "id": "gaps/catastrophic/cluster/4",
+   "value": "{1., 0.999999999989779724832751950446}"
+  },
+  {
+   "id": "gaps/catastrophic/persistent/4",
+   "value": "{1., 0.999999999665102023319615912209}"
+  },
+  {
+   "id": "gaps/catastrophic/persistent/5",
+   "value": "{1., 0.999999999999767431960638622161}"
+  },
+  {
+   "id": "subsequent",
+   "value": "0.85"
+  }
+ ]
+}

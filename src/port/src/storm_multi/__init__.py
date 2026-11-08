@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Storm Generator v2.0 — multi-storm sequence package."""
+"""Storm Sequence Generator (MKM-SS-001 v3.0) — multi-storm sequence package."""
 
 from .core.data_structures import (  # noqa: F401
     SEQUENCE_GAP_TYPE,
@@ -30,10 +30,7 @@ from .core.data_structures import (  # noqa: F401
     make_sequence_id,
     make_storm_id,
 )
-from .generators.batch_generator import (  # noqa: F401
-    DEFAULT_INTENSITY_WEIGHTS,
-    generate_event_set,
-)
+from .generators.batch_generator import generate_event_set  # noqa: F401
 from .generators.sequence_generator import SequenceGenerator  # noqa: F401
 from .models.hydrology import (  # noqa: F401
     HydrologicalState,
@@ -59,10 +56,9 @@ from .utils.serialization import (  # noqa: F401
     save_summary,
 )
 from .utils.validation import (  # noqa: F401
-    EVENT_WINDOW_HOURS,
     MAX_PRECIP_END_HOUR,
-    MIN_DRAINAGE_WINDOW_HOURS,
     fits_in_window,
+    precip_end_hour,
     validate_event_set,
     validate_sequence,
 )

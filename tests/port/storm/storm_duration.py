@@ -23,8 +23,8 @@
 import numpy as np
 import pytest
 
+from config.port import STORM_DURATION_PARAMS as DURATION_PARAMS
 from port.src.storm_multi.generators.duration_sampler import (
-    DURATION_PARAMS,
     get_duration_range,
     get_max_duration,
     sample_duration,

@@ -23,7 +23,6 @@
 from typing import Any, Dict, Tuple
 
 from config.storm_control._mappings import _CONFIG_MODELS_KEYS, _CONFIG_PORT_KEYS
-from config.storm_control._helpers import _enum_keys_to_str, _safe_getattr
 
 
 # ---------------------------------------------------------------------------
@@ -73,50 +72,8 @@ def get_defaults() -> Dict[str, Any]:
     ``config.port`` / ``config.models`` — even after ``apply_storm_control``
     has mutated the live attributes.
     """
-    # Read generator-local defaults (may not be importable in all contexts)
-    duration_params = _safe_getattr(
-        "src.port.src.storm_multi.generators.duration_sampler",
-        "DURATION_PARAMS",
-        {
-            "minimal": [2, 6, 12], "baseline": [6, 12, 24],
-            "moderate": [12, 30, 60], "severe": [24, 48, 96],
-            "extreme": [36, 72, 144], "catastrophic": [48, 120, 240],
-        },
-    )
-    gap_params = _safe_getattr(
-        "src.port.src.storm_multi.generators.gap_sampler",
-        "GAP_PARAMS",
-        {"short": [6, 18, 36], "medium": [24, 48, 72], "long": [48, 96, 144]},
-    )
-    base_intensity = _safe_getattr(
-        "src.port.src.storm_multi.generators.batch_generator",
-        "BASE_INTENSITY_PARAMS",
-        {
-            "minimal": [0.3, 0.10], "baseline": [0.6, 0.15],
-            "moderate": [1.0, 0.20], "severe": [1.8, 0.30],
-            "extreme": [3.0, 0.50], "catastrophic": [5.0, 0.80],
-        },
-    )
-    seq_type_weights = _safe_getattr(
-        "src.port.src.storm_multi.generators.intensity_sampler",
-        "SEQUENCE_TYPE_WEIGHTS",
-        {
-            "moderate": [0.50, 0.35, 0.15], "severe": [0.30, 0.50, 0.20],
-            "extreme": [0.20, 0.45, 0.35], "catastrophic": [0.15, 0.45, 0.40],
-        },
-    )
-
-    # Normalise enum-keyed dicts to string keys for JSON
-    duration_params = _enum_keys_to_str(duration_params)
-    gap_params = _enum_keys_to_str(gap_params)
-    base_intensity = _enum_keys_to_str(base_intensity)
-    seq_type_weights = _enum_keys_to_str(seq_type_weights)
-
-    # Convert tuple values to lists for JSON serialisation
-    duration_params = {k: list(v) for k, v in duration_params.items()}
-    gap_params = {k: list(v) for k, v in gap_params.items()}
-    base_intensity = {k: list(v) for k, v in base_intensity.items()}
-    seq_type_weights = {k: list(v) for k, v in seq_type_weights.items()}
+    def _rows(attr: str) -> Dict[str, list]:
+        return {k: list(v) for k, v in (_port_default(attr) or {}).items()}
 
     def _p(attr: str) -> Any:
         return _port_default(attr)
@@ -136,10 +93,10 @@ def get_defaults() -> Dict[str, Any]:
                 "first_storm_dominant_prob": _p("FIRST_STORM_DOMINANT_PROB"),
                 "correlation_prob": _p("CORRELATION_PROB"),
                 "default_intensity_weights": dict(_p("DEFAULT_INTENSITY_WEIGHTS") or {}),
-                "duration_params": duration_params,
-                "gap_params": gap_params,
-                "base_intensity_params": base_intensity,
-                "sequence_type_weights": seq_type_weights,
+                "duration_params": _rows("STORM_DURATION_PARAMS"),
+                "gap_params": _rows("STORM_GAP_PARAMS"),
+                "base_intensity_params": _rows("BASE_INTENSITY_PARAMS"),
+                "sequence_type_weights": _rows("SEQUENCE_TYPE_WEIGHTS"),
             },
             "hydrograph_synthesis": {
                 "hydro_alpha": dict(_m("HYDRO_ALPHA") or {}),

@@ -1,0 +1,210 @@
+\documentclass[11pt,a4paper]{article}
+
+\newcommand{\doctitle}{Storm Sequence Generator (MKM-SS-001)}
+\newcommand{\docsubtitle}{Wolfram Oracle Benchmark of the Code and its v3.0 Document}
+\newcommand{\docversion}{0.2}
+\newcommand{\docdate}{08-November-2026}
+\newcommand{\docauthor}{David K Kelly}
+
+\input{../shared/mkm_header}
+% T1 so the underscores in code identifiers print as underscores.
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{longtable}
+\input{evidence_tables_macros}
+% The shared history table sets every column to its natural width; wrap the description.
+\renewcommand{\mkmhistorypage}[1]{%
+    \section{Document History}
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{l|l|p{9cm}|l}
+            \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author} \\
+            \hline
+            #1
+        \end{tabular}
+    \end{table}
+}
+
+\begin{document}
+% Long code paths and identifiers cannot hyphenate; let the spacing stretch instead.
+\sloppy
+
+\mkmtitlepage
+\mkmlegalpage
+
+\tableofcontents
+\clearpage
+
+% =========================================================================
+\mkmexecsummary
+% =========================================================================
+
+This document benchmarks the Storm Sequence Generator (MKM-SS-001): the generators in
+\texttt{src/port/src/storm\_multi/}, which draw the 10{,}000 multi-storm sequences the
+stress pipeline turns into hydrographs and trains its flood classifiers on. It asks two
+questions. Does the code compute what its model document (\texttt{storm\_multi\_v3.0.pdf},
+v3.0, 8 November 2026) says? And does what the document says hold?
+
+\paragraph{The code computes its documented equations.} A reference written from the
+document's text replays \bmReplayN{} generated sequences on the code's own random stream.
+Every sequence type and storm count matches, and every duration, gap, start time,
+intensity and aggregate agrees to \bmCodeErr. In bulk, the code's sequence types, storm
+counts and capped sequences follow the exact law the document's tables imply, within
+sampling error (Table~\ref{tab:bm-checks}). \bmWolframConfirms{}
+
+\paragraph{The document's claims hold:} \bmClaimsMet{} of \bmClaims{}
+(Table~\ref{tab:bm-claims}).
+\begin{itemize}[leftmargin=*,nosep]
+\item \textbf{Every gap is at least its minimum.} v3.0 reserves each gap's minimum before
+  it caps the storms. No multi-storm sequence runs its storms back to back; under v2.0,
+  46\% did.
+\item \textbf{The stated rates are exact.} The cap binds on \bmCapPct{} of duration draws.
+  Gaps are shortened in \bmShortPct{} of multi-storm sequences. Every storm is capped in
+  \bmPinnedPct{}. Table~9's counts (\bmIsolated{} isolated and so on) are the exact
+  expectation.
+\item \textbf{The correlation is as stated:} a later storm is at least as strong as the
+  first with probability \bmSubsequent.
+\item \textbf{The override reaches the generator.} \texttt{storm\_control.json} changes the
+  sequence probability and the duration table whether it is applied before or after the
+  generator is imported.
+\item \textbf{The paths, command line, outputs, modules and classifier figures} are those
+  in the repository and the data store.
+\end{itemize}
+
+\paragraph{What the benchmark does not settle.} The document records that its own
+durations do not fit the window. The cap binds on \bmCapPct{} of draws, above the 50\% at
+which it asks for recalibration, and recalibration is outstanding. The classifiers it cites
+were trained on v2.0's sequences. Each sequence's \texttt{sequence\_start}, which the stress
+pipeline reads as the season, is the time it was generated (the default batch here:
+\bmSeasonMonths{} distinct month). The document records each of these as a limitation; none
+is a claim this benchmark could pass or fail.
+
+\paragraph{Evidence.} \bmChecks{} checks, outcome: \bmOutcome{}
+(Table~\ref{tab:bm-checks}).
+\begin{itemize}[leftmargin=*,nosep]
+\item Wolfram: \bmWolfram{}\bmWolframVia.
+\item Code under test, at commit \bmCodeCommit{}\bmCodeDirty.
+\item Numerics: \bmNumerics.
+\item Generated \bmGenerated{} by \texttt{python -m tools.wolfram\_oracle ss001}.
+\end{itemize}
+
+% =========================================================================
+\mkmpurpose
+% =========================================================================
+
+\subsection{What is benchmarked}
+The generation path the document describes (\S5.1--\S5.2), loaded as its own modules:
+\begin{itemize}[leftmargin=*,nosep]
+\item \texttt{generators/batch\_generator.py}: \texttt{generate\_event\_set}, the category and
+  base-intensity draws;
+\item \texttt{generators/sequence\_generator.py}: type, count, the cap with its reserved gap
+  minima, gap shortening, placement, intensities, precipitation and the aggregates;
+\item the duration, gap and intensity samplers, and the tables in \texttt{config.port};
+\item \texttt{utils/validation.py}.
+\end{itemize}
+Also tested: the repository the document cites, namely its paths, command line, outputs
+and override control, and the classifier evidence.
+
+\subsection{What is not}
+\begin{itemize}[leftmargin=*,nosep]
+\item The package's \texttt{models/} subpackage (sequence response, spatial correlation,
+  hydrology), which the document places outside the model.
+\item Whether the sequence types, durations and gaps are realistic. The document cites no
+  observed sequences, and none are tested.
+\item The classifier itself (MKM-FC-001). Only the figures this document cites from its
+  training summary are checked.
+\end{itemize}
+This is a benchmark of the implementation (validation question Q8), not independent
+validation.
+
+\subsection{Earlier issue}
+Benchmark v0.1 (7 November 2026) tested v2.0 and found that 11 of its 17 claims did not
+hold. It is kept as evidence of the check. v3.0 is the model and document that answer it.
+
+% =========================================================================
+\mkmframework
+% =========================================================================
+
+The reference implements the document's equations from its text, in two halves.
+
+\paragraph{Exact.} In rational arithmetic:
+\begin{itemize}[leftmargin=*,nosep]
+\item the type mix of Eq.~4 and Table~2, weighted by Table~6;
+\item the storm counts of Table~1;
+\item the chance that Eq.~6's cap, $(W_P - (n-1)\,g_{\min})/n$, binds;
+\item the chance that every storm is capped, which holds every gap at its minimum;
+\item the chance that Eq.~7 triggers Eq.~8's shortening;
+\item the chance that a later storm is at least as strong as the first (Eqs.~12--13).
+\end{itemize}
+Durations and gaps are rounded to whole hours, as the document says.
+
+\paragraph{Replay.} Eqs.~4--20 re-run on a \texttt{RandomState} seeded as the code's, drawing
+in the code's order. Timings are exact rationals, so ``every storm capped'' is decided
+without rounding; intensities are worked to 50 digits. The first storm's redraw (\S3.7) is
+mirrored so the two streams stay in step.
+
+% =========================================================================
+\section{Benchmark Method}
+% =========================================================================
+
+\paragraph{The cases.}
+\begin{itemize}[leftmargin=*,nosep]
+\item The default batch: 10{,}000 sequences, seed 42, Table~6's weights, the Thames.
+\item Every category with every forced type: 400 sequences each, 9{,}600 in all.
+\item 100 seeds of 10{,}000 for the type mix (\S7.2).
+\end{itemize}
+
+\paragraph{The checks.}
+\begin{itemize}[leftmargin=*,nosep]
+\item The replay compares each sequence number for number.
+\item The Monte Carlo compares the code's shares with the exact ones, in standard errors.
+\item The validator runs on every sequence generated, and on a sequence broken five ways.
+\end{itemize}
+
+\paragraph{The statements.}
+\begin{itemize}[leftmargin=*,nosep]
+\item Figures (Table~9, \S6.2, \S6.3, \S7.2, Table~8) are judged against the exact law,
+  to the precision the document states them.
+\item Every gap is judged against its type's minimum, over all \bmReplayN{} sequences.
+\item Q4's override is judged by applying a \texttt{storm\_control.json} that switches
+  sequences off and shortens every storm. This runs in a separate interpreter, once with
+  the generator imported before the file is applied and once after.
+\item Paths, command-line flags and files are judged by searching the repository.
+\item The classifier figures are judged against the training summary in the data store.
+\end{itemize}
+
+\paragraph{Wolfram.} Wolfram works from its own \texttt{TriangularDistribution} and
+\texttt{UniformDistribution}, independently of the reference:
+\begin{itemize}[leftmargin=*,nosep]
+\item the type mix;
+\item the cap's chance of binding in each configuration, as a single tail of the
+  triangular law (the reference sums the rounded law);
+\item the chance that every storm is capped, and of shortening, by convolving the rounded
+  laws;
+\item the correlation, by \texttt{Probability} over Eq.~13's mixture.
+\end{itemize}
+
+% =========================================================================
+\mkmvalidation
+% =========================================================================
+
+\input{evidence_tables_findings}
+
+\subsection{The model document's claims}
+\input{evidence_tables_claims}
+
+% =========================================================================
+\mkmlimitations
+% =========================================================================
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Benchmark, not validation.} The code is shown to compute its documented
+  equations; whether sequences like these occur over the Thames is not tested.
+\item \textbf{Searches are of this repository,} at the commit above. The classifier
+  evidence is the data store's training summary as found, which predates v3.0.
+\end{enumerate}
+
+\mkmhistorypage{07-Nov-2026 & 0.1 & First issue: tests the filed v2.0; 11 of its 17 claims fail & David K Kelly \\
+08-Nov-2026 & 0.2 & Tests v3.0; \bmClaimsMet{} of its \bmClaims{} claims hold & David K Kelly \\}
+
+\end{document}

@@ -60,3 +60,4 @@ from config.models._wolfram_oracle_fpo_tables import *  # noqa: F401,F403
 from config.models._wolfram_oracle_sg import *  # noqa: F401,F403
 from config.models._wolfram_oracle_sg_tables import *  # noqa: F401,F403
 from config.models._wolfram_oracle_sp import *  # noqa: F401,F403
+from config.models._wolfram_oracle_ss import *  # noqa: F401,F403

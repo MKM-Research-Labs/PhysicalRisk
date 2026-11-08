@@ -19,59 +19,50 @@
 # SOFTWARE.
 
 """
-Inter-storm gap sampler for Storm Generator v2.0.
+Inter-storm gap sampler for the Storm Sequence Generator (MKM-SS-001 v3.0).
 
-Gaps must be long enough to show observable river level decline
-between storms. Gap type varies by sequence type to create different
-drainage patterns.
+Gaps must be long enough to show observable river level decline between storms. The
+gap type follows the sequence type; its triangular (min, mode, max) is
+``config.port.STORM_GAP_PARAMS``, read on every draw so a ``storm_control.json``
+override takes effect whenever it is applied. The minimum is also the shortest gap a
+sequence may have: the sequence generator reserves it before capping durations.
 """
 
 import numpy as np
 
-from ..core.data_structures import SEQUENCE_GAP_TYPE, GapType, SequenceType
+import config.port as cp
 
-# Inter-storm gap parameters — spec Section 3.2
-# (min_hours, mode_hours, max_hours) — triangular distribution
-GAP_PARAMS = {
-    GapType.SHORT: (6, 18, 36),      # Minimal drainage
-    GapType.MEDIUM: (24, 48, 72),     # Partial drainage
-    GapType.LONG: (48, 96, 144),      # Substantial drainage
-}
-
-
-def sample_gap(
-    sequence_type: SequenceType,
-    rng: np.random.RandomState = None,
-) -> float:
-    """Sample an inter-storm gap for a given sequence type.
-
-    Physical interpretation:
-      - Medium gaps (24-72h): river levels drop 30-60% from Storm 1 peak
-      - Short gaps (6-36h): minimal drainage, high compounding risk
-      - Long gaps (48-144h): 60-80% recovery toward baseline
-
-    Args:
-        sequence_type: Type of sequence (determines gap category).
-        rng: Random state for reproducibility.
-
-    Returns:
-        Gap duration in hours (rounded to nearest integer).
-    """
-    if sequence_type == SequenceType.ISOLATED:
-        return 0.0
-
-    gap_type = SEQUENCE_GAP_TYPE[sequence_type]
-    low, mode, high = GAP_PARAMS[gap_type]
-
-    if rng is None:
-        rng = np.random.RandomState()
-
-    return round(rng.triangular(low, mode, high))
+from ..core.data_structures import SEQUENCE_GAP_TYPE, SequenceType
 
 
 def get_gap_range(sequence_type: SequenceType) -> tuple:
     """Return (min, mode, max) gap parameters for a sequence type."""
     if sequence_type == SequenceType.ISOLATED:
         return (0, 0, 0)
-    gap_type = SEQUENCE_GAP_TYPE[sequence_type]
-    return GAP_PARAMS[gap_type]
+    return tuple(cp.STORM_GAP_PARAMS[SEQUENCE_GAP_TYPE[sequence_type].value])
+
+
+def get_min_gap(sequence_type: SequenceType) -> float:
+    """The shortest gap a sequence of this type may have (0 for isolated)."""
+    return get_gap_range(sequence_type)[0]
+
+
+def sample_gap(
+    sequence_type: SequenceType,
+    rng: np.random.RandomState = None,
+) -> float:
+    """Sample an inter-storm gap for a given sequence type, in whole hours.
+
+    Physical interpretation:
+      - Medium gaps (24-72h): river levels drop 30-60% from Storm 1 peak
+      - Short gaps (6-36h): minimal drainage, high compounding risk
+    """
+    if sequence_type == SequenceType.ISOLATED:
+        return 0.0
+
+    low, mode, high = get_gap_range(sequence_type)
+
+    if rng is None:
+        rng = np.random.RandomState()
+
+    return round(rng.triangular(low, mode, high))

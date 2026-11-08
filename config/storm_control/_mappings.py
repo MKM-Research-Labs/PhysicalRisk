@@ -33,6 +33,10 @@ _CONFIG_PORT_KEYS: Dict[str, str] = {
     "first_storm_dominant_prob": "FIRST_STORM_DOMINANT_PROB",
     "correlation_prob": "CORRELATION_PROB",
     "default_intensity_weights": "DEFAULT_INTENSITY_WEIGHTS",
+    "sequence_type_weights": "SEQUENCE_TYPE_WEIGHTS",
+    "duration_params": "STORM_DURATION_PARAMS",
+    "gap_params": "STORM_GAP_PARAMS",
+    "base_intensity_params": "BASE_INTENSITY_PARAMS",
     # (catchment_base_precip removed — per-catchment storm calibration
     #  now lives in data/catch/<catchment>/storm.py)
     # Gauge propagation (port.py entries)
@@ -69,24 +73,13 @@ _CONFIG_MODELS_KEYS: Dict[str, str] = {
     "default_recession_factor": "DEFAULT_RECESSION_FACTOR",
 }
 
-# Generator modules with locally-defined constants
-_GENERATOR_PATCHES: Dict[str, Tuple[str, str]] = {
-    "duration_params": (
-        "src.port.src.storm_multi.generators.duration_sampler",
-        "DURATION_PARAMS",
-    ),
-    "gap_params": (
-        "src.port.src.storm_multi.generators.gap_sampler",
-        "GAP_PARAMS",
-    ),
-    "base_intensity_params": (
-        "src.port.src.storm_multi.generators.batch_generator",
-        "BASE_INTENSITY_PARAMS",
-    ),
-    "sequence_type_weights": (
-        "src.port.src.storm_multi.generators.intensity_sampler",
-        "SEQUENCE_TYPE_WEIGHTS",
-    ),
-}
+# Tables keyed by category or gap type. A control file's rows are laid over the source
+# table rather than replacing it, so a file that sets one category does not drop the
+# others. (The generators read every one of these from config.port on each draw, so
+# patching config.port is all an override needs; MKM-SS-001 v3.0 Q4.)
+_TABLE_KEYS: Tuple[str, ...] = ("sequence_probability", "sequence_type_weights", "duration_params",
+                                "gap_params", "base_intensity_params")
+# The (min, mode, max) and (mean, std) tables, held as tuples.
+_TUPLE_TABLES: Tuple[str, ...] = ("duration_params", "gap_params", "base_intensity_params")
 
 _CONTROL_FILENAME = "storm_control.json"
