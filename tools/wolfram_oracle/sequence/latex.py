@@ -85,9 +85,10 @@ def _override(o):
     if any("error" in x for x in runs.values()):
         return "an override exists; exercising it failed"
     took = "takes effect" if runs["after"]["probability"] else "does not take effect"
-    return (f"\\texttt{{storm\\_control.json}} overrides every table, applied by {_files(o['callers'])} only. "
-            f"Applied before the generator is imported, the sequence probability {took}; imported first, "
-            f"{'it does not' if not runs['before']['probability'] else 'it does'}; the duration table never does")
+    return (f"\\texttt{{storm\\_control.json}} overrides every table, applied by {_files(o['callers'])}. "
+            f"Applied before the generator is imported (as at start-up), the sequence probability {took}; "
+            f"applied after (as when the screen saves), {'it does not' if not runs['before']['probability'] else 'it does'}; "
+            "the duration table never does")
 
 
 def rows(c, e, v):

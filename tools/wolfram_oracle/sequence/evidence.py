@@ -87,7 +87,8 @@ def override():
     """Q4: no mechanism exists for runtime override of the tables. Judged by applying a
     storm_control.json that switches sequences off and shortens every storm, with the
     generator imported before it is applied and after."""
-    callers = [p for p in _grep(r"apply_storm_control\(", ["src", "app", "phys.py"]) if "storm_control" not in p]
+    callers = [p for p in _grep(r"apply_storm_control\(", ["src", "app", "phys.py", "config/__init__.py"])
+               if "storm_control" not in p]
     runs = {o: _override_run(o) for o in ("before", "after")}
     return {"callers": callers, "runs": runs, "met": not callers}
 

@@ -73,9 +73,10 @@ counts and gaps follow the exact law the document's tables imply, within samplin
 \item \textbf{Durations are whole hours}, which the document does not say, and every
   catchment's base precipitation is the Thames's 35\,mm, not Table~7's values.
 \item \textbf{An override exists.} Q4 says no runtime override exists. The Trading Control
-  screen overrides every table through \texttt{storm\_control.json}. Where it reaches the
-  generator at all, it does so only partly: never for the duration table, and never for a
-  command-line run.
+  screen overrides every table through \texttt{storm\_control.json}, which is also applied
+  whenever \texttt{config} is imported. It reaches the generator only partly: the duration
+  table never, and the sequence probability only when applied before the generator is
+  imported (at start-up, not when the screen saves).
 \item \textbf{The cited paths and evidence are stale.} The consumers' paths, the command
   line and an output file do not exist. The classifier result it cites covers 11 gauges,
   not 52.
