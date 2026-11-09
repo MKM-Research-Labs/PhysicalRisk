@@ -26,7 +26,9 @@ from tools.wolfram_oracle._latex import GENERATED, esc, longtab, outcome, sci, t
 from tools.wolfram_oracle._latex import macros as as_macros
 
 from config.models import (
+    ORACLE_SS_AUC_STATED,
     ORACLE_SS_CODE_TOL,
+    ORACLE_SS_GAUGES_STATED,
     ORACLE_SS_TABLE9,
     ORACLE_SS_TABLE_PREFIX,
     ORACLE_SS_WOLFRAM_TOL,
@@ -104,7 +106,7 @@ def rows(c, e, v):
     rec, cor, pr = c["recovery"], c["correlation"], c["precipitation"]
     cap, sc, cl = c["cap"], c["scaling"], e["classifier"]
     return [
-        ("Eq.~4, Tables~2--6, 8", "the parameters in \\texttt{config.port}", "all as stated" if c["parameters"]["met"]
+        ("Eq.~4, Tables~1--6, 8", "the parameters in \\texttt{config.port}", "all as stated" if c["parameters"]["met"]
          else "differ: " + ", ".join(c["parameters"]["differ"]), _met(c["parameters"]["met"])),
         ("Eq.~5, \\S3.5", "durations and raw gaps are whole hours; a capped duration takes the cap",
          f"{c['whole']['whole']:,} of {c['whole']['durations']:,} uncapped durations are whole", _met(c["whole"]["met"])),
@@ -112,7 +114,7 @@ def rows(c, e, v):
          f"latest end {c['window']['end']:.1f}\\,h; least drainage {c['window']['drain']:.1f}\\,h",
          _met(c["window"]["met"])),
         ("\\S3.5, Table~4, \\S6.3", "every gap is at least 24\\,h (doublet, cluster) or 6\\,h (persistent); every "
-         "storm is capped, holding each gap at that minimum, in 63.4\\% of multi-storm sequences",
+         "storm is capped, holding each gap at that minimum, in 3.1\\% of multi-storm sequences",
          f"least gap {_least(rec)}; {rec['pinned']:.1f}\\% exactly, {rec['seen']:.1f}\\% in the default batch",
          _met(rec["met"])),
         ("Table~8", "a later storm is at least as strong as the first with probability 0.85",
@@ -125,11 +127,17 @@ def rows(c, e, v):
         ("\\S7.2", "pooled over 100 seeds, every type within 1\\% of Table~9",
          f"worst {c['seeds']['worst_pct']:.2f}\\% off (one seed: {c['seeds']['per_seed_pct']:.1f}\\%)",
          _met(c["seeds"]["met"])),
-        ("\\S6.2", "the cap binds on every catastrophic duration at $n=5$, and on 60.5\\% of all draws",
-         f"{cap['cat5']:.1f}\\%, and {cap['share']:.2f}\\%", _met(cap["met"])),
-        ("\\S6.3", "gaps are shortened in 81.1\\% of multi-storm sequences; 99.0\\% of moderate-to-severe "
-         "persistent ones, 100.0\\% of catastrophic", f"{sc['all']:.2f}\\%; {sc['modsev']:.2f}\\%, "
-         f"{sc['cat']:.8f}\\%", _met(sc["met"])),
+        ("\\S6.2", "the cap never binds on an isolated storm; most often on catastrophic persistent "
+         "durations, 77.7\\%; on 8.6\\% of all draws",
+         f"{cap['isolated']:.1f}\\%; {cap['worst']:.2f}\\%, the most of any configuration; {cap['share']:.2f}\\%",
+         _met(cap["met"])),
+        ("\\S6.3", "gaps are shortened in 35.4\\% of multi-storm sequences; 4.7\\% of moderate-to-severe "
+         "persistent ones, 99.7\\% of catastrophic", f"{sc['all']:.2f}\\%; {sc['modsev']:.2f}\\%, "
+         f"{sc['cat']:.2f}\\%", _met(sc["met"])),
+        ("Q6", "at the baseline the cap rate is within 50\\%, and shortening within 70\\% for every type: "
+         "doublet 0.8, cluster 52.3, persistent 47.9\\%", ", ".join(f"{t} {x:.2f}\\%" for t, x in
+         c["thresholds"]["by_type"].items()) + ("; within both" if c["thresholds"]["within"] else "; breached"),
+         _met(c["thresholds"]["met"])),
         ("\\S5.3", "a fixed seed reproduces the batch", "it does" if c["reproducible"]["met"] else "it does not",
          _met(c["reproducible"]["met"])),
         ("\\S5.4, \\S7.1", "the validator finds no invalid sequence",
@@ -142,7 +150,8 @@ def rows(c, e, v):
          "do not exist: " + _files(e["paths"]["gone"]) if e["paths"]["gone"] else "all exist", _met(e["paths"]["met"])),
         ("Q4", "\\texttt{storm\\_control.json} overrides every table, applied on importing \\texttt{config} and when "
          "the screen saves, whichever was imported first", _override(e["override"]), _met(e["override"]["met"])),
-        ("\\S7.3, \\S7.4", "the training summary on file: 11 Thames gauges, mean AUC-ROC 0.9935; GAUGE-1aaf8b08",
+        ("\\S7.3, \\S7.4", f"the training summary on file: {ORACLE_SS_GAUGES_STATED} Thames gauges, mean AUC-ROC {ORACLE_SS_AUC_STATED}; "
+         "GAUGE-1aaf8b08",
          (f"{cl['trained']} gauges, mean {cl['auc']}; GAUGE-1aaf8b08 {'present' if cl['example'] else 'absent'}")
          if cl["found"] else "no training summary", _met(cl["met"])),
     ]

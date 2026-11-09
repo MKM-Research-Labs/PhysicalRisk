@@ -30,6 +30,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional
 
+import config.port as cp
+
 
 class SequenceType(Enum):
     """Type of multi-storm sequence."""
@@ -46,13 +48,9 @@ class GapType(Enum):
     LONG = "long"
 
 
-# Sequence type definitions from spec Table 1
-SEQUENCE_TYPE_STORM_COUNTS = {
-    SequenceType.ISOLATED: (1, 1),
-    SequenceType.DOUBLET: (2, 2),
-    SequenceType.CLUSTER: (3, 4),
-    SequenceType.PERSISTENT: (4, 5),
-}
+# (fewest, most) storms by sequence type, Table 1, as configured at import. The
+# generator reads config.port.SEQUENCE_STORM_COUNTS itself, on every draw.
+SEQUENCE_TYPE_STORM_COUNTS = {SequenceType(t): tuple(n) for t, n in cp.SEQUENCE_STORM_COUNTS.items()}
 
 # Which gap type each sequence type uses
 SEQUENCE_GAP_TYPE = {

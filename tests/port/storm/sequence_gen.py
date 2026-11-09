@@ -175,14 +175,17 @@ class TestGapRoom:
             assert max(s.duration_hours for s in seq.storms) <= cap + 1e-9
             assert seq.storms[-1].start_time_hours + seq.storms[-1].duration_hours <= 156 + 1e-9
 
-    def test_gaps_that_overflow_are_shortened_toward_the_minimum(self):
-        """Catastrophic storms are always capped, so R = (n - 1) g_min and every gap is 6 h."""
+    def test_gaps_that_overflow_are_shortened_toward_the_minimum(self, monkeypatch):
+        """Storms longer than any cap are always capped, so R = (n - 1) g_min and every gap is 6 h."""
+        import config.port as cp
+
+        monkeypatch.setattr(cp, "STORM_DURATION_PARAMS", {**cp.STORM_DURATION_PARAMS, "catastrophic": (48, 120, 240)})
         seq = SequenceGenerator(seed=3).generate("catastrophic", 5.0, force_sequence_type="persistent")
         assert seq.inter_storm_gaps_hours == pytest.approx([6.0] * (seq.num_storms - 1))
 
     def test_a_window_that_cannot_hold_the_minimum_gaps_is_refused(self, monkeypatch):
         import config.port as cp
 
-        monkeypatch.setattr(cp, "STORM_GAP_PARAMS", {**cp.STORM_GAP_PARAMS, "short": (40, 50, 60)})
+        monkeypatch.setattr(cp, "STORM_GAP_PARAMS", {**cp.STORM_GAP_PARAMS, "short": (60, 70, 80)})
         with pytest.raises(ValueError, match="cannot fit"):
             SequenceGenerator(seed=1).generate("moderate", 1.0, force_sequence_type="persistent")

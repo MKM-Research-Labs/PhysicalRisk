@@ -93,6 +93,7 @@ def get_defaults() -> Dict[str, Any]:
                 "first_storm_dominant_prob": _p("FIRST_STORM_DOMINANT_PROB"),
                 "correlation_prob": _p("CORRELATION_PROB"),
                 "default_intensity_weights": dict(_p("DEFAULT_INTENSITY_WEIGHTS") or {}),
+                "storm_counts": _rows("SEQUENCE_STORM_COUNTS"),
                 "duration_params": _rows("STORM_DURATION_PARAMS"),
                 "gap_params": _rows("STORM_GAP_PARAMS"),
                 "base_intensity_params": _rows("BASE_INTENSITY_PARAMS"),

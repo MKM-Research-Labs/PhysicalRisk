@@ -225,9 +225,17 @@ class TestStormControlTables:
         self._apply(monkeypatch, {"duration_params": {"minimal": [3, 7, 14]},
                                   "sequence_probability": {"minimal": 0.1}})
         assert cp.STORM_DURATION_PARAMS["minimal"] == (3, 7, 14)
-        assert cp.STORM_DURATION_PARAMS["catastrophic"] == (48, 120, 240)
+        assert cp.STORM_DURATION_PARAMS["catastrophic"] == (16, 40, 80)
         assert cp.SEQUENCE_PROBABILITY == {**cp.SEQUENCE_PROBABILITY, "minimal": 0.1}
         assert cp.SEQUENCE_PROBABILITY["catastrophic"] == 0.85
+
+    def test_a_storm_count_override_reaches_the_generator(self, monkeypatch):
+        """Table 1 is overridable like the others (MKM-SS-001 v3.1)."""
+        from port.src.storm_multi.generators.batch_generator import generate_event_set
+
+        self._apply(monkeypatch, {"storm_counts": {"cluster": [2, 2]}})
+        seqs = generate_event_set(300, seed=1, force_sequence_type="cluster")
+        assert {q.num_storms for q in seqs} == {2}
 
     def test_an_override_reaches_a_generator_imported_before_it(self, monkeypatch):
         from port.src.storm_multi.generators.batch_generator import generate_event_set

@@ -21,8 +21,8 @@
 """Tests for tools.wolfram_oracle.sequence, the SS-001 benchmark.
 
 The exact half of the reference is checked against probabilities worked by hand -- Table 9's
-type mix, a cap that always binds, two uniforms compared -- and the replay against the
-production code on a small batch. The gate pins which of v3.0's claims fail (none), so a
+type mix, a cap that never binds, two uniforms compared -- and the replay against the
+production code on a small batch. The gate pins which of v3.1's claims fail (none), so a
 change to the code or the document shows up here. Wolfram is stood in for by the answers the filed
 run recorded, and the batches are cut from 10,000 sequences to a few hundred.
 """
@@ -75,16 +75,19 @@ class TestReference:
         assert types["isolated"] == Q(4, 10) * Q(7, 10) + Q(35, 100) * Q(1, 2) + Q(2, 10) * Q(3, 10) + Q(5, 100) * Q(15, 100)
         assert sum(types.values()) == 1 and types["persistent"] == Q(119, 1000)
 
-    def test_a_cap_that_always_binds(self):
-        assert ref.capped("catastrophic", "persistent", 5) == 1 and ref.capped("moderate", "isolated", 1) == 0
-        assert ref.cap_of("persistent", 5) == Q(132, 5) and ref.gaps("catastrophic", "persistent", 5)[0] == 1
+    def test_a_cap_that_never_binds(self):
+        """v3.1: an isolated storm's cap is 156 h and the longest storm 80 h; a persistent
+        sequence's cap is 34.5 h, which a catastrophic storm sometimes exceeds."""
+        assert ref.capped("catastrophic", "isolated", 1) == 0 and ref.cap_of("persistent", 4) == Q(69, 2)
+        assert 0 < ref.capped("catastrophic", "persistent", 4) < 1 and ref.gaps("catastrophic", "persistent", 4)[0] < 1
 
     def test_two_uniforms_compared(self):
         assert ref.subsequent_vs_first() == Q(17, 20)
 
     def test_compressed_is_a_share(self):
         assert Q(99, 100) < ref.compressed(ORACLE_SS_WEIGHTS, ("catastrophic",), "persistent") < 1
-        assert 0 < ref.compressed(ORACLE_SS_WEIGHTS, ("moderate",), "doublet") < Q(1, 10)
+        # two moderate storms and the longest medium gap always fit: 2 x 20 + 72 = 112 <= 156
+        assert ref.compressed(ORACLE_SS_WEIGHTS, ("moderate",), "doublet") == 0
 
 
 class TestTheCode:
@@ -116,7 +119,7 @@ class TestEvidence:
         assert evidence.classifier() == {"found": False, "met": False}
         gauges = [{"gauge_id": f"GAUGE-{i}"} for i in range(10)] + [{"gauge_id": "GAUGE-1aaf8b08"}]
         (tmp_path / "training_summary.json").write_text(json.dumps(
-            {"num_trained": 11, "avg_auc_roc": 0.9935, "gauges": gauges}))
+            {"num_trained": 11, "avg_auc_roc": 0.9842, "gauges": gauges}))
         assert evidence.classifier()["met"]
 
     def test_a_missing_module_or_name_is_reported(self, monkeypatch):
@@ -138,7 +141,7 @@ class TestEvidence:
 class TestRun:
     def test_wolfram_agrees_with_the_reference(self):
         assert oracle.judge(_recorded()) < 1e-25
-        assert len(oracle.items()) == 49
+        assert len(oracle.items()) == 33
 
     def test_a_run_without_and_with_wolfram(self, tmp_path, quick):
         assert cli.main(["ss001", "--out", str(tmp_path), "--no-pdf", "--no-live"]) == 0
@@ -151,7 +154,7 @@ class TestRun:
 
 
 class TestClaims:
-    def test_which_claims_of_v3_fail(self, code, quick):
+    def test_which_claims_of_v3_1_fail(self, code, quick):
         with mp.workdps(50):
             rp = cases.replay(code)
         exact = ref.batch(ORACLE_SS_WEIGHTS)
@@ -159,4 +162,4 @@ class TestClaims:
         e = evidence.assess(code)
         assert {k for k, v in {**c, **e}.items() if not v["met"]} == QUICK_FAILING
         assert all(r["probability"] and r["durations"] for r in e["override"]["runs"].values())
-        assert c["precipitation"]["got"]["mekong"] == 90.0 and round(c["cap"]["share"], 1) == 60.5
+        assert c["precipitation"]["got"]["mekong"] == 90.0 and round(c["cap"]["share"], 1) == 8.6

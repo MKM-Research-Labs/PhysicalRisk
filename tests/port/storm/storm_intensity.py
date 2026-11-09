@@ -109,17 +109,22 @@ class TestGetStormCount:
         rng = np.random.RandomState(42)
         assert get_storm_count(SequenceType.DOUBLET, rng) == 2
 
-    def test_cluster_returns_3_or_4(self):
+    def test_cluster_returns_3(self):
         rng = np.random.RandomState(42)
-        for _ in range(50):
-            count = get_storm_count(SequenceType.CLUSTER, rng)
-            assert count in (3, 4)
+        state = rng.get_state()[1].copy()
+        assert all(get_storm_count(SequenceType.CLUSTER, rng) == 3 for _ in range(50))
+        assert (rng.get_state()[1] == state).all()  # a single count draws nothing
 
-    def test_persistent_returns_4_or_5(self):
+    def test_persistent_returns_4(self):
         rng = np.random.RandomState(42)
-        for _ in range(50):
-            count = get_storm_count(SequenceType.PERSISTENT, rng)
-            assert count in (4, 5)
+        assert all(get_storm_count(SequenceType.PERSISTENT, rng) == 4 for _ in range(50))
+
+    def test_a_configured_range_is_drawn_uniformly(self, monkeypatch):
+        import config.port as cp
+
+        monkeypatch.setattr(cp, "SEQUENCE_STORM_COUNTS", {**cp.SEQUENCE_STORM_COUNTS, "cluster": (3, 4)})
+        rng = np.random.RandomState(42)
+        assert {get_storm_count(SequenceType.CLUSTER, rng) for _ in range(50)} == {3, 4}
 
 
 class TestSampleStormIntensity:

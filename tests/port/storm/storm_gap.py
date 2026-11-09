@@ -26,6 +26,7 @@ import pytest
 from config.port import EVENT_WINDOW_HOURS, MIN_DRAINAGE_WINDOW_HOURS, STORM_GAP_PARAMS
 from port.src.storm_multi.core.data_structures import GapType, SequenceStorm, SequenceType, StormSequence
 from port.src.storm_multi.generators.gap_sampler import get_gap_range, sample_gap
+from port.src.storm_multi.generators.sequence_generator import SequenceGenerator
 from port.src.storm_multi.utils.validation import (
     MAX_PRECIP_END_HOUR,
     fits_in_window,
@@ -177,7 +178,14 @@ class TestValidation:
             ))
         seq.num_storms = 6
         errors = validate_sequence(seq)
-        assert any("not in [1, 5]" in e for e in errors)
+        assert any(e.startswith("Storm count 6 not in [") for e in errors)
+
+    def test_a_count_outside_its_types_range(self):
+        """v3.1: a cluster has three storms (Table 1); four is invalid even though 4 <= 5."""
+        seq = SequenceGenerator(seed=2).generate("moderate", 1.0, force_sequence_type="cluster")
+        seq.storms.append(seq.storms[-1])
+        seq.num_storms = 4
+        assert any("not in [3, 3] for cluster" in e for e in validate_sequence(seq))
 
     def test_exceeds_precip_window(self):
         seq = self._make_valid_doublet()

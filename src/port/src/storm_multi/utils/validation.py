@@ -76,10 +76,12 @@ def validate_sequence(sequence: StormSequence) -> List[str]:
             f"len(storms) ({len(sequence.storms)})"
         )
 
-    # Storm count range
-    if not (1 <= len(sequence.storms) <= 5):
+    # Storm count within the type's range (Table 1, read on each call)
+    most = max(n for _, n in cp.SEQUENCE_STORM_COUNTS.values())
+    lo, hi = cp.SEQUENCE_STORM_COUNTS.get(sequence.sequence_type, (1, most))
+    if not (lo <= len(sequence.storms) <= hi):
         errors.append(
-            f"Storm count {len(sequence.storms)} not in [1, 5]"
+            f"Storm count {len(sequence.storms)} not in [{lo}, {hi}] for {sequence.sequence_type}"
         )
 
     # Gap count = num_storms - 1

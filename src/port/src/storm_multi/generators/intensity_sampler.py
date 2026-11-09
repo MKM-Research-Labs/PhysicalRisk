@@ -68,19 +68,13 @@ def get_storm_count(
     sequence_type: SequenceType,
     rng: np.random.RandomState,
 ) -> int:
-    """Return number of storms for a sequence type.
+    """Return number of storms for a sequence type (Table 1, SEQUENCE_STORM_COUNTS).
 
-    isolated=1, doublet=2, cluster=3-4, persistent=4-5.
+    A type with a single count takes it without drawing; otherwise the count is
+    uniform over the range.
     """
-    if sequence_type == SequenceType.ISOLATED:
-        return 1
-    if sequence_type == SequenceType.DOUBLET:
-        return 2
-    if sequence_type == SequenceType.CLUSTER:
-        return rng.choice([3, 4])
-    if sequence_type == SequenceType.PERSISTENT:
-        return rng.choice([4, 5])
-    return 1
+    lo, hi = cp.SEQUENCE_STORM_COUNTS.get(sequence_type.value, (1, 1))
+    return lo if lo == hi else rng.choice(list(range(lo, hi + 1)))
 
 
 def sample_storm_intensity(

@@ -5,22 +5,23 @@
 Claim & Stated & Benchmark finds & Outcome \\
 \midrule
 \endhead
-Eq.~4, Tables~2--6, 8 & the parameters in \texttt{config.port} & all as stated & met \\
-Eq.~5, \S3.5 & durations and raw gaps are whole hours; a capped duration takes the cap & 21,264 of 21,264 uncapped durations are whole & met \\
+Eq.~4, Tables~1--6, 8 & the parameters in \texttt{config.port} & all as stated & met \\
+Eq.~5, \S3.5 & durations and raw gaps are whole hours; a capped duration takes the cap & 38,654 of 38,654 uncapped durations are whole & met \\
 \S3.1, \S3.4.1, \S3.5.1 & every sequence ends by 156\,h, leaving 12\,h to drain & latest end 156.0\,h; least drainage 12.0\,h & met \\
-\S3.5, Table~4, \S6.3 & every gap is at least 24\,h (doublet, cluster) or 6\,h (persistent); every storm is capped, holding each gap at that minimum, in 63.4\% of multi-storm sequences & least gap doublet 24\,h, cluster 24\,h, persistent 6\,h; 63.4\% exactly, 62.7\% in the default batch & met \\
-Table~8 & a later storm is at least as strong as the first with probability 0.85 & 0.85 exactly; the code 0.849 over 10,810 storms & met \\
+\S3.5, Table~4, \S6.3 & every gap is at least 24\,h (doublet, cluster) or 6\,h (persistent); every storm is capped, holding each gap at that minimum, in 3.1\% of multi-storm sequences & least gap doublet 24\,h, cluster 24\,h, persistent 6\,h; 3.1\% exactly, 3.1\% in the default batch & met \\
+Table~8 & a later storm is at least as strong as the first with probability 0.85 & 0.85 exactly; the code 0.851 over 9,048 storms & met \\
 Table~7 & $P_{\mathrm{base}}$: Thames 35, Mekong 90, Ha Long 100\,mm; 35\,mm where a catchment has no storm module & the code: 35, 90, 100; 35 for the Rhine & met \\
 \S6.1, Table~9 & expected counts 5,225, 1,469, 2,116, 1,190 (isolated, doublet, cluster, persistent) & exactly 5,225, 1,468.75, 2,116.25, 1,190 & met \\
-\S7.2 & pooled over 100 seeds, every type within 1\% of Table~9 & worst 0.29\% off (one seed: 9.3\%) & met \\
-\S6.2 & the cap binds on every catastrophic duration at $n=5$, and on 60.5\% of all draws & 100.0\%, and 60.45\% & met \\
-\S6.3 & gaps are shortened in 81.1\% of multi-storm sequences; 99.0\% of moderate-to-severe persistent ones, 100.0\% of catastrophic & 81.13\%; 98.96\%, 99.99999998\% & met \\
+\S7.2 & pooled over 100 seeds, every type within 1\% of Table~9 & worst 0.10\% off (one seed: 7.8\%) & met \\
+\S6.2 & the cap never binds on an isolated storm; most often on catastrophic persistent durations, 77.7\%; on 8.6\% of all draws & 0.0\%; 77.72\%, the most of any configuration; 8.60\% & met \\
+\S6.3 & gaps are shortened in 35.4\% of multi-storm sequences; 4.7\% of moderate-to-severe persistent ones, 99.7\% of catastrophic & 35.38\%; 4.69\%, 99.69\% & met \\
+Q6 & at the baseline the cap rate is within 50\%, and shortening within 70\% for every type: doublet 0.8, cluster 52.3, persistent 47.9\% & doublet 0.81\%, cluster 52.32\%, persistent 47.94\%; within both & met \\
 \S5.3 & a fixed seed reproduces the batch & it does & met \\
 \S5.4, \S7.1 & the validator finds no invalid sequence & 0 of 19,600; it catches 5 of 5 injected faults & met \\
 Q2 & 10{,}000 sequences in under 60\,s & 0.4\,s & met \\
 \S5.1 & the package holds the modules and functions listed & all present & met \\
 \S2.2, \S5.5 & the consumers' paths, the command line and its output files & all exist & met \\
 Q4 & \texttt{storm\_control.json} overrides every table, applied on importing \texttt{config} and when the screen saves, whichever was imported first & applied by \texttt{config/\_\_init\_\_.py}, \texttt{src/routes/trading/control.py}. Applied before the generator is imported, both take effect; after, both take effect & met \\
-\S7.3, \S7.4 & the training summary on file: 11 Thames gauges, mean AUC-ROC 0.9935; GAUGE-1aaf8b08 & 11 gauges, mean 0.9935; GAUGE-1aaf8b08 present & met \\
+\S7.3, \S7.4 & the training summary on file: 11 Thames gauges, mean AUC-ROC 0.9842; GAUGE-1aaf8b08 & 11 gauges, mean 0.9842; GAUGE-1aaf8b08 present & met \\
 \bottomrule
 \end{longtable}}

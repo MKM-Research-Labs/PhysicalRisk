@@ -218,8 +218,8 @@ class TestEnums:
     def test_storm_count_ranges(self):
         assert SEQUENCE_TYPE_STORM_COUNTS[SequenceType.ISOLATED] == (1, 1)
         assert SEQUENCE_TYPE_STORM_COUNTS[SequenceType.DOUBLET] == (2, 2)
-        assert SEQUENCE_TYPE_STORM_COUNTS[SequenceType.CLUSTER] == (3, 4)
-        assert SEQUENCE_TYPE_STORM_COUNTS[SequenceType.PERSISTENT] == (4, 5)
+        assert SEQUENCE_TYPE_STORM_COUNTS[SequenceType.CLUSTER] == (3, 3)
+        assert SEQUENCE_TYPE_STORM_COUNTS[SequenceType.PERSISTENT] == (4, 4)
 
 
 class TestIDGeneration:

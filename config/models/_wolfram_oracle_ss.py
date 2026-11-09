@@ -21,7 +21,7 @@
 """Wolfram oracle benchmark parameters for MKM-SS-001 (Storm Sequence Generator).
 
 The cases a benchmark run evaluates, the claims in SS-001's model document
-(``storm_multi_v3.0.pdf``, v3.0, 08-Nov-2026) it tests, and where it files its evidence.
+(``storm_multi_v3.1.pdf``, v3.1, 09-Nov-2026) it tests, and where it files its evidence.
 Benchmark v0.1 tested v2.0 (11-Mar-2026); it is kept in the git history and filed in
 History as evidence of the check.
 """
@@ -44,7 +44,7 @@ ORACLE_SS_CODE_TOL = 1e-12       # replayed sequences: code against the referenc
 ORACLE_SS_WOLFRAM_TOL = 1e-25    # exact probabilities: Wolfram against the reference
 ORACLE_SS_Z_LIMIT = 4.0          # Monte Carlo against exact: standard errors allowed
 
-# The document's equations and tables (v3.0), as the reference implements them.
+# The document's equations and tables (v3.1), as the reference implements them.
 ORACLE_SS_WINDOW_H = 168
 ORACLE_SS_DRAIN_H = 12
 ORACLE_SS_SEQ_PROB = {"minimal": "0.05", "baseline": "0.15", "moderate": "0.30", "severe": "0.50",
@@ -52,10 +52,10 @@ ORACLE_SS_SEQ_PROB = {"minimal": "0.05", "baseline": "0.15", "moderate": "0.30",
 ORACLE_SS_TYPE_WEIGHTS = {"minimal": ("0.60", "0.30", "0.10"), "baseline": ("0.60", "0.30", "0.10"),
                           "moderate": ("0.50", "0.35", "0.15"), "severe": ("0.30", "0.50", "0.20"),
                           "extreme": ("0.20", "0.45", "0.35"), "catastrophic": ("0.15", "0.45", "0.40")}
-ORACLE_SS_COUNTS = {"isolated": (1,), "doublet": (2,), "cluster": (3, 4), "persistent": (4, 5)}
+ORACLE_SS_COUNTS = {"isolated": (1,), "doublet": (2,), "cluster": (3,), "persistent": (4,)}
 ORACLE_SS_GAP_OF = {"doublet": "medium", "cluster": "medium", "persistent": "short"}
-ORACLE_SS_DURATION = {"minimal": (2, 6, 12), "baseline": (6, 12, 24), "moderate": (12, 30, 60),
-                      "severe": (24, 48, 96), "extreme": (36, 72, 144), "catastrophic": (48, 120, 240)}
+ORACLE_SS_DURATION = {"minimal": (1, 2, 4), "baseline": (2, 4, 8), "moderate": (4, 10, 20),
+                      "severe": (8, 16, 32), "extreme": (12, 24, 48), "catastrophic": (16, 40, 80)}
 ORACLE_SS_GAP = {"short": (6, 18, 36), "medium": (24, 48, 72)}
 ORACLE_SS_BASE = {"minimal": (0.3, 0.10), "baseline": (0.6, 0.15), "moderate": (1.0, 0.20),
                   "severe": (1.8, 0.30), "extreme": (3.0, 0.50), "catastrophic": (5.0, 0.80)}
@@ -78,15 +78,18 @@ ORACLE_SS_CATEGORIES = ("minimal", "baseline", "moderate", "severe", "extreme", 
 # The document's stated figures.
 ORACLE_SS_TABLE9 = {"isolated": 5225, "doublet": 1469, "cluster": 2116, "persistent": 1190}
 ORACLE_SS_TABLE9_PCT = 1         # s7.2: pooled over 100 seeds, every type within 1% of Table 9
-ORACLE_SS_CAP_CAT5_PCT = 100.0   # s6.2: catastrophic durations capped in a 5-storm sequence
-ORACLE_SS_CAP_ALL_PCT = 60.5     # s6.2: share of all duration draws capped, default batch
-ORACLE_SS_PINNED_PCT = 63.4      # s6.3: multi-storm sequences with every storm capped
-ORACLE_SS_SHORTENED_PCT = 81.1   # s6.3: multi-storm sequences whose gaps are shortened
-ORACLE_SS_SCALE_STATED = {"moderate-severe persistent": 99.0, "catastrophic persistent": 100.0}  # s6.3, %
+ORACLE_SS_CAP_WORST = ("catastrophic", "persistent", 4, 77.7)  # s6.2: the configuration capped most often, %
+ORACLE_SS_CAP_ALL_PCT = 8.6      # s6.2: share of all duration draws capped, default batch
+ORACLE_SS_PINNED_PCT = 3.1       # s6.3: multi-storm sequences with every storm capped
+ORACLE_SS_SHORTENED_PCT = 35.4   # s6.3: multi-storm sequences whose gaps are shortened
+ORACLE_SS_SCALE_STATED = {"moderate-severe persistent": 4.7, "catastrophic persistent": 99.7}  # s6.3, %
+ORACLE_SS_Q6_CAP_PCT = 50        # Q6: a cap rate above this calls for recalibration
+ORACLE_SS_Q6_SHORT_PCT = 70      # Q6: a shortening rate (by type) above this says the tables are inconsistent
+ORACLE_SS_SHORT_BY_TYPE = {"doublet": 0.8, "cluster": 52.3, "persistent": 47.9}  # s6.3 / Q6: baseline, %
 ORACLE_SS_SUBSEQUENT_STATED = "0.85"  # Table 8: P(subsequent storm >= first)
 ORACLE_SS_SECONDS = 60           # Q2: 10,000 sequences in under a minute
-ORACLE_SS_GAUGES_STATED = 11     # s7.3: the training summary on file covers 11 Thames gauges
-ORACLE_SS_AUC_STATED = 0.9935    # its mean AUC-ROC, to four places
+ORACLE_SS_GAUGES_STATED = 11     # s7.3: the summary of the classifiers retrained for v3.1 covers 11 Thames gauges
+ORACLE_SS_AUC_STATED = 0.9842    # its mean AUC-ROC, to four places (retrained on v3.1's catalogue)
 ORACLE_SS_EXAMPLE_GAUGE = "GAUGE-1aaf8b08"
 ORACLE_SS_CLASSIFIER_SUMMARY = "training_summary.json"  # in config.get_classifiers_dir()
 ORACLE_SS_STATED_PATHS = ("src/port/src/stressm/pipeline/orchestrator/_core.py", "src/port/src/stressm/batch_train.py",
