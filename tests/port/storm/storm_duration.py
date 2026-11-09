@@ -40,19 +40,19 @@ class TestDurationParams:
 
     def test_moderate_extended(self):
         low, mode, high = DURATION_PARAMS["moderate"]
-        assert low == 12
-        assert mode == 30
-        assert high == 60
+        assert low == 4
+        assert mode == 10
+        assert high == 20
 
     def test_severe_extended(self):
-        assert DURATION_PARAMS["severe"] == (24, 48, 96)
+        assert DURATION_PARAMS["severe"] == (8, 16, 32)
 
     def test_extreme_extended(self):
-        assert DURATION_PARAMS["extreme"] == (36, 72, 144)
+        assert DURATION_PARAMS["extreme"] == (12, 24, 48)
 
     def test_catastrophic_extended(self):
         low, mode, high = DURATION_PARAMS["catastrophic"]
-        assert high == 240  # 10 days
+        assert high == 80  # one third of v3.0's 10 days (v3.1)
 
     def test_each_tier_doubles_approx(self):
         """Each tier's max roughly doubles the previous."""
@@ -106,8 +106,8 @@ class TestHelpers:
     """Tests for helper functions."""
 
     def test_get_max_duration(self):
-        assert get_max_duration("catastrophic") == 240
-        assert get_max_duration("minimal") == 12
+        assert get_max_duration("catastrophic") == 80
+        assert get_max_duration("minimal") == 4
 
     def test_get_duration_range(self):
-        assert get_duration_range("moderate") == (12, 30, 60)
+        assert get_duration_range("moderate") == (4, 10, 20)

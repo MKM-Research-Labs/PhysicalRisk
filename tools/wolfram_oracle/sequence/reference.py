@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""SS-001's v3.0 equations, implemented from the document's text.
+"""SS-001's v3.1 equations, implemented from the document's text.
 
 Two halves. The exact half gives each probability the document's tables imply, in
 rational arithmetic: the sequence-type mix (Eq. 4, Table 2), the chance a duration is

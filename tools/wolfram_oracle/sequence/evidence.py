@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""SS-001's model document (v3.0), tested as stated: what the repository holds.
+"""SS-001's model document (v3.1), tested as stated: what the repository holds.
 
 The modules, paths and command line it names; the override control Q4 describes; the
 run time Q2 states; and the classifier result s7.3 cites. The override is exercised in a
@@ -132,7 +132,7 @@ def paths():
 
 
 def classifier():
-    """s7.3-s7.4: mean AUC-ROC 0.9935 across the 11 Thames gauges trained; GAUGE-1aaf8b08 as the example."""
+    """s7.3-s7.4: the stated mean AUC-ROC across the 11 Thames gauges trained; GAUGE-1aaf8b08 as the example."""
     path = config.get_classifiers_dir() / ORACLE_SS_CLASSIFIER_SUMMARY
     if not path.exists():
         return {"found": False, "met": False}

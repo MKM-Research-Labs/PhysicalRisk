@@ -34,6 +34,7 @@ _CONFIG_PORT_KEYS: Dict[str, str] = {
     "correlation_prob": "CORRELATION_PROB",
     "default_intensity_weights": "DEFAULT_INTENSITY_WEIGHTS",
     "sequence_type_weights": "SEQUENCE_TYPE_WEIGHTS",
+    "storm_counts": "SEQUENCE_STORM_COUNTS",
     "duration_params": "STORM_DURATION_PARAMS",
     "gap_params": "STORM_GAP_PARAMS",
     "base_intensity_params": "BASE_INTENSITY_PARAMS",
@@ -77,9 +78,9 @@ _CONFIG_MODELS_KEYS: Dict[str, str] = {
 # table rather than replacing it, so a file that sets one category does not drop the
 # others. (The generators read every one of these from config.port on each draw, so
 # patching config.port is all an override needs; MKM-SS-001 v3.0 Q4.)
-_TABLE_KEYS: Tuple[str, ...] = ("sequence_probability", "sequence_type_weights", "duration_params",
+_TABLE_KEYS: Tuple[str, ...] = ("sequence_probability", "sequence_type_weights", "storm_counts", "duration_params",
                                 "gap_params", "base_intensity_params")
-# The (min, mode, max) and (mean, std) tables, held as tuples.
-_TUPLE_TABLES: Tuple[str, ...] = ("duration_params", "gap_params", "base_intensity_params")
+# The (fewest, most), (min, mode, max) and (mean, std) tables, held as tuples.
+_TUPLE_TABLES: Tuple[str, ...] = ("storm_counts", "duration_params", "gap_params", "base_intensity_params")
 
 _CONTROL_FILENAME = "storm_control.json"

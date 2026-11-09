@@ -18,10 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""SS-001's model document, tested as stated (``storm_multi_v3.0.pdf``, v3.0): what the model does.
+"""SS-001's model document, tested as stated (``storm_multi_v3.1.pdf``, v3.1): what the model does.
 
 Its parameter tables are read from the code's configuration. Its figures -- the type
-breakdown (Table 9), the cap rate (s6.2), the shortening rates (s6.3), the intensity
+breakdown (Table 9), the cap rate (s6.2), the shortening rates (s6.3) and Q6's thresholds, the intensity
 correlation (Table 8) -- are judged against the exact law the tables imply, which the
 Monte Carlo shows the code draws from. What the repository holds is judged in ``evidence``.
 """
@@ -34,18 +34,22 @@ import config.port as port
 from config.models import (
     ORACLE_SS_BASE,
     ORACLE_SS_CAP_ALL_PCT,
-    ORACLE_SS_CAP_CAT5_PCT,
     ORACLE_SS_CAP_TOL,
+    ORACLE_SS_CAP_WORST,
     ORACLE_SS_CORR_PROB,
     ORACLE_SS_COUNT,
+    ORACLE_SS_COUNTS,
     ORACLE_SS_DRAIN_H,
     ORACLE_SS_DURATION,
     ORACLE_SS_GAP,
     ORACLE_SS_PBASE,
     ORACLE_SS_PBASE_FALLBACK,
     ORACLE_SS_PINNED_PCT,
+    ORACLE_SS_Q6_CAP_PCT,
+    ORACLE_SS_Q6_SHORT_PCT,
     ORACLE_SS_SCALE_STATED,
     ORACLE_SS_SEQ_PROB,
+    ORACLE_SS_SHORT_BY_TYPE,
     ORACLE_SS_SHORTENED_PCT,
     ORACLE_SS_SUBSEQUENT_STATED,
     ORACLE_SS_TABLE9,
@@ -64,9 +68,11 @@ def _floats(d):
 
 
 def parameters():
-    """Eq. 4 and Tables 2-6, 8: the parameters in config.port are the document's."""
+    """Eq. 4 and Tables 1-6, 8: the parameters in config.port are the document's."""
     weights = {c: port.SEQUENCE_TYPE_WEIGHTS.get(c, port.DEFAULT_TYPE_WEIGHTS) for c in ORACLE_SS_TYPE_WEIGHTS}
+    counts = {t: (min(ns), max(ns)) for t, ns in ORACLE_SS_COUNTS.items()}
     checks = {
+        "Table 1": {t: tuple(port.SEQUENCE_STORM_COUNTS[t]) for t in counts} == counts,
         "Eq. 4": _floats(port.SEQUENCE_PROBABILITY) == _floats(ORACLE_SS_SEQ_PROB),
         "Table 2": _floats(weights) == _floats(ORACLE_SS_TYPE_WEIGHTS),
         "Table 3": _floats(port.STORM_DURATION_PARAMS) == _floats(ORACLE_SS_DURATION),
@@ -99,7 +105,7 @@ def window(replay):
 
 def recovery(replay, exact, mc):
     """s3.5, Table 4: every gap is at least its type's minimum, 6 h short or 24 h medium; every
-    storm is capped, holding every gap at that minimum, in 63.4% of multi-storm sequences."""
+    storm is capped, holding every gap at that minimum, in 3.1% of multi-storm sequences."""
     seqs = [q for q in replay["batch"] + replay["forced"] if q.num_storms > 1]
     least = {t: min(min(q.inter_storm_gaps_hours) for q in seqs if q.sequence_type == t) for t in ref.MULTI}
     pct = 100 * float(exact["pinned_share"])
@@ -141,15 +147,30 @@ def seeds(mc):
 
 
 def cap(exact):
-    """s6.2: every catastrophic duration capped in a 5-storm sequence; 60.5% of all draws."""
-    cat5, share = 100 * float(ref.capped("catastrophic", "persistent", 5)), 100 * float(exact["cap_share"])
-    return {"cat5": cat5, "share": share,
-            "met": round(cat5, 1) == ORACLE_SS_CAP_CAT5_PCT and round(share, 1) == ORACLE_SS_CAP_ALL_PCT}
+    """s6.2: the cap never binds on an isolated storm; it binds most often on catastrophic
+    durations in a persistent sequence, 77.7%; and on 8.6% of all draws."""
+    cat, t, n, stated = ORACLE_SS_CAP_WORST
+    configs = [(c, tt, nn) for c in ORACLE_SS_WEIGHTS for tt, ns in ORACLE_SS_COUNTS.items() for nn in ns]
+    worst = max(configs, key=lambda x: ref.capped(*x))
+    isolated = max(100 * float(ref.capped(c, "isolated", 1)) for c in ORACLE_SS_WEIGHTS)
+    pct, share = 100 * float(ref.capped(cat, t, n)), 100 * float(exact["cap_share"])
+    return {"worst": pct, "share": share, "isolated": isolated,
+            "met": worst == (cat, t, n) and round(pct, 1) == stated and isolated == 0
+            and round(share, 1) == ORACLE_SS_CAP_ALL_PCT}
+
+
+def thresholds(exact):
+    """Q6: at the baseline, the cap rate is within 50% and every type's shortening rate within
+    70%: doublet 0.8%, cluster 52.3%, persistent 47.9%."""
+    by_type = {t: 100 * float(ref.compressed(ORACLE_SS_WEIGHTS, tuple(ORACLE_SS_WEIGHTS), t)) for t in ref.MULTI}
+    within = 100 * float(exact["cap_share"]) <= ORACLE_SS_Q6_CAP_PCT and max(by_type.values()) <= ORACLE_SS_Q6_SHORT_PCT
+    return {"by_type": by_type, "within": within,
+            "met": within and all(round(by_type[t], 1) == ORACLE_SS_SHORT_BY_TYPE[t] for t in ref.MULTI)}
 
 
 def scaling(exact):
-    """s6.3: gaps are shortened in 81.1% of multi-storm sequences; in 99.0% of
-    moderate-to-severe persistent sequences and 100.0% of catastrophic ones."""
+    """s6.3: gaps are shortened in 35.4% of multi-storm sequences; in 4.7% of
+    moderate-to-severe persistent sequences and 99.7% of catastrophic ones."""
     allp = 100 * float(exact["compressed_share"])
     ms = 100 * float(ref.compressed(ORACLE_SS_WEIGHTS, ("moderate", "severe"), "persistent"))
     cat = 100 * float(ref.compressed(ORACLE_SS_WEIGHTS, ("catastrophic",), "persistent"))
@@ -182,5 +203,6 @@ def assess(code, replay, mc, exact):
         "seeds": seeds(mc),
         "cap": cap(exact),
         "scaling": scaling(exact),
+        "thresholds": thresholds(exact),
         "reproducible": reproducible(code, replay),
     }

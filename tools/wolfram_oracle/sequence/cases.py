@@ -125,7 +125,7 @@ def pinned(seq):
 
 def _shares(seqs):
     types = {t: sum(s.sequence_type == t for s in seqs) for t in TYPES}
-    counts = {n: sum(s.num_storms == n for s in seqs) for n in range(1, 6)}
+    counts = {n: sum(s.num_storms == n for s in seqs) for n in range(1, 1 + max(s.num_storms for s in seqs))}
     multi = [s for s in seqs if s.num_storms > 1]
     return types, counts, len(multi), sum(pinned(s) for s in multi)
 
@@ -140,7 +140,7 @@ def monte_carlo(code, batch, exact):
     total = ORACLE_SS_COUNT * len(seeds)
     z_types = max(_z(pooled[t], total, exact["types"][t]) for t in TYPES)
     types, counts, multi, pin = _shares(batch)
-    z_counts = max(_z(counts[n], ORACLE_SS_COUNT, exact["counts"][n]) for n in counts)
+    z_counts = max(_z(counts[n], ORACLE_SS_COUNT, exact["counts"].get(n, 0)) for n in counts | exact["counts"])
     return {"seeds": len(seeds), "per_seed": per_seed, "pooled": pooled, "z_types": z_types,
             "types": types, "counts": counts, "z_counts": z_counts, "multi": multi, "pinned": pin,
             "z_pinned": _z(pin, multi, exact["pinned_share"])}

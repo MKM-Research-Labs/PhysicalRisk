@@ -211,14 +211,27 @@ SEQUENCE_TYPE_WEIGHTS: Dict[str, List[float]] = {
     "catastrophic": [0.15, 0.45, 0.40],
 }
 
+# Storms per sequence, (fewest, most), by sequence type (Table 1). A type whose two
+# bounds agree takes that count without a random draw.
+SEQUENCE_STORM_COUNTS: Dict[str, tuple] = {
+    "isolated": (1, 1),
+    "doublet": (2, 2),
+    "cluster": (3, 3),
+    "persistent": (4, 4),
+}
+
 # Storm duration, triangular (min, mode, max) in hours, by category (Table 3).
+# Recalibrated in MKM-SS-001 v3.1 to one third of v3.0's values (minimal's lower
+# bound rounded up to 1 h), so that the storms of a multi-storm sequence fit the
+# window with their gaps: v3.0's were capped on 60.5% of draws, against the 50% at
+# which its Q6 asks for recalibration.
 STORM_DURATION_PARAMS: Dict[str, tuple] = {
-    "minimal": (2, 6, 12),
-    "baseline": (6, 12, 24),
-    "moderate": (12, 30, 60),
-    "severe": (24, 48, 96),
-    "extreme": (36, 72, 144),
-    "catastrophic": (48, 120, 240),
+    "minimal": (1, 2, 4),
+    "baseline": (2, 4, 8),
+    "moderate": (4, 10, 20),
+    "severe": (8, 16, 32),
+    "extreme": (12, 24, 48),
+    "catastrophic": (16, 40, 80),
 }
 
 # Inter-storm gap, triangular (min, mode, max) in hours, by gap type (Table 4).
