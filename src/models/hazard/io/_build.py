@@ -31,6 +31,7 @@ from models.frequency.events import count_events
 from ..builder import HazardCurveBuilder
 from ._load import load_gauges, load_storms_from_sequences
 from ._save import save_gauge_storm_responses, save_hazard_curves
+from ._stressm import load_stressm_responses
 
 logger = logging.getLogger(__name__)
 
@@ -82,12 +83,21 @@ def build_hazard_curves(
     if verbose:
         logger.info("Loaded %d gauges", len(gauges))
 
+    # v2.0: the GEV curves are built from the Storm-Gauge Response Model's peaks
+    # (the river model calibrated to observed levels). Only a portfolio the
+    # storm-gauge stage hasn't covered falls back to the v1 simple model.
+    responses = load_stressm_responses(catchment_id, sequences_data, gauges)
+    if responses is None:
+        logger.warning("Storm-gauge responses missing for %s — falling back to the "
+                       "simple response model; re-run 'phys.py port --stressm'", catchment_id)
+
     builder = HazardCurveBuilder(
         gauges=gauges,
         storms=storms,
         force_gumbel=(distribution == 'gumbel'),
         verbose=verbose,
-        catchment=catchment_id
+        catchment=catchment_id,
+        responses=responses,
     )
 
     hazard_curves, responses = builder.build()

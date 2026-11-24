@@ -184,6 +184,8 @@ def generate_stressm(
             "flood_alert": g["flood_alert"],
             "flood_warning": g["flood_warning"],
             "severe_warning": g["severe_warning"],
+            "sensitivity": g.get("sensitivity", 1.0),
+            "rise_exponent": g.get("rise_exponent", 1.0),
         }
         for g in gauge_params_list
     ]
@@ -206,6 +208,8 @@ def generate_stressm(
                 flood_alert=g["flood_alert"],
                 flood_warning=g["flood_warning"],
                 severe_warning=g["severe_warning"],
+                sensitivity=g["sensitivity"],
+                rise_exponent=g["rise_exponent"],
             ))
         return params
 

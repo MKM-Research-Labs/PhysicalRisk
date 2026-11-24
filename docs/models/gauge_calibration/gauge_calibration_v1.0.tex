@@ -1,0 +1,243 @@
+% Copyright (c) 2022-2026 MKM Research Labs. Licensed under the MIT License; see LICENSE.
+%
+% Gauge calibration to observed river levels -- the change document for the v2.0.0
+% releases of the gauge-response, gauge-history and GEV hazard-curve models. Filed on
+% each of those models as Core Documentation. Its tables are generated from the data by
+% tools/gauge_calibration/tables.py into evidence_tables.tex.
+%
+% Build: pdflatex three times in this folder (the third settles "Page n of N").
+\documentclass[11pt,a4paper]{article}
+\newcommand{\doctitle}{Gauge Calibration to Observed River Levels}
+\newcommand{\docsubtitle}{Rating-curve shape match of the Thames gauges to Environment Agency records}
+\newcommand{\docversion}{1.0}
+\newcommand{\docdate}{07-November-2026}
+\newcommand{\docauthor}{David K Kelly}
+\input{../shared/mkm_header}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{longtable}
+\renewcommand{\mkmhistorypage}[1]{%
+    \section{Document History}
+    \begin{table}[ht]
+        \centering
+        \begin{tabular}{l|l|p{9cm}|l}
+            \textbf{Date} & \textbf{Version} & \textbf{Description} & \textbf{Author} \\
+            \hline
+            #1
+        \end{tabular}
+    \end{table}
+}
+\input{evidence_tables}
+\begin{document}
+\sloppy
+\mkmtitlepage
+\mkmlegalpage
+\tableofcontents
+\clearpage
+
+% ===================================================================
+\mkmexecsummary
+
+Every simulated Thames gauge flooded far more than the real river. Against 23--40 years of
+Environment Agency (EA) daily maximum levels, the simulated rise in a typical year was about
+four times the observed one and grew faster for rarer floods: the model's 100-year level at
+Caversham was 15.1\,m above datum against a 6.92\,m record high. Its flood levels were
+random draws, not river levels.
+
+This release calibrates the gauges to the observed record. It is a shape match, not a fit:
+each gauge keeps its simulated storm response but the response is reshaped so that a level
+reached once in $T$ years in reality is reached with probability about $1/T$ a year in the
+simulation. On the yearly chances the hazard curves publish --- the numbers pricing uses ---
+the \gcNCal{} gauges with their own EA record now reach alert in a median \gcMedAlert{} of
+years (target 50\%), warning \gcMedWarning{} (10\%) and severe \gcMedSevere{} (2\%). Before,
+the hazard curves gave alert in only 3--5\% of years and severe in 0.4--1.2\%
+(Table~\ref{tab:freq}): rivers four times too lively, measured against flood levels drawn at
+random well above them.
+
+\paragraph{What changes.}
+\begin{itemize}[nosep]
+    \item \textbf{Gauge response} (\texttt{storm\_multi/models/sequence\_response.py}): a
+          per-gauge rating curve, rise $= s\,r^{b}$, where $r$ is the routed rise. $b<1$
+          because a river's stage rises less than proportionally with flow. With $s=b=1$
+          the response is unchanged.
+    \item \textbf{GEV hazard curves} (MKM-GH-001, \texttt{models/hazard}): built from the
+          gauge-response model's per-storm peaks. Until now the hazard stage computed its
+          own responses with a simpler model and overwrote the gauge-response results, so
+          the model the inventory shows feeding GH-001 never did.
+    \item \textbf{Gauge history} (MKM-GHD-001): each calibrated gauge's normal level and its
+          day-to-day and seasonal swings follow the calibration, so the level storms start
+          from agrees with the flood levels.
+    \item \textbf{Flood levels} (\texttt{gauge.json}): alert, warning and severe are written
+          at the gauge's observed 2-, 10- and 50-year rises above its normal level; the
+          historical high is its observed maximum.
+\end{itemize}
+
+% ===================================================================
+\mkmpurpose
+
+\subsection{Purpose}
+To make each gauge's simulated distribution of river levels match the real gauge's, so that
+the probabilities the hazard curves, PRS spreads and property flood models are built on are
+of the right order. The requirement is a ballpark, not a statistical fit: a gauge that
+floods once in 50 years should flood about 2\% of years in the simulation.
+
+\subsection{Scope}
+The Thames catchment. Of its 72 gauges, the \gcNCal{} non-tidal gauges from Caversham to
+Teddington each have their own EA station within 2\,km and are calibrated individually
+(Table~\ref{tab:stations}). The other \gcNProv{} --- the tidal Thames from Richmond down,
+and the synthetic gauges --- have no long record of their own and take the median
+calibration, marked provisional (\S\ref{sec:provisional}). Other catchments have no
+calibration file and are unchanged.
+
+% ===================================================================
+\mkminputs
+
+\subsection{Observed data}
+The EA Hydrology API, daily maximum water level (\texttt{level-max-86400}), for the nearest
+River Thames station within 2\,km of each gauge. Readings flagged \emph{Suspect} are dropped.
+Each water year (October--September) with at least 300 days gives one annual maximum, taken
+as the rise above the station's median daily level, so EA datums never meet the platform's.
+
+Two record defects are handled explicitly and recorded in the calibration file:
+\begin{itemize}[nosep]
+    \item \textbf{Datum changes.} A jump of more than 1\,m in the yearly median level splits
+          the record; each part's rises are measured from its own median. Walton's record
+          drops by about 5\,m from water year 2011.
+    \item \textbf{Bad readings.} A daily maximum above the station's own highest-on-record
+          (EA flood-monitoring service) by more than 0.1\,m is excluded, where both services
+          share a datum. Chertsey's January 2026 reading may be a genuine new record that the
+          EA figure has not caught up with; excluding it is the cautious choice.
+\end{itemize}
+
+\begin{longtable}{l|l|r|r|p{5.2cm}}
+\caption{Gauges and their EA stations.}\label{tab:stations}\\
+\textbf{Gauge} & \textbf{EA station} & \textbf{km} & \textbf{Years} & \textbf{Record notes} \\
+\hline
+\gcStationRows
+\end{longtable}
+
+\subsection{Simulated data}
+A reference run of the gauge-response model with the calibration switched off
+(\texttt{MKM\_GAUGE\_CALIBRATION=off}), the platform's 10{,}000 storm sequences, and the
+catchment arrival rate $\lambda=\gcLambda$ events a year.
+
+% ===================================================================
+\mkmframework
+
+\subsection{Observed return levels}
+A Gumbel distribution is fitted to each gauge's annual maximum rises by L-moments; its $T$-year
+rise $x_T$ is read at $T=2,10,20,50$. The 50-year rise extrapolates beyond records of 23--40
+years; the Gumbel is the conventional UK choice for that.
+
+\subsection{Simulated return levels on the priced basis}
+The storm set over-samples severe storms on purpose. The hazard stage reweights its event
+catalogue onto the population a real year draws from and annualises
+$P(\text{year}) = 1-e^{-\lambda\,P(\text{level}\mid\text{event})}$. The calibration measures
+the reference run through exactly that catalogue, so it targets the yearly chances pricing
+uses. (Counting every storm equally overstated big floods about six-fold.)
+
+\subsection{Rating curve}
+The routed rise $r$ (linear in runoff) becomes the gauge's rise
+\[
+    \text{rise} = d + s\,r^{\,b},
+\]
+with $s$ and $b$ solved through the observed 2- and 20-year rises. $d$ is the seasonal head
+start: storms arrive mostly in winter, above the annual median, and the rating curve does not
+shape that. It is measured from a first-pass run (calibrated with $d=0$) as the mean excess of
+its rises over the first-pass curve, and the curve is re-solved once with the targets reduced
+by $d$. The 10- and 50-year rises are not fitted; they are the out-of-sample check.
+
+\subsection{Flood levels}
+Each gauge's normal level is fixed per gauge (1.5--2.5\,m on the platform's datum). Alert,
+warning and severe sit at that level plus the observed 2-, 10- and 50-year rises; the
+historical high at the observed maximum rise and date. The gauge history recovers the normal
+level as alert minus the alert rise and scales its swings by the observed-to-reference ratio at
+two years, held fixed so the measured seasonal offset stays valid.
+
+% ===================================================================
+\mkmvalidation
+
+\subsection{Rating curves and fit}
+Rises are weighted (priced basis) from the calibrated run, against the EA record. The 2- and
+20-year points are fitted; 10 and 50 are out of sample.
+
+\begin{longtable}{l|r|r|r|r|r|r|r}
+\caption{Rating curves and simulated/observed rise (m).}\label{tab:fit}\\
+\textbf{Gauge} & $s$ & $b$ & $d$ & \textbf{2y} & \textbf{10y} & \textbf{20y} & \textbf{50y} \\
+\hline
+\gcFitRows
+\end{longtable}
+
+The exponents fall in the range real rating curves take ($b\approx0.3$--$0.8$). Kingston and
+Teddington, at the tidal limit, are flatter ($b\approx0.4$): their rare floods rise little above
+their common ones.
+
+\subsection{Priced yearly flood chances}
+The hazard curves' published \texttt{annual\_flood\_prob\_*}, before (v1, the demo book of
+31-Oct-2026) and after.
+
+\begin{longtable}{l|r|r|r|r|r|r}
+\caption{Yearly chance of reaching each level, before and after.}\label{tab:freq}\\
+ & \multicolumn{3}{c|}{\textbf{Before (v1)}} & \multicolumn{3}{c}{\textbf{After (v2)}} \\
+\textbf{Gauge} & alert & warning & severe & alert & warning & severe \\
+\hline
+\gcFreqRows
+\hline
+\textbf{Target} & & & & 50\% & 10\% & 2\% \\
+\end{longtable}
+
+\subsection{Provisional gauges}\label{sec:provisional}
+The \gcNProv{} gauges without a record take the median rating curve ($s=\gcDefaultS$,
+$b=\gcDefaultB$) and median flood rises (\gcDefaultRises\,m). Their median yearly chances are
+alert \gcProvAlert, warning \gcProvWarning, severe \gcProvSevere.
+
+% ===================================================================
+\mkmlimitations
+\begin{itemize}
+    \item \textbf{The tidal Thames is not calibrated to its own behaviour.} Below Teddington the
+          river floods from tide and surge, held back by the Thames Barrier; the storm model is
+          rainfall-driven. The provisional values give it plausible frequencies, not a
+          tidal model.
+    \item \textbf{Locks hold levels.} The EA stations are mostly locks, which rise a little less
+          than an open-river bridge; the effect is small against the four-fold correction.
+    \item \textbf{50-year rises are extrapolated} from 23--40 years of record.
+    \item \textbf{One correction pass.} The seasonal offset is measured once; a second pass
+          would refine it further. The result is within the ballpark asked for.
+    \item \textbf{Downstream data must be regenerated.} Property and commercial flood curves,
+          spreads and the blotter read the gauge responses; the demo book of 31-Oct-2026 was
+          built before this calibration.
+\end{itemize}
+
+% ===================================================================
+\mkmimplementation
+
+\subsection{Code}
+\begin{itemize}[nosep]
+    \item \texttt{catch/thames/gauge\_calibration.json} --- the calibration, with its evidence
+          (annual maxima, exclusions, datum changes, fitted and observed rises).
+    \item \texttt{tools/gauge\_calibration/build.py} --- builds it from the EA records and
+          reference runs; \texttt{tables.py} --- this document's tables.
+    \item \texttt{src/port/src/gauge/calibration.py} --- loading and applying it.
+    \item \texttt{storm\_multi/models/sequence\_response.py} --- the rating curve.
+    \item \texttt{models/hazard/io/\_stressm.py} --- GEV curves from the gauge-response peaks.
+\end{itemize}
+
+\subsection{Reproduction}
+\begin{enumerate}[nosep]
+    \item Reference: \texttt{MKM\_GAUGE\_CALIBRATION=off phys.py port -{}-thames -{}-seed 42
+          -{}-gaugehd -{}-stressm} on the uncalibrated \texttt{gauge.json}.
+    \item First pass: \texttt{build.py -{}-fetch -{}-ea-cache DIR -{}-reference REF}, then
+          \texttt{phys.py port -{}-thames -{}-seed 42 -{}-gauge-calibration -{}-gaugehd
+          -{}-stressm -{}-hazard}.
+    \item Second pass: \texttt{build.py -{}-ea-cache DIR -{}-reference REF -{}-first-pass
+          FIRST}, and the same port run.
+\end{enumerate}
+
+\subsection{Model versions}
+MKM-GH-001 and MKM-GHD-001 go to 2.0.0, as does the model that owns the gauge-response code.
+This calibration was built on \gcBuilt.
+
+\mkmhistorypage{07-Nov-2026 & 1.0 & First issue: rating-curve calibration of the Thames gauges
+to EA records; GEV curves from the gauge-response model. & David K Kelly \\}
+
+\end{document}

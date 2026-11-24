@@ -1,0 +1,922 @@
+{
+ "catchment": "thames",
+ "built": "2026-11-07",
+ "source": "Environment Agency Hydrology API, daily maximum water level (level-max-86400)",
+ "method": "Shape match, not a fit: sensitivity = geometric mean of observed/simulated rise at the 2, 10 and 20-year return periods; trigger rises = observed Gumbel (L-moment) 2, 10 and 50-year rises above the median daily level.",
+ "storms_per_year": 4.5,
+ "return_periods": {
+  "alert": 2,
+  "warning": 10,
+  "severe": 50
+ },
+ "model_versions": {
+  "MKM-ST-001": "2.0.0",
+  "MKM-GHD-001": "2.0.0",
+  "MKM-GH-001": "2.0.0"
+ },
+ "default": {
+  "provisional": true,
+  "applies_to": "gauges without their own EA record (tidal Thames, synthetic gauges)",
+  "sensitivity": 0.3263,
+  "rise_exponent": 0.6891,
+  "variability_scale": 0.4427,
+  "rise_m": {
+   "alert": 0.409,
+   "warning": 0.777,
+   "severe": 1.056,
+   "historical_high": 1.054
+  }
+ },
+ "gauges": {
+  "Thames Caversham Bridge": {
+   "gauge_id": "GAUGE-ef7f75ec",
+   "ea_station": "Caversham Lock",
+   "ea_station_km": 0.23,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/92e77c59-d975-4700-ac3e-844a9f22a8af-level-max-86400-m-qualified",
+   "record_years": 30,
+   "sensitivity": 0.2178,
+   "rise_exponent": 0.6699,
+   "seasonal_offset_m": 0.071,
+   "variability_scale": 0.3033,
+   "rise_m": {
+    "alert": 0.276,
+    "warning": 0.539,
+    "severe": 0.769,
+    "historical_high": 0.787
+   },
+   "historical_high_date": "2024-01-07",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.276,
+     "10": 0.539,
+     "20": 0.639,
+     "50": 0.769
+    },
+    "reference_rise_m": {
+     "2": 0.909,
+     "10": 2.77,
+     "20": 4.181,
+     "50": 5.901
+    },
+    "fitted_rise_m": {
+     "2": 0.276,
+     "10": 0.502,
+     "20": 0.639,
+     "50": 0.787
+    }
+   },
+   "excluded_years": [
+    {
+     "water_year": 2023,
+     "value_m": 1.622,
+     "reason": "above the station's highest on record"
+    }
+   ],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "1996": 0.131,
+    "1997": 0.145,
+    "1998": 0.189,
+    "1999": 0.185,
+    "2000": 0.151,
+    "2001": 0.412,
+    "2002": 0.186,
+    "2003": 0.78,
+    "2004": 0.218,
+    "2005": 0.334,
+    "2006": 0.19,
+    "2007": 0.348,
+    "2008": 0.253,
+    "2009": 0.241,
+    "2010": 0.209,
+    "2012": 0.198,
+    "2013": 0.414,
+    "2014": 0.649,
+    "2015": 0.196,
+    "2016": 0.22,
+    "2017": 0.134,
+    "2018": 0.211,
+    "2019": 0.147,
+    "2020": 0.143,
+    "2021": 0.448,
+    "2022": 0.248,
+    "2023": 0.38,
+    "2024": 0.787,
+    "2025": 0.406,
+    "2026": 0.601
+   }
+  },
+  "Thames Marsh Lock": {
+   "gauge_id": "GAUGE-066fc60e",
+   "ea_station": "Marsh Lock",
+   "ea_station_km": 1.21,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/085f4c0e-3e4f-49aa-9b45-817965374bd9-level-max-86400-m-qualified",
+   "record_years": 31,
+   "sensitivity": 0.3638,
+   "rise_exponent": 0.721,
+   "seasonal_offset_m": 0.121,
+   "variability_scale": 0.4981,
+   "rise_m": {
+    "alert": 0.469,
+    "warning": 0.958,
+    "severe": 1.387,
+    "historical_high": 1.387
+   },
+   "historical_high_date": "1997-01-02",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.469,
+     "10": 0.958,
+     "20": 1.145,
+     "50": 1.387
+    },
+    "reference_rise_m": {
+     "2": 0.942,
+     "10": 2.798,
+     "20": 4.202,
+     "50": 5.928
+    },
+    "fitted_rise_m": {
+     "2": 0.469,
+     "10": 0.885,
+     "20": 1.145,
+     "50": 1.433
+    }
+   },
+   "excluded_years": [
+    {
+     "water_year": 1996,
+     "value_m": 3.0,
+     "reason": "above the station's highest on record"
+    }
+   ],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "1996": 0.793,
+    "1997": 1.387,
+    "1998": 0.425,
+    "1999": 0.754,
+    "2000": 0.553,
+    "2001": 0.949,
+    "2002": 0.331,
+    "2003": 1.187,
+    "2004": 0.299,
+    "2005": 0.243,
+    "2006": 0.184,
+    "2007": 0.476,
+    "2008": 0.538,
+    "2009": 0.598,
+    "2010": 0.224,
+    "2011": 0.175,
+    "2012": 0.249,
+    "2013": 0.699,
+    "2014": 1.023,
+    "2015": 0.165,
+    "2016": 0.235,
+    "2017": 0.187,
+    "2018": 0.338,
+    "2019": 0.34,
+    "2020": 0.52,
+    "2021": 0.669,
+    "2022": 0.215,
+    "2023": 0.358,
+    "2024": 1.002,
+    "2025": 0.677,
+    "2026": 0.447
+   }
+  },
+  "Thames Marlow Bridge": {
+   "gauge_id": "GAUGE-bc801f07",
+   "ea_station": "Marlow Lock",
+   "ea_station_km": 0.65,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/a71ddb8c-ab06-4813-b64d-c22fed08b58c-level-max-86400-m-qualified",
+   "record_years": 23,
+   "sensitivity": 0.3991,
+   "rise_exponent": 0.6311,
+   "seasonal_offset_m": 0.109,
+   "variability_scale": 0.5259,
+   "rise_m": {
+    "alert": 0.491,
+    "warning": 0.926,
+    "severe": 1.308,
+    "historical_high": 1.111
+   },
+   "historical_high_date": "2014-02-10",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.491,
+     "10": 0.926,
+     "20": 1.093,
+     "50": 1.308
+    },
+    "reference_rise_m": {
+     "2": 0.933,
+     "10": 2.767,
+     "20": 4.178,
+     "50": 5.845
+    },
+    "fitted_rise_m": {
+     "2": 0.491,
+     "10": 0.867,
+     "20": 1.093,
+     "50": 1.325
+    }
+   },
+   "excluded_years": [],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "2003": 1.013,
+    "2004": 0.259,
+    "2005": 0.216,
+    "2006": 0.137,
+    "2007": 0.574,
+    "2008": 0.622,
+    "2009": 0.652,
+    "2010": 0.461,
+    "2011": 0.357,
+    "2012": 0.413,
+    "2013": 0.768,
+    "2014": 1.111,
+    "2015": 0.326,
+    "2016": 0.391,
+    "2017": 0.222,
+    "2018": 0.457,
+    "2019": 0.167,
+    "2020": 0.615,
+    "2021": 0.748,
+    "2023": 0.522,
+    "2024": 1.077,
+    "2025": 0.73,
+    "2026": 0.568
+   }
+  },
+  "Thames Cookham Bridge": {
+   "gauge_id": "GAUGE-3324d948",
+   "ea_station": "Cookham Lock",
+   "ea_station_km": 1.95,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/dc2a3244-2dbf-4527-b742-98855d7709f0-level-max-86400-m-qualified",
+   "record_years": 26,
+   "sensitivity": 0.3768,
+   "rise_exponent": 0.767,
+   "seasonal_offset_m": 0.127,
+   "variability_scale": 0.519,
+   "rise_m": {
+    "alert": 0.485,
+    "warning": 1.038,
+    "severe": 1.523,
+    "historical_high": 1.307
+   },
+   "historical_high_date": "2003-01-05",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.485,
+     "10": 1.038,
+     "20": 1.25,
+     "50": 1.523
+    },
+    "reference_rise_m": {
+     "2": 0.935,
+     "10": 2.754,
+     "20": 4.15,
+     "50": 5.818
+    },
+    "fitted_rise_m": {
+     "2": 0.485,
+     "10": 0.947,
+     "20": 1.25,
+     "50": 1.582
+    }
+   },
+   "excluded_years": [
+    {
+     "water_year": 2020,
+     "value_m": 1.979,
+     "reason": "above the station's highest on record"
+    }
+   ],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "1998": 0.58,
+    "1999": 0.717,
+    "2000": 0.685,
+    "2002": 0.541,
+    "2003": 1.307,
+    "2004": 0.292,
+    "2005": 0.152,
+    "2006": 0.125,
+    "2007": 0.694,
+    "2008": 0.727,
+    "2009": 0.784,
+    "2010": 0.414,
+    "2011": 0.201,
+    "2012": 0.245,
+    "2013": 0.97,
+    "2014": 1.207,
+    "2015": 0.147,
+    "2016": 0.256,
+    "2017": 0.141,
+    "2018": 0.417,
+    "2019": 0.154,
+    "2020": 0.763,
+    "2021": 0.999,
+    "2022": 0.132,
+    "2025": 0.933,
+    "2026": 0.643
+   }
+  },
+  "Thames Maidenhead Bridge": {
+   "gauge_id": "GAUGE-acc1b9cc",
+   "ea_station": "Bray Lock",
+   "ea_station_km": 0.56,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/543513d6-67b0-45f1-819f-50df0f36b84f-level-max-86400-m-qualified",
+   "record_years": 27,
+   "sensitivity": 0.2509,
+   "rise_exponent": 0.7391,
+   "seasonal_offset_m": 0.071,
+   "variability_scale": 0.3329,
+   "rise_m": {
+    "alert": 0.307,
+    "warning": 0.654,
+    "severe": 0.959,
+    "historical_high": 0.881
+   },
+   "historical_high_date": "1998-04-09",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.307,
+     "10": 0.654,
+     "20": 0.787,
+     "50": 0.959
+    },
+    "reference_rise_m": {
+     "2": 0.922,
+     "10": 2.734,
+     "20": 4.137,
+     "50": 5.799
+    },
+    "fitted_rise_m": {
+     "2": 0.307,
+     "10": 0.598,
+     "20": 0.787,
+     "50": 0.99
+    }
+   },
+   "excluded_years": [],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "1998": 0.881,
+    "1999": 0.661,
+    "2000": 0.73,
+    "2002": 0.212,
+    "2003": 0.847,
+    "2004": 0.202,
+    "2005": 0.09,
+    "2006": 0.139,
+    "2007": 0.309,
+    "2008": 0.224,
+    "2009": 0.144,
+    "2010": 0.198,
+    "2011": 0.171,
+    "2012": 0.206,
+    "2013": 0.275,
+    "2015": 0.159,
+    "2016": 0.204,
+    "2017": 0.137,
+    "2018": 0.28,
+    "2019": 0.282,
+    "2020": 0.216,
+    "2021": 0.55,
+    "2022": 0.845,
+    "2023": 0.291,
+    "2024": 0.545,
+    "2025": 0.365,
+    "2026": 0.174
+   }
+  },
+  "Thames Windsor Bridge": {
+   "gauge_id": "GAUGE-a03e456e",
+   "ea_station": "Romney Lock",
+   "ea_station_km": 0.91,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/3fc1df2a-95d5-4750-a9b2-307d729ea3b5-level-max-86400-m-qualified",
+   "record_years": 23,
+   "sensitivity": 0.2024,
+   "rise_exponent": 0.7015,
+   "seasonal_offset_m": 0.042,
+   "variability_scale": 0.2586,
+   "rise_m": {
+    "alert": 0.227,
+    "warning": 0.486,
+    "severe": 0.714,
+    "historical_high": 1.003
+   },
+   "historical_high_date": "2014-02-11",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.227,
+     "10": 0.486,
+     "20": 0.585,
+     "50": 0.714
+    },
+    "reference_rise_m": {
+     "2": 0.877,
+     "10": 2.674,
+     "20": 4.085,
+     "50": 5.728
+    },
+    "fitted_rise_m": {
+     "2": 0.227,
+     "10": 0.446,
+     "20": 0.585,
+     "50": 0.731
+    }
+   },
+   "excluded_years": [],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "2004": 0.203,
+    "2005": 0.162,
+    "2006": 0.204,
+    "2007": 0.139,
+    "2008": 0.123,
+    "2009": 0.212,
+    "2010": 0.175,
+    "2011": 0.265,
+    "2012": 0.178,
+    "2013": 0.351,
+    "2014": 1.003,
+    "2015": 0.149,
+    "2016": 0.259,
+    "2017": 0.151,
+    "2018": 0.216,
+    "2019": 0.131,
+    "2020": 0.131,
+    "2021": 0.399,
+    "2022": 0.05,
+    "2023": 0.126,
+    "2024": 0.803,
+    "2025": 0.249,
+    "2026": 0.205
+   }
+  },
+  "Thames Staines Bridge": {
+   "gauge_id": "GAUGE-e042fc97",
+   "ea_station": "Staines",
+   "ea_station_km": 0.29,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/305bad2c-6aa6-417d-a101-698edc850bbd-level-max-86400-m-qualified",
+   "record_years": 34,
+   "sensitivity": 0.675,
+   "rise_exponent": 0.6767,
+   "seasonal_offset_m": 0.262,
+   "variability_scale": 1.0385,
+   "rise_m": {
+    "alert": 0.854,
+    "warning": 1.673,
+    "severe": 2.392,
+    "historical_high": 2.114
+   },
+   "historical_high_date": "2014-02-11",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.854,
+     "10": 1.673,
+     "20": 1.986,
+     "50": 2.392
+    },
+    "reference_rise_m": {
+     "2": 0.822,
+     "10": 2.605,
+     "20": 3.997,
+     "50": 5.686
+    },
+    "fitted_rise_m": {
+     "2": 0.854,
+     "10": 1.553,
+     "20": 1.986,
+     "50": 2.451
+    }
+   },
+   "excluded_years": [],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "1991": 0.509,
+    "1992": 0.393,
+    "1993": 1.235,
+    "1994": 1.354,
+    "1995": 1.352,
+    "1996": 0.694,
+    "1997": 0.249,
+    "1998": 0.74,
+    "1999": 1.003,
+    "2000": 1.006,
+    "2001": 1.655,
+    "2002": 0.787,
+    "2003": 2.048,
+    "2004": 0.496,
+    "2005": 0.323,
+    "2006": 0.245,
+    "2007": 1.039,
+    "2008": 1.16,
+    "2009": 1.326,
+    "2010": 0.758,
+    "2011": 0.601,
+    "2012": 0.598,
+    "2013": 1.489,
+    "2014": 2.114,
+    "2015": 0.428,
+    "2016": 0.573,
+    "2017": 0.35,
+    "2019": 0.364,
+    "2020": 1.201,
+    "2021": 1.473,
+    "2022": 0.424,
+    "2024": 1.896,
+    "2025": 1.225,
+    "2026": 1.033
+   }
+  },
+  "Thames Chertsey Bridge": {
+   "gauge_id": "GAUGE-ebfdb692",
+   "ea_station": "Chertsey Lock",
+   "ea_station_km": 1.36,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/18ba0d8c-6d26-4a5d-82d6-38d5b71baf77-level-max-86400-m-qualified",
+   "record_years": 31,
+   "sensitivity": 0.2888,
+   "rise_exponent": 0.7151,
+   "seasonal_offset_m": 0.081,
+   "variability_scale": 0.3873,
+   "rise_m": {
+    "alert": 0.35,
+    "warning": 0.727,
+    "severe": 1.057,
+    "historical_high": 1.071
+   },
+   "historical_high_date": "2014-02-11",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.35,
+     "10": 0.727,
+     "20": 0.871,
+     "50": 1.057
+    },
+    "reference_rise_m": {
+     "2": 0.903,
+     "10": 2.7,
+     "20": 4.08,
+     "50": 5.743
+    },
+    "fitted_rise_m": {
+     "2": 0.35,
+     "10": 0.669,
+     "20": 0.871,
+     "50": 1.089
+    }
+   },
+   "excluded_years": [
+    {
+     "water_year": 2026,
+     "value_m": 1.546,
+     "reason": "above the station's highest on record"
+    }
+   ],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "1995": 0.553,
+    "1996": 0.248,
+    "1997": 0.14,
+    "1998": 0.245,
+    "1999": 0.392,
+    "2000": 0.396,
+    "2001": 0.831,
+    "2002": 0.288,
+    "2003": 0.576,
+    "2005": 0.081,
+    "2006": 0.135,
+    "2007": 0.392,
+    "2008": 0.433,
+    "2009": 0.574,
+    "2010": 0.224,
+    "2011": 0.159,
+    "2012": 0.242,
+    "2013": 0.671,
+    "2014": 1.071,
+    "2015": 0.125,
+    "2016": 0.226,
+    "2017": 0.146,
+    "2018": 0.245,
+    "2019": 0.165,
+    "2020": 0.517,
+    "2021": 0.659,
+    "2022": 0.167,
+    "2023": 0.35,
+    "2024": 0.915,
+    "2025": 0.542,
+    "2026": 0.44
+   }
+  },
+  "Thames Walton Bridge": {
+   "gauge_id": "GAUGE-966d392e",
+   "ea_station": "Walton",
+   "ea_station_km": 0.57,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/b92a2ca3-4eb9-4a8f-b82f-8bbc2a1dfbc9-level-max-86400-m-qualified",
+   "record_years": 34,
+   "sensitivity": 0.2525,
+   "rise_exponent": 0.6448,
+   "seasonal_offset_m": 0.065,
+   "variability_scale": 0.3553,
+   "rise_m": {
+    "alert": 0.284,
+    "warning": 0.569,
+    "severe": 0.818,
+    "historical_high": 1.037
+   },
+   "historical_high_date": "2014-02-10",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.284,
+     "10": 0.569,
+     "20": 0.678,
+     "50": 0.818
+    },
+    "reference_rise_m": {
+     "2": 0.799,
+     "10": 2.575,
+     "20": 3.948,
+     "50": 5.634
+    },
+    "fitted_rise_m": {
+     "2": 0.284,
+     "10": 0.53,
+     "20": 0.678,
+     "50": 0.835
+    }
+   },
+   "excluded_years": [],
+   "datum_changes": [
+    2011
+   ],
+   "annual_max_rise_m": {
+    "1992": 0.132,
+    "1993": 0.373,
+    "1994": 0.481,
+    "1995": 0.448,
+    "1996": 0.206,
+    "1997": 0.162,
+    "1998": 0.191,
+    "1999": 0.266,
+    "2000": 0.346,
+    "2001": 0.738,
+    "2003": 0.41,
+    "2004": 0.208,
+    "2005": 0.172,
+    "2006": 0.163,
+    "2007": 0.273,
+    "2008": 0.322,
+    "2009": 0.362,
+    "2010": 0.264,
+    "2011": 0.136,
+    "2012": 0.154,
+    "2013": 0.484,
+    "2014": 1.037,
+    "2015": 0.123,
+    "2016": 0.18,
+    "2017": 0.098,
+    "2018": 0.19,
+    "2019": 0.154,
+    "2020": 0.411,
+    "2021": 0.472,
+    "2022": 0.182,
+    "2023": 0.236,
+    "2024": 0.757,
+    "2025": 0.357,
+    "2026": 0.247
+   }
+  },
+  "Thames Hampton Court Bridge": {
+   "gauge_id": "GAUGE-2d4ab78a",
+   "ea_station": "Molesey Lock",
+   "ea_station_km": 0.75,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/c55d5617-6a6f-4ddc-9472-d5373d54172e-level-max-86400-m-qualified",
+   "record_years": 29,
+   "sensitivity": 0.1893,
+   "rise_exponent": 0.7394,
+   "seasonal_offset_m": 0.091,
+   "variability_scale": 0.3148,
+   "rise_m": {
+    "alert": 0.251,
+    "warning": 0.512,
+    "severe": 0.741,
+    "historical_high": 0.811
+   },
+   "historical_high_date": "2014-02-12",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.251,
+     "10": 0.512,
+     "20": 0.612,
+     "50": 0.741
+    },
+    "reference_rise_m": {
+     "2": 0.797,
+     "10": 2.569,
+     "20": 3.935,
+     "50": 5.611
+    },
+    "fitted_rise_m": {
+     "2": 0.251,
+     "10": 0.471,
+     "20": 0.612,
+     "50": 0.768
+    }
+   },
+   "excluded_years": [],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "1996": 0.157,
+    "1997": 0.292,
+    "1998": 0.282,
+    "1999": 0.714,
+    "2000": 0.677,
+    "2003": 0.737,
+    "2004": 0.259,
+    "2005": 0.209,
+    "2006": 0.237,
+    "2007": 0.133,
+    "2008": 0.237,
+    "2009": 0.2,
+    "2010": 0.149,
+    "2011": 0.078,
+    "2012": 0.158,
+    "2013": 0.345,
+    "2014": 0.811,
+    "2015": 0.121,
+    "2016": 0.183,
+    "2017": 0.155,
+    "2018": 0.194,
+    "2019": 0.166,
+    "2020": 0.33,
+    "2021": 0.179,
+    "2022": 0.143,
+    "2023": 0.173,
+    "2024": 0.381,
+    "2025": 0.212,
+    "2026": 0.212
+   }
+  },
+  "Thames Kingston Bridge": {
+   "gauge_id": "GAUGE-c8783553",
+   "ea_station": "Kingston",
+   "ea_station_km": 0.57,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/8496ce69-482c-406a-a2f0-ac418ef8f099-level-max-86400-m-qualified",
+   "record_years": 40,
+   "sensitivity": 0.5772,
+   "rise_exponent": 0.3952,
+   "seasonal_offset_m": 0.159,
+   "variability_scale": 0.8279,
+   "rise_m": {
+    "alert": 0.699,
+    "warning": 1.028,
+    "severe": 1.318,
+    "historical_high": 1.151
+   },
+   "historical_high_date": "2000-10-31",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.699,
+     "10": 1.028,
+     "20": 1.154,
+     "50": 1.318
+    },
+    "reference_rise_m": {
+     "2": 0.844,
+     "10": 2.615,
+     "20": 3.971,
+     "50": 5.642
+    },
+    "fitted_rise_m": {
+     "2": 0.699,
+     "10": 1.003,
+     "20": 1.154,
+     "50": 1.303
+    }
+   },
+   "excluded_years": [],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "1987": 0.69,
+    "1988": 0.717,
+    "1989": 0.588,
+    "1990": 1.081,
+    "1991": 0.356,
+    "1992": 0.531,
+    "1993": 0.783,
+    "1994": 0.911,
+    "1995": 0.877,
+    "1996": 0.835,
+    "1997": 0.414,
+    "1998": 0.536,
+    "1999": 0.801,
+    "2000": 0.705,
+    "2001": 1.151,
+    "2002": 0.842,
+    "2003": 0.99,
+    "2004": 0.595,
+    "2005": 0.329,
+    "2006": 0.493,
+    "2007": 0.912,
+    "2008": 0.75,
+    "2009": 0.875,
+    "2010": 0.736,
+    "2011": 0.43,
+    "2012": 0.486,
+    "2013": 0.805,
+    "2014": 1.037,
+    "2015": 0.615,
+    "2016": 0.701,
+    "2017": 0.434,
+    "2018": 0.753,
+    "2019": 1.027,
+    "2020": 0.985,
+    "2021": 0.879,
+    "2022": 0.577,
+    "2023": 0.668,
+    "2024": 0.999,
+    "2025": 0.746,
+    "2026": 0.786
+   }
+  },
+  "Thames Teddington Lock": {
+   "gauge_id": "GAUGE-387ba06b",
+   "ea_station": "Teddington Lock",
+   "ea_station_km": 1.08,
+   "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/f4b9ded7-1961-4632-b8b2-6489d19337f3-level-max-86400-m-qualified",
+   "record_years": 32,
+   "sensitivity": 0.4541,
+   "rise_exponent": 0.4041,
+   "seasonal_offset_m": 0.125,
+   "variability_scale": 0.6003,
+   "rise_m": {
+    "alert": 0.569,
+    "warning": 0.828,
+    "severe": 1.055,
+    "historical_high": 0.818
+   },
+   "historical_high_date": "2002-02-28",
+   "fit": {
+    "observed_rise_m": {
+     "2": 0.569,
+     "10": 0.828,
+     "20": 0.927,
+     "50": 1.055
+    },
+    "reference_rise_m": {
+     "2": 0.948,
+     "10": 2.722,
+     "20": 4.089,
+     "50": 5.754
+    },
+    "fitted_rise_m": {
+     "2": 0.569,
+     "10": 0.805,
+     "20": 0.927,
+     "50": 1.046
+    }
+   },
+   "excluded_years": [],
+   "datum_changes": [],
+   "annual_max_rise_m": {
+    "1990": 0.808,
+    "1991": 0.335,
+    "1994": 0.759,
+    "1996": 0.618,
+    "1997": 0.396,
+    "1998": 0.542,
+    "1999": 0.788,
+    "2000": 0.654,
+    "2002": 0.818,
+    "2003": 0.779,
+    "2005": 0.302,
+    "2006": 0.453,
+    "2007": 0.752,
+    "2008": 0.555,
+    "2009": 0.708,
+    "2010": 0.695,
+    "2011": 0.356,
+    "2012": 0.424,
+    "2013": 0.635,
+    "2014": 0.808,
+    "2015": 0.545,
+    "2016": 0.665,
+    "2017": 0.36,
+    "2018": 0.572,
+    "2019": 0.28,
+    "2020": 0.696,
+    "2021": 0.727,
+    "2022": 0.505,
+    "2023": 0.512,
+    "2024": 0.787,
+    "2025": 0.643,
+    "2026": 0.661
+   }
+  }
+ }
+}

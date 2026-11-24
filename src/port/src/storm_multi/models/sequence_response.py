@@ -62,6 +62,10 @@ class SequenceGaugeParams:
 
     # Hydraulic routing parameters
     sensitivity: float = 1.0            # Gauge response multiplier
+    # Rating-curve exponent b: the gauge's rise is sensitivity × routed_rise ** b.
+    # A river's stage rises less than proportionally with flow (b < 1); 1.0 keeps
+    # the linear response. Calibrated per gauge to observed levels (ST-001 v2.0).
+    rise_exponent: float = 1.0
     quickflow_to_level_scale: float = 0.50  # mm/h quickflow → m level rise
     response_lag_hours: int = 2         # Hours before quickflow reaches gauge
     response_decay_hours: float = 24.0  # Hydraulic time constant (hours)
@@ -163,7 +167,7 @@ def _route_quickflow_to_level(
     """
     n = len(quickflow_series)
     levels = np.zeros(n)
-    scale = params.quickflow_to_level_scale * params.sensitivity
+    scale = params.quickflow_to_level_scale
     lag = params.response_lag_hours
     decay_rate = 1.0 / params.response_decay_hours  # per hour
 
@@ -183,7 +187,9 @@ def _route_quickflow_to_level(
             current_excess += (target_excess - current_excess) * decay_rate
 
         current_excess = max(0.0, current_excess)
-        levels[h] = params.base_level + current_excess
+        # Rating curve: the routing is linear in quickflow; the stage it produces
+        # is sensitivity × excess ** b (identical to the old linear scale at b = 1).
+        levels[h] = params.base_level + params.sensitivity * current_excess ** params.rise_exponent
 
     return levels
 
