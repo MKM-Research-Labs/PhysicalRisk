@@ -23,12 +23,12 @@
 import numpy as np
 import pytest
 
+from config.port import EVENT_WINDOW_HOURS, MIN_DRAINAGE_WINDOW_HOURS, STORM_GAP_PARAMS
 from port.src.storm_multi.core.data_structures import GapType, SequenceStorm, SequenceType, StormSequence
-from port.src.storm_multi.generators.gap_sampler import GAP_PARAMS, get_gap_range, sample_gap
+from port.src.storm_multi.generators.gap_sampler import get_gap_range, sample_gap
+from port.src.storm_multi.generators.sequence_generator import SequenceGenerator
 from port.src.storm_multi.utils.validation import (
-    EVENT_WINDOW_HOURS,
     MAX_PRECIP_END_HOUR,
-    MIN_DRAINAGE_WINDOW_HOURS,
     fits_in_window,
     validate_sequence,
 )
@@ -38,13 +38,13 @@ class TestGapParams:
     """Tests for gap parameter definitions."""
 
     def test_short_gaps(self):
-        assert GAP_PARAMS[GapType.SHORT] == (6, 18, 36)
+        assert STORM_GAP_PARAMS[GapType.SHORT.value] == (6, 18, 36)
 
     def test_medium_gaps(self):
-        assert GAP_PARAMS[GapType.MEDIUM] == (24, 48, 72)
+        assert STORM_GAP_PARAMS[GapType.MEDIUM.value] == (24, 48, 72)
 
     def test_long_gaps(self):
-        assert GAP_PARAMS[GapType.LONG] == (48, 96, 144)
+        assert STORM_GAP_PARAMS[GapType.LONG.value] == (48, 96, 144)
 
 
 class TestSampleGap:
@@ -87,7 +87,7 @@ class TestSampleGap:
 
     def test_no_rng_uses_default(self):
         """Line 49: rng=None → creates np.random.RandomState() internally."""
-        low, mode, high = GAP_PARAMS[GapType.MEDIUM]
+        low, mode, high = STORM_GAP_PARAMS[GapType.MEDIUM.value]
         g = sample_gap(SequenceType.DOUBLET)  # no rng → hits line 49
         assert low <= g <= high
 
@@ -178,7 +178,14 @@ class TestValidation:
             ))
         seq.num_storms = 6
         errors = validate_sequence(seq)
-        assert any("not in [1, 5]" in e for e in errors)
+        assert any(e.startswith("Storm count 6 not in [") for e in errors)
+
+    def test_a_count_outside_its_types_range(self):
+        """v3.1: a cluster has three storms (Table 1); four is invalid even though 4 <= 5."""
+        seq = SequenceGenerator(seed=2).generate("moderate", 1.0, force_sequence_type="cluster")
+        seq.storms.append(seq.storms[-1])
+        seq.num_storms = 4
+        assert any("not in [3, 3] for cluster" in e for e in validate_sequence(seq))
 
     def test_exceeds_precip_window(self):
         seq = self._make_valid_doublet()

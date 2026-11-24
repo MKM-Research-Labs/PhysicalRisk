@@ -19,63 +19,47 @@
 # SOFTWARE.
 
 """
-Extended duration sampler for Storm Generator v2.0.
+Storm duration sampler for the Storm Sequence Generator (MKM-SS-001 v3.0).
 
-Supports up to 240-hour durations for individual storms within sequences.
-Uses triangular distribution (min, mode, max) per intensity category.
+Triangular (min, mode, max) per intensity category, rounded to whole hours. The table
+is ``config.port.STORM_DURATION_PARAMS``, read on every draw so that a
+``storm_control.json`` override takes effect whenever it is applied.
 """
 
 import numpy as np
 
-# Extended duration parameters — spec Section 3.1
-# (min_hours, mode_hours, max_hours) — triangular distribution
-DURATION_PARAMS = {
-    "minimal": (2, 6, 12),
-    "baseline": (6, 12, 24),
-    "moderate": (12, 30, 60),        # 2.5 day max
-    "severe": (24, 48, 96),          # 4 day max
-    "extreme": (36, 72, 144),        # 6 day max
-    "catastrophic": (48, 120, 240),  # 10 day max
-}
+import config.port as cp
 
 
 def sample_duration(
     intensity_category: str,
     rng: np.random.RandomState = None,
 ) -> float:
-    """Sample storm duration from triangular distribution.
-
-    Args:
-        intensity_category: One of minimal, baseline, moderate,
-            severe, extreme, catastrophic.
-        rng: Random state for reproducibility. If None, uses numpy default.
-
-    Returns:
-        Duration in hours (float, rounded to nearest integer).
+    """Sample a storm duration in whole hours from the category's triangular law.
 
     Raises:
         ValueError: If intensity_category is not recognized.
     """
-    if intensity_category not in DURATION_PARAMS:
+    params = cp.STORM_DURATION_PARAMS
+    if intensity_category not in params:
         raise ValueError(
             f"Unknown intensity category: {intensity_category}. "
-            f"Expected one of {list(DURATION_PARAMS.keys())}"
+            f"Expected one of {list(params.keys())}"
         )
 
-    low, mode, high = DURATION_PARAMS[intensity_category]
+    low, mode, high = params[intensity_category]
 
     if rng is None:
         rng = np.random.RandomState()
 
-    duration = rng.triangular(low, mode, high)
-    return round(duration)
+    return round(rng.triangular(low, mode, high))
 
 
 def get_max_duration(intensity_category: str) -> float:
     """Return the maximum possible duration for a category."""
-    return DURATION_PARAMS[intensity_category][2]
+    return cp.STORM_DURATION_PARAMS[intensity_category][2]
 
 
 def get_duration_range(intensity_category: str) -> tuple:
     """Return (min, mode, max) duration tuple for a category."""
-    return DURATION_PARAMS[intensity_category]
+    return tuple(cp.STORM_DURATION_PARAMS[intensity_category])

@@ -31,6 +31,9 @@
     python -m tools.wolfram_oracle fire001 [--out DIR] [--no-live] [--no-pdf]
     python -m tools.wolfram_oracle dd001 [--out DIR] [--no-live] [--no-pdf]
     python -m tools.wolfram_oracle fpo001 [--out DIR] [--no-live] [--no-pdf]
+    python -m tools.wolfram_oracle sg001 [--out DIR] [--no-live] [--no-pdf]
+    python -m tools.wolfram_oracle sp001 [--out DIR] [--no-live] [--no-pdf]
+    python -m tools.wolfram_oracle ss001 [--out DIR] [--no-live] [--no-pdf]
 
 With an activated Wolfram Engine and ``wolframclient`` installed, one run
 evaluates every oracle in a live kernel. Without them it writes ``.wl`` scripts
@@ -55,6 +58,9 @@ BENCHMARKS = {
     "fire001": "tools.wolfram_oracle.fire.run",
     "dd001": "tools.wolfram_oracle.depthdamage.run",
     "fpo001": "tools.wolfram_oracle.floodpoly.run",
+    "sg001": "tools.wolfram_oracle.stormgauge.run",
+    "sp001": "tools.wolfram_oracle.spatial.run",
+    "ss001": "tools.wolfram_oracle.sequence.run",
 }
 
 

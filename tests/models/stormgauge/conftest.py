@@ -36,9 +36,9 @@ from models.stormgauge.forward_model import StormGaugeModel
 @pytest.fixture
 def model():
     return StormGaugeModel(
-        intensity_to_level_scale=0.1,
         time_resolution_hours=1.0,
         response_lag_hours=2.0,
+        response_rise_hours=1.0,
         response_decay_hours=12.0,
     )
 

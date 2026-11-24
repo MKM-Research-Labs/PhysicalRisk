@@ -19,23 +19,19 @@
 # SOFTWARE.
 
 from .batch_generator import (  # noqa: F401
-    DEFAULT_INTENSITY_WEIGHTS,
     generate_event_set,
 )
 from .duration_sampler import (  # noqa: F401
-    DURATION_PARAMS,
     get_duration_range,
     get_max_duration,
     sample_duration,
 )
 from .gap_sampler import (  # noqa: F401
-    GAP_PARAMS,
     get_gap_range,
+    get_min_gap,
     sample_gap,
 )
 from .intensity_sampler import (  # noqa: F401
-    SEQUENCE_PROBABILITY,
-    SEQUENCE_TYPE_WEIGHTS,
     get_storm_count,
     sample_sequence_type,
     sample_storm_intensity,

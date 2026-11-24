@@ -109,8 +109,11 @@ class TestComputeSequenceGaugeResponse:
         With decay=24h and the minimum 12h drainage window, up to ~60% of
         peak excess can remain at hour 167 for late-ending storms. We therefore
         check only that level[167] < peak_level — the system is decaying, not
-        growing. For sequences ending before hour 136 (>=32h drainage) we apply
-        a stricter 1.5m excess limit.
+        growing. For sequences ending by hour 136 (>=32h drainage) we also check
+        that the level is back below flood alert by hour 167. (v3.0's fixed 1.5 m
+        excess limit was tuned to its long storms; MKM-SS-001 v3.1's shorter storms
+        deliver the same rain faster, so four-storm sequences ending by hour 136 peak
+        higher and recover from higher -- up to 2.3 m of excess, still below alert.)
         """
         for seq in severe_batch[:30]:
             levels = compute_sequence_gauge_response(seq, default_gauge)
@@ -126,10 +129,9 @@ class TestComputeSequenceGaugeResponse:
                 for s in seq.storms
             )
             if last_end <= 136:
-                final_excess = final - default_gauge.base_level
-                assert final_excess < 1.5, (
+                assert final < default_gauge.flood_alert, (
                     f"Insufficient recovery for {seq.sequence_id} "
-                    f"(last storm ends h{last_end}): excess={final_excess:.2f}m"
+                    f"(last storm ends h{last_end}): level={final:.2f}m"
                 )
 
     def test_antecedent_wetness_increases_peak(self, default_gauge):

@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 """
-Batch generator for Storm Generator v2.0.
+Batch generator for the Storm Sequence Generator (MKM-SS-001 v3.0).
 
 Generates large event sets (default 10,000 sequences) across all
 intensity categories using configurable weights.
@@ -30,7 +30,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from config.port import DEFAULT_INTENSITY_WEIGHTS
+import config.port as cp
 
 from ..core.data_structures import StormSequence
 from .sequence_generator import SequenceGenerator
@@ -40,14 +40,6 @@ logger = logging.getLogger(__name__)
 # DEFAULT_INTENSITY_WEIGHTS imported from config/port.py (Spec Section 4.3)
 
 # Base intensity parameters per category (mean, std) — aligned with storm.py
-BASE_INTENSITY_PARAMS = {
-    "minimal":      (0.3, 0.10),
-    "baseline":     (0.6, 0.15),
-    "moderate":     (1.0, 0.20),
-    "severe":       (1.8, 0.30),
-    "extreme":      (3.0, 0.50),
-    "catastrophic": (5.0, 0.80),
-}
 
 
 def generate_event_set(
@@ -76,7 +68,7 @@ def generate_event_set(
     Returns:
         List of StormSequence objects, length == count.
     """
-    weights = intensity_weights or DEFAULT_INTENSITY_WEIGHTS
+    weights = intensity_weights or cp.DEFAULT_INTENSITY_WEIGHTS
 
     # Normalise weights in case they don't sum to exactly 1.0
     categories = list(weights.keys())
@@ -103,7 +95,7 @@ def generate_event_set(
     sequences: List[StormSequence] = []
     for i, cat_idx in enumerate(category_draws):
         category = categories[cat_idx]
-        mean, std = BASE_INTENSITY_PARAMS.get(category, (1.0, 0.20))
+        mean, std = cp.BASE_INTENSITY_PARAMS[category]
         base_intensity = max(0.1, rng.normal(mean, std))
 
         seq = gen.generate(

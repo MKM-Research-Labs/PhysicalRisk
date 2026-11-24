@@ -19,10 +19,16 @@
 # SOFTWARE.
 
 """
-Spatial infrastructure for flood risk model.
+Spatial functions of the flood risk model (MKM-SP-001 v2.0).
 
-KDTree construction, correlation matrix, haversine distance,
-and inverse-distance-weighted interpolation.
+The haversine distance and the projection onto a river polyline are what the platform
+uses: the property, gauge and seismic code call them. The IDW interpolation, the
+gauge index and the correlation matrix are retained, with no production caller.
+
+The index stores each gauge as a unit vector, so its straight-line (chord) distance
+orders gauges exactly as the great-circle distance does. v1.0 indexed latitude and
+longitude in radians as though a degree of each were the same length, and named the
+wrong nearest gauge in 18% of queries over the Thames (Wolfram benchmark v0.1).
 """
 
 import math
@@ -34,31 +40,50 @@ import pandas as pd
 from scipy.spatial import cKDTree
 from scipy.spatial.distance import cdist
 
+from config.models import (
+    spatial_earth_radius_m,
+    spatial_idw_min_distance_m,
+    spatial_idw_power,
+    spatial_km_per_degree,
+)
+
 # geopandas is imported lazily inside build_correlation_matrix so that
 # haversine_distance and the spatial utilities work without geopandas.
 
 
+def _unit_vectors(lat, lon) -> np.ndarray:
+    """Points on the unit sphere for latitudes and longitudes in degrees."""
+    phi, lam = np.deg2rad(np.asarray(lat, dtype=float)), np.deg2rad(np.asarray(lon, dtype=float))
+    return np.column_stack([np.cos(phi) * np.cos(lam), np.cos(phi) * np.sin(lam), np.sin(phi)])
+
+
 def build_spatial_index(gauge_data: Optional[pd.DataFrame]) -> Optional[cKDTree]:
-    """Build KDTree for efficient spatial queries on gauge data."""
+    """KDTree over the gauges' unit vectors, rows in ``gauge_data`` order (None if no gauges)."""
     if gauge_data is not None and len(gauge_data) > 0:
-        gauge_coords = np.deg2rad(
-            gauge_data[['latitude', 'longitude']].values
-        )
-        return cKDTree(gauge_coords)
+        return cKDTree(_unit_vectors(gauge_data['latitude'].values, gauge_data['longitude'].values))
     return None
+
+
+def nearest_gauge(tree: cKDTree, lat: float, lon: float) -> Tuple[int, float]:
+    """The nearest gauge to (lat, lon): its row in the indexed data, and its
+    great-circle distance in metres, 2R asin(chord / 2)."""
+    chord, row = tree.query(_unit_vectors([lat], [lon])[0])
+    return int(row), float(2 * spatial_earth_radius_m * math.asin(min(1.0, chord / 2)))
 
 
 def build_correlation_matrix(properties,
                               correlation_distance: float,
                               base_correlation: float) -> np.ndarray:
-    """Build spatial correlation matrix between properties."""
+    """Spatial correlation matrix between properties: base * exp(-d / L), with d the
+    Euclidean separation of (longitude, latitude) in degrees at ``spatial_km_per_degree``
+    km a degree and L = ``correlation_distance`` in metres; 1 on the diagonal."""
     coords = np.column_stack([
         properties.geometry.x,
         properties.geometry.y
     ])
 
     distances = cdist(coords, coords)
-    distances_km = distances * 111.0
+    distances_km = distances * spatial_km_per_degree
 
     correlation_matrix = base_correlation * np.exp(
         -distances_km / (correlation_distance / 1000)
@@ -71,7 +96,7 @@ def build_correlation_matrix(properties,
 def haversine_distance(lat1: float, lon1: float,
                         lat2: float, lon2: float) -> float:
     """Calculate distance between two points using Haversine formula (in meters)."""
-    R = 6371000
+    R = spatial_earth_radius_m
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
     dlat = lat2 - lat1
     dlon = lon2 - lon1
@@ -152,7 +177,9 @@ def nearest_point_on_polyline(
 
 def spatial_interpolate_wse(target_lat: float, target_lon: float,
                              gauge_flood_data: dict,
-                             gauge_metadata: dict) -> float:
+                             gauge_metadata: dict,
+                             power: float = spatial_idw_power,
+                             min_distance: float = spatial_idw_min_distance_m) -> float:
     """
     Spatially interpolate water surface elevation using inverse distance weighting.
 
@@ -161,49 +188,25 @@ def spatial_interpolate_wse(target_lat: float, target_lon: float,
         target_lon: Target longitude
         gauge_flood_data: Dict of gauge_id -> flood depth at gauge
         gauge_metadata: Dict of gauge_id -> gauge info with elevation, lat, lon
+        power: IDW exponent
+        min_distance: Distance (m) within which a gauge's own WSE is returned
 
     Returns:
-        Interpolated water surface elevation
+        Interpolated water surface elevation: each gauge's depth plus its elevation,
+        weighted by its haversine distance. 0.0 if there are no gauges.
     """
-    if not gauge_flood_data:
-        return 0.0
-
-    gauge_wse_data = {}
+    pairs = []
     for gauge_id, gauge_depth in gauge_flood_data.items():
-        gauge_info = gauge_metadata[gauge_id]
-        gauge_wse = gauge_depth + gauge_info['elevation']
-        gauge_wse_data[gauge_id] = {
-            'wse': gauge_wse,
-            'lat': gauge_info['latitude'],
-            'lon': gauge_info['longitude']
-        }
-
-    total_weight = 0.0
-    weighted_wse = 0.0
-
-    for gauge_id, gauge_data in gauge_wse_data.items():
-        distance = haversine_distance(
-            target_lat, target_lon,
-            gauge_data['lat'], gauge_data['lon']
-        )
-
-        if distance < 1.0:
-            return gauge_data['wse']
-
-        weight = 1.0 / (distance ** 2)
-        weighted_wse += weight * gauge_data['wse']
-        total_weight += weight
-
-    if total_weight == 0:
-        return 0.0
-
-    return weighted_wse / total_weight
+        info = gauge_metadata[gauge_id]
+        pairs.append((haversine_distance(target_lat, target_lon, info['latitude'], info['longitude']),
+                      gauge_depth + info['elevation']))
+    return idw_interpolate_from_gauges(pairs, power=power, min_distance=min_distance)
 
 
 def idw_interpolate_from_gauges(
     gauge_wse_values: list[tuple[float, float]],
-    power: float = 2.0,
-    min_distance: float = 1.0,
+    power: float = spatial_idw_power,
+    min_distance: float = spatial_idw_min_distance_m,
 ) -> float:
     """
     Inverse-distance-weighted interpolation of WSE from multiple gauges.

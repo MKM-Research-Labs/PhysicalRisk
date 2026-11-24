@@ -27,10 +27,10 @@ from .serialization import (  # noqa: F401
     save_summary,
 )
 from .validation import (  # noqa: F401
-    EVENT_WINDOW_HOURS,
     MAX_PRECIP_END_HOUR,
-    MIN_DRAINAGE_WINDOW_HOURS,
     fits_in_window,
+    min_gap_hours,
+    precip_end_hour,
     validate_event_set,
     validate_sequence,
 )

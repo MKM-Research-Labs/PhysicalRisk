@@ -22,6 +22,8 @@
 
 from typing import List
 
+from config.models import stormgauge_recession_decays
+
 from ..data_structures import GaugeConfig, GaugeResponse, Storm
 
 
@@ -36,11 +38,13 @@ class _ResponseMixin:
         """
         Compute full gauge response to a storm event.
 
-        Simulates both intensity and water level timeseries,
-        extracting summary statistics.
+        Simulates both intensity and water level timeseries, extracting summary
+        statistics. The run continues ``stormgauge_recession_decays`` fall time
+        constants past the storm's end, so durations count the whole recession.
         """
         # Generate time points
-        num_steps = int(storm.duration_hours / self.time_resolution_hours) + 1
+        horizon = storm.duration_hours + stormgauge_recession_decays * self.response_decay_hours
+        num_steps = int(horizon / self.time_resolution_hours) + 1
         times = [i * self.time_resolution_hours for i in range(num_steps)]
 
         # Compute intensity timeseries at gauge
@@ -68,11 +72,12 @@ class _ResponseMixin:
 
             target_contribution = self.intensity_to_level(lagged_intensity, gauge)
 
-            decay_rate = self.time_resolution_hours / self.response_decay_hours
+            dt = self.time_resolution_hours
             if target_contribution > current_contribution:
-                current_contribution += (target_contribution - current_contribution) * min(1.0, decay_rate * 3)
+                rate = min(1.0, dt / self.response_rise_hours)
             else:
-                current_contribution += (target_contribution - current_contribution) * decay_rate
+                rate = min(1.0, dt / self.response_decay_hours)
+            current_contribution += (target_contribution - current_contribution) * rate
 
             level = gauge.base_level + current_contribution
             level_ts.append({"time_hours": t, "level": level})

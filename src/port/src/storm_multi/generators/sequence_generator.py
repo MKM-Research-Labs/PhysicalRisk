@@ -19,20 +19,23 @@
 # SOFTWARE.
 
 """
-Sequence generator for Storm Generator v2.0.
+Sequence generator for the Storm Sequence Generator (MKM-SS-001 v3.0).
 
-Assembles individual storms into StormSequence objects, respecting
-the 168-hour event window and drainage constraints.
+Assembles individual storms into StormSequence objects within the event window.
 
-Storm durations are capped to a per-storm budget (window / num_storms)
-so they always fit.  Gaps are sampled from their natural distribution
-and scaled down proportionally if the total would overflow the remaining
-budget.  This guarantees every sequence fits without retries or fallbacks.
+v3.0 reserves room for the gaps before it caps the storms. Each of the n - 1 gaps is
+guaranteed at least its gap type's minimum (6 h short, 24 h medium), so the per-storm
+duration cap is (W_P - (n - 1) * g_min) / n. Raw gaps that would overflow what the
+storms leave are shortened toward that minimum, never below it. Every sequence fits
+without retries, and every multi-storm sequence keeps a gap between its storms. (v2.0
+capped at W_P / n, which left no room for gaps in 46% of multi-storm sequences.)
 """
 
 from datetime import datetime
 
 import numpy as np
+
+import config.port as cp
 
 from ..core.data_structures import (
     SequenceStorm,
@@ -41,9 +44,9 @@ from ..core.data_structures import (
     make_sequence_id,
     make_storm_id,
 )
-from ..utils.validation import MAX_PRECIP_END_HOUR
+from ..utils.validation import precip_end_hour
 from .duration_sampler import sample_duration
-from .gap_sampler import sample_gap
+from .gap_sampler import get_min_gap, sample_gap
 from .intensity_sampler import (
     get_storm_count,
     sample_sequence_type,
@@ -71,10 +74,10 @@ def _load_base_precipitation(catchment_id: str) -> float:
 class SequenceGenerator:
     """Generates StormSequence objects from seed intensity parameters.
 
-    Each sequence is guaranteed to fit within the 168-hour event window:
-    - Storm durations are capped to (window / num_storms).
-    - Inter-storm gaps are sampled naturally then scaled to fit the
-      remaining budget after storms are placed.
+    Each sequence fits within the event window, with every gap at least its minimum:
+    - Storm durations are capped to (W_P - (n - 1) * g_min) / n.
+    - Inter-storm gaps are sampled, then shortened toward g_min if they would
+      overflow what the storms leave.
     """
 
     def __init__(
@@ -137,13 +140,20 @@ class SequenceGenerator:
         event_id: str = "",
         event_seed: int = 0,
     ) -> StormSequence:
-        """Build a sequence that always fits within the event window.
+        """Build a sequence that fits the window with every gap at least g_min.
 
-        Storm durations are capped to (MAX_PRECIP_END_HOUR / num_storms) so
-        all storms fit regardless of intensity category.  Gaps are sampled from
-        their natural distribution and scaled proportionally if necessary.
+        Eq. 6: d_i = min(D_i, (W_P - (n - 1) g_min) / n).
+        Eqs. 7-8: with R = W_P - sum(d), if sum(G) > R each gap becomes
+        g_min + (G_j - g_min) * (R - (n - 1) g_min) / sum(G_k - g_min).
         """
-        max_dur_per_storm = MAX_PRECIP_END_HOUR / num_storms
+        w_p = precip_end_hour()
+        num_gaps = num_storms - 1
+        g_min = get_min_gap(seq_type)
+        max_dur_per_storm = (w_p - num_gaps * g_min) / num_storms
+        if max_dur_per_storm <= 0:
+            raise ValueError(
+                f"{num_storms} storms with {g_min}h minimum gaps cannot fit in {w_p}h"
+            )
 
         # Sample storm durations (capped) and intensities
         storm_durations = []
@@ -154,22 +164,13 @@ class SequenceGenerator:
             storm_durations.append(duration)
             storm_intensities.append(intensity)
 
-        # Distribute remaining budget as inter-storm gaps
-        total_storm_time = sum(storm_durations)
-        remaining = MAX_PRECIP_END_HOUR - total_storm_time
-        num_gaps = num_storms - 1
-
-        if num_gaps > 0 and remaining > 0:
-            raw_gaps = [sample_gap(seq_type, self.rng) for _ in range(num_gaps)]
-            total_raw = sum(raw_gaps)
-            if total_raw > remaining:
-                # Scale gaps proportionally to fit the remaining budget
-                scale = remaining / total_raw
-                gaps = [g * scale for g in raw_gaps]
-            else:
-                gaps = raw_gaps
-        else:
-            gaps = [0.0] * num_gaps if num_gaps > 0 else []
+        # The storms leave R >= num_gaps * g_min; gaps over it shrink toward g_min
+        remaining = w_p - sum(storm_durations)
+        gaps = [sample_gap(seq_type, self.rng) for _ in range(num_gaps)]
+        excess = sum(g - g_min for g in gaps)
+        if sum(gaps) > remaining and excess > 0:   # excess 0: every gap already at g_min
+            spare = remaining - num_gaps * g_min
+            gaps = [g_min + (g - g_min) * spare / excess for g in gaps]
 
         # Assemble SequenceStorm objects with correct start times
         storms = []
@@ -223,8 +224,8 @@ class SequenceGenerator:
             intensity_category=intensity_category,
             sequence_start=generated_at,
             total_duration_hours=total_duration,
-            event_window_hours=168,
-            drainage_window_hours=168 - total_duration,
+            event_window_hours=cp.EVENT_WINDOW_HOURS,
+            drainage_window_hours=cp.EVENT_WINDOW_HOURS - total_duration,
             storms=storms,
             num_storms=len(storms),
             inter_storm_gaps_hours=gaps,

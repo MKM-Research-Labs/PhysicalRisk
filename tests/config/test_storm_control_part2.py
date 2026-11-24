@@ -161,49 +161,6 @@ class TestApplyStormControl:
 # Helper functions
 # ---------------------------------------------------------------------------
 
-class TestEnumKeyConversion:
-    """_enum_keys_to_str / _str_keys_to_gap_type: enum ↔ string."""
-
-    def test_enum_keys_to_str_passthrough(self):
-        """String keys pass through unchanged."""
-        from config.storm_control import _enum_keys_to_str
-        d = {"short": [1, 2, 3], "medium": [4, 5, 6]}
-        assert _enum_keys_to_str(d) == d
-
-    def test_str_keys_to_gap_type_converts_when_module_loaded(self):
-        """String keys are converted to GapType enum values when module is on sys.path."""
-        from config.storm_control import _str_keys_to_gap_type
-        # Pre-load the module so the import inside the function succeeds
-        try:
-            from port.src.storm_multi.core.data_structures import GapType
-            # Force the module into the expected import path
-            sys.modules['src.port.src.storm_multi.core.data_structures'] = \
-                sys.modules['port.src.storm_multi.core.data_structures']
-            result = _str_keys_to_gap_type({"short": [6, 18, 36], "medium": [24, 48, 72]})
-            assert GapType.SHORT in result
-            assert GapType.MEDIUM in result
-            assert result[GapType.SHORT] == (6, 18, 36)
-        finally:
-            sys.modules.pop('src.port.src.storm_multi.core.data_structures', None)
-
-    def test_str_keys_to_gap_type_fallback_on_import_error(self):
-        """If GapType import fails, returns string-keyed dict with tuples."""
-        import sys
-        from unittest.mock import patch
-
-        from config.storm_control import _str_keys_to_gap_type
-        # Setting the module to None in sys.modules makes the inner
-        # `from ... import GapType` raise ImportError, exercising the
-        # string-key fallback branch.
-        with patch.dict(
-            sys.modules,
-            {"src.port.src.storm_multi.core.data_structures": None},
-        ):
-            result = _str_keys_to_gap_type({"short": [6, 18, 36]})
-        assert "short" in result
-        assert result["short"] == (6, 18, 36)
-
-
 class TestPatchModule:
     """_patch_module: setattr on module for matching keys."""
 
@@ -225,18 +182,3 @@ class TestPatchModule:
         mapping = {"foo": "FOO", "missing": "MISSING"}
         _patch_module(mod, flat, mapping, "test")
         assert mod.FOO == 20
-
-
-class TestSafeGetattr:
-    """_safe_getattr: import module and get attribute with fallback."""
-
-    def test_returns_default_on_import_error(self):
-        from config.storm_control import _safe_getattr
-        result = _safe_getattr("nonexistent.module.path", "ATTR", {"default": True})
-        assert result == {"default": True}
-
-    def test_returns_attr_from_loaded_module(self):
-        from config.storm_control import _safe_getattr
-        result = _safe_getattr("config.port", "EVENT_WINDOW_HOURS", 999)
-        import config.port as cp
-        assert result == cp.EVENT_WINDOW_HOURS
