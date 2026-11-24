@@ -1,6 +1,6 @@
 {
  "catchment": "thames",
- "built": "2026-11-07",
+ "built": "2026-11-24",
  "source": "Environment Agency Hydrology API, daily maximum water level (level-max-86400)",
  "method": "Shape match, not a fit: sensitivity = geometric mean of observed/simulated rise at the 2, 10 and 20-year return periods; trigger rises = observed Gumbel (L-moment) 2, 10 and 50-year rises above the median daily level.",
  "storms_per_year": 4.5,
@@ -17,12 +17,12 @@
  "default": {
   "provisional": true,
   "applies_to": "gauges without their own EA record (tidal Thames, synthetic gauges)",
-  "sensitivity": 0.3263,
-  "rise_exponent": 0.6891,
-  "variability_scale": 0.4427,
+  "sensitivity": 0.3248,
+  "rise_exponent": 0.7659,
+  "variability_scale": 0.3983,
   "rise_m": {
    "alert": 0.409,
-   "warning": 0.777,
+   "warning": 0.778,
    "severe": 1.056,
    "historical_high": 1.054
   }
@@ -34,10 +34,10 @@
    "ea_station_km": 0.23,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/92e77c59-d975-4700-ac3e-844a9f22a8af-level-max-86400-m-qualified",
    "record_years": 30,
-   "sensitivity": 0.2178,
-   "rise_exponent": 0.6699,
-   "seasonal_offset_m": 0.071,
-   "variability_scale": 0.3033,
+   "sensitivity": 0.2062,
+   "rise_exponent": 0.7583,
+   "seasonal_offset_m": 0.059,
+   "variability_scale": 0.2574,
    "rise_m": {
     "alert": 0.276,
     "warning": 0.539,
@@ -53,16 +53,16 @@
      "50": 0.769
     },
     "reference_rise_m": {
-     "2": 0.909,
-     "10": 2.77,
-     "20": 4.181,
-     "50": 5.901
+     "2": 1.071,
+     "10": 2.867,
+     "20": 3.919,
+     "50": 5.377
     },
     "fitted_rise_m": {
      "2": 0.276,
-     "10": 0.502,
+     "10": 0.517,
      "20": 0.639,
-     "50": 0.787
+     "50": 0.797
     }
    },
    "excluded_years": [
@@ -112,10 +112,10 @@
    "ea_station_km": 1.21,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/085f4c0e-3e4f-49aa-9b45-817965374bd9-level-max-86400-m-qualified",
    "record_years": 31,
-   "sensitivity": 0.3638,
-   "rise_exponent": 0.721,
-   "seasonal_offset_m": 0.121,
-   "variability_scale": 0.4981,
+   "sensitivity": 0.3725,
+   "rise_exponent": 0.7736,
+   "seasonal_offset_m": 0.085,
+   "variability_scale": 0.4511,
    "rise_m": {
     "alert": 0.469,
     "warning": 0.958,
@@ -131,16 +131,16 @@
      "50": 1.387
     },
     "reference_rise_m": {
-     "2": 0.942,
-     "10": 2.798,
-     "20": 4.202,
-     "50": 5.928
+     "2": 1.04,
+     "10": 2.823,
+     "20": 3.863,
+     "50": 5.308
     },
     "fitted_rise_m": {
      "2": 0.469,
-     "10": 0.885,
+     "10": 0.917,
      "20": 1.145,
-     "50": 1.433
+     "50": 1.44
     }
    },
    "excluded_years": [
@@ -191,10 +191,10 @@
    "ea_station_km": 0.65,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/a71ddb8c-ab06-4813-b64d-c22fed08b58c-level-max-86400-m-qualified",
    "record_years": 23,
-   "sensitivity": 0.3991,
-   "rise_exponent": 0.6311,
-   "seasonal_offset_m": 0.109,
-   "variability_scale": 0.5259,
+   "sensitivity": 0.3724,
+   "rise_exponent": 0.7187,
+   "seasonal_offset_m": 0.13,
+   "variability_scale": 0.5138,
    "rise_m": {
     "alert": 0.491,
     "warning": 0.926,
@@ -210,16 +210,16 @@
      "50": 1.308
     },
     "reference_rise_m": {
-     "2": 0.933,
-     "10": 2.767,
-     "20": 4.178,
-     "50": 5.845
+     "2": 0.955,
+     "10": 2.734,
+     "20": 3.747,
+     "50": 5.198
     },
     "fitted_rise_m": {
      "2": 0.491,
-     "10": 0.867,
+     "10": 0.898,
      "20": 1.093,
-     "50": 1.325
+     "50": 1.348
     }
    },
    "excluded_years": [],
@@ -256,10 +256,10 @@
    "ea_station_km": 1.95,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/dc2a3244-2dbf-4527-b742-98855d7709f0-level-max-86400-m-qualified",
    "record_years": 26,
-   "sensitivity": 0.3768,
-   "rise_exponent": 0.767,
-   "seasonal_offset_m": 0.127,
-   "variability_scale": 0.519,
+   "sensitivity": 0.3881,
+   "rise_exponent": 0.8257,
+   "seasonal_offset_m": 0.05,
+   "variability_scale": 0.4227,
    "rise_m": {
     "alert": 0.485,
     "warning": 1.038,
@@ -275,16 +275,16 @@
      "50": 1.523
     },
     "reference_rise_m": {
-     "2": 0.935,
-     "10": 2.754,
-     "20": 4.15,
-     "50": 5.818
+     "2": 1.148,
+     "10": 2.912,
+     "20": 3.922,
+     "50": 5.386
     },
     "fitted_rise_m": {
      "2": 0.485,
-     "10": 0.947,
+     "10": 0.988,
      "20": 1.25,
-     "50": 1.582
+     "50": 1.609
     }
    },
    "excluded_years": [
@@ -330,67 +330,67 @@
    "ea_station_km": 0.56,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/543513d6-67b0-45f1-819f-50df0f36b84f-level-max-86400-m-qualified",
    "record_years": 27,
-   "sensitivity": 0.2509,
-   "rise_exponent": 0.7391,
-   "seasonal_offset_m": 0.071,
-   "variability_scale": 0.3329,
+   "sensitivity": 0.252,
+   "rise_exponent": 0.8057,
+   "seasonal_offset_m": 0.051,
+   "variability_scale": 0.3013,
    "rise_m": {
-    "alert": 0.307,
-    "warning": 0.654,
-    "severe": 0.959,
-    "historical_high": 0.881
+    "alert": 0.308,
+    "warning": 0.655,
+    "severe": 0.96,
+    "historical_high": 0.882
    },
    "historical_high_date": "1998-04-09",
    "fit": {
     "observed_rise_m": {
-     "2": 0.307,
-     "10": 0.654,
-     "20": 0.787,
-     "50": 0.959
+     "2": 0.308,
+     "10": 0.655,
+     "20": 0.788,
+     "50": 0.96
     },
     "reference_rise_m": {
-     "2": 0.922,
-     "10": 2.734,
-     "20": 4.137,
-     "50": 5.799
+     "2": 1.022,
+     "10": 2.785,
+     "20": 3.787,
+     "50": 5.229
     },
     "fitted_rise_m": {
-     "2": 0.307,
-     "10": 0.598,
-     "20": 0.787,
-     "50": 0.99
+     "2": 0.308,
+     "10": 0.627,
+     "20": 0.788,
+     "50": 1.007
     }
    },
    "excluded_years": [],
    "datum_changes": [],
    "annual_max_rise_m": {
-    "1998": 0.881,
-    "1999": 0.661,
-    "2000": 0.73,
-    "2002": 0.212,
-    "2003": 0.847,
-    "2004": 0.202,
-    "2005": 0.09,
-    "2006": 0.139,
-    "2007": 0.309,
-    "2008": 0.224,
-    "2009": 0.144,
-    "2010": 0.198,
-    "2011": 0.171,
-    "2012": 0.206,
-    "2013": 0.275,
-    "2015": 0.159,
-    "2016": 0.204,
-    "2017": 0.137,
-    "2018": 0.28,
-    "2019": 0.282,
-    "2020": 0.216,
-    "2021": 0.55,
-    "2022": 0.845,
-    "2023": 0.291,
-    "2024": 0.545,
-    "2025": 0.365,
-    "2026": 0.174
+    "1998": 0.882,
+    "1999": 0.662,
+    "2000": 0.731,
+    "2002": 0.213,
+    "2003": 0.848,
+    "2004": 0.203,
+    "2005": 0.091,
+    "2006": 0.14,
+    "2007": 0.31,
+    "2008": 0.225,
+    "2009": 0.145,
+    "2010": 0.199,
+    "2011": 0.172,
+    "2012": 0.207,
+    "2013": 0.276,
+    "2015": 0.16,
+    "2016": 0.205,
+    "2017": 0.138,
+    "2018": 0.281,
+    "2019": 0.283,
+    "2020": 0.217,
+    "2021": 0.551,
+    "2022": 0.846,
+    "2023": 0.292,
+    "2024": 0.546,
+    "2025": 0.366,
+    "2026": 0.175
    }
   },
   "Thames Windsor Bridge": {
@@ -399,63 +399,63 @@
    "ea_station_km": 0.91,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/3fc1df2a-95d5-4750-a9b2-307d729ea3b5-level-max-86400-m-qualified",
    "record_years": 23,
-   "sensitivity": 0.2024,
-   "rise_exponent": 0.7015,
-   "seasonal_offset_m": 0.042,
-   "variability_scale": 0.2586,
+   "sensitivity": 0.2,
+   "rise_exponent": 0.78,
+   "seasonal_offset_m": 0.013,
+   "variability_scale": 0.2084,
    "rise_m": {
-    "alert": 0.227,
+    "alert": 0.226,
     "warning": 0.486,
-    "severe": 0.714,
+    "severe": 0.713,
     "historical_high": 1.003
    },
    "historical_high_date": "2014-02-11",
    "fit": {
     "observed_rise_m": {
-     "2": 0.227,
+     "2": 0.226,
      "10": 0.486,
      "20": 0.585,
-     "50": 0.714
+     "50": 0.713
     },
     "reference_rise_m": {
-     "2": 0.877,
-     "10": 2.674,
-     "20": 4.085,
-     "50": 5.728
+     "2": 1.086,
+     "10": 2.84,
+     "20": 3.847,
+     "50": 5.28
     },
     "fitted_rise_m": {
-     "2": 0.227,
-     "10": 0.446,
+     "2": 0.226,
+     "10": 0.464,
      "20": 0.585,
-     "50": 0.731
+     "50": 0.745
     }
    },
    "excluded_years": [],
    "datum_changes": [],
    "annual_max_rise_m": {
-    "2004": 0.203,
+    "2004": 0.202,
     "2005": 0.162,
-    "2006": 0.204,
-    "2007": 0.139,
+    "2006": 0.203,
+    "2007": 0.138,
     "2008": 0.123,
-    "2009": 0.212,
+    "2009": 0.211,
     "2010": 0.175,
-    "2011": 0.265,
+    "2011": 0.264,
     "2012": 0.178,
     "2013": 0.351,
     "2014": 1.003,
-    "2015": 0.149,
-    "2016": 0.259,
+    "2015": 0.148,
+    "2016": 0.258,
     "2017": 0.151,
     "2018": 0.216,
-    "2019": 0.131,
-    "2020": 0.131,
-    "2021": 0.399,
+    "2019": 0.13,
+    "2020": 0.13,
+    "2021": 0.398,
     "2022": 0.05,
-    "2023": 0.126,
+    "2023": 0.125,
     "2024": 0.803,
     "2025": 0.249,
-    "2026": 0.205
+    "2026": 0.204
    }
   },
   "Thames Staines Bridge": {
@@ -464,10 +464,10 @@
    "ea_station_km": 0.29,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/305bad2c-6aa6-417d-a101-698edc850bbd-level-max-86400-m-qualified",
    "record_years": 34,
-   "sensitivity": 0.675,
-   "rise_exponent": 0.6767,
-   "seasonal_offset_m": 0.262,
-   "variability_scale": 1.0385,
+   "sensitivity": 0.653,
+   "rise_exponent": 0.7572,
+   "seasonal_offset_m": 0.252,
+   "variability_scale": 0.9517,
    "rise_m": {
     "alert": 0.854,
     "warning": 1.673,
@@ -483,16 +483,16 @@
      "50": 2.392
     },
     "reference_rise_m": {
-     "2": 0.822,
-     "10": 2.605,
-     "20": 3.997,
-     "50": 5.686
+     "2": 0.897,
+     "10": 2.64,
+     "20": 3.632,
+     "50": 5.053
     },
     "fitted_rise_m": {
      "2": 0.854,
-     "10": 1.553,
+     "10": 1.614,
      "20": 1.986,
-     "50": 2.451
+     "50": 2.479
     }
    },
    "excluded_years": [],
@@ -540,10 +540,10 @@
    "ea_station_km": 1.36,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/18ba0d8c-6d26-4a5d-82d6-38d5b71baf77-level-max-86400-m-qualified",
    "record_years": 31,
-   "sensitivity": 0.2888,
-   "rise_exponent": 0.7151,
-   "seasonal_offset_m": 0.081,
-   "variability_scale": 0.3873,
+   "sensitivity": 0.2773,
+   "rise_exponent": 0.7999,
+   "seasonal_offset_m": 0.087,
+   "variability_scale": 0.374,
    "rise_m": {
     "alert": 0.35,
     "warning": 0.727,
@@ -559,16 +559,16 @@
      "50": 1.057
     },
     "reference_rise_m": {
-     "2": 0.903,
-     "10": 2.7,
-     "20": 4.08,
-     "50": 5.743
+     "2": 0.935,
+     "10": 2.673,
+     "20": 3.664,
+     "50": 5.088
     },
     "fitted_rise_m": {
      "2": 0.35,
-     "10": 0.669,
+     "10": 0.696,
      "20": 0.871,
-     "50": 1.089
+     "50": 1.106
     }
    },
    "excluded_years": [
@@ -619,10 +619,10 @@
    "ea_station_km": 0.57,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/b92a2ca3-4eb9-4a8f-b82f-8bbc2a1dfbc9-level-max-86400-m-qualified",
    "record_years": 34,
-   "sensitivity": 0.2525,
-   "rise_exponent": 0.6448,
-   "seasonal_offset_m": 0.065,
-   "variability_scale": 0.3553,
+   "sensitivity": 0.2556,
+   "rise_exponent": 0.7036,
+   "seasonal_offset_m": 0.04,
+   "variability_scale": 0.303,
    "rise_m": {
     "alert": 0.284,
     "warning": 0.569,
@@ -638,16 +638,16 @@
      "50": 0.818
     },
     "reference_rise_m": {
-     "2": 0.799,
-     "10": 2.575,
-     "20": 3.948,
-     "50": 5.634
+     "2": 0.937,
+     "10": 2.664,
+     "20": 3.668,
+     "50": 5.064
     },
     "fitted_rise_m": {
      "2": 0.284,
-     "10": 0.53,
+     "10": 0.549,
      "20": 0.678,
-     "50": 0.835
+     "50": 0.84
     }
    },
    "excluded_years": [],
@@ -697,10 +697,10 @@
    "ea_station_km": 0.75,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/c55d5617-6a6f-4ddc-9472-d5373d54172e-level-max-86400-m-qualified",
    "record_years": 29,
-   "sensitivity": 0.1893,
-   "rise_exponent": 0.7394,
-   "seasonal_offset_m": 0.091,
-   "variability_scale": 0.3148,
+   "sensitivity": 0.1862,
+   "rise_exponent": 0.819,
+   "seasonal_offset_m": 0.07,
+   "variability_scale": 0.2606,
    "rise_m": {
     "alert": 0.251,
     "warning": 0.512,
@@ -716,16 +716,16 @@
      "50": 0.741
     },
     "reference_rise_m": {
-     "2": 0.797,
-     "10": 2.569,
-     "20": 3.935,
-     "50": 5.611
+     "2": 0.963,
+     "10": 2.69,
+     "20": 3.683,
+     "50": 5.08
     },
     "fitted_rise_m": {
      "2": 0.251,
-     "10": 0.471,
+     "10": 0.489,
      "20": 0.612,
-     "50": 0.768
+     "50": 0.775
     }
    },
    "excluded_years": [],
@@ -768,10 +768,10 @@
    "ea_station_km": 0.57,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/8496ce69-482c-406a-a2f0-ac418ef8f099-level-max-86400-m-qualified",
    "record_years": 40,
-   "sensitivity": 0.5772,
-   "rise_exponent": 0.3952,
-   "seasonal_offset_m": 0.159,
-   "variability_scale": 0.8279,
+   "sensitivity": 0.5893,
+   "rise_exponent": 0.4362,
+   "seasonal_offset_m": 0.118,
+   "variability_scale": 0.7219,
    "rise_m": {
     "alert": 0.699,
     "warning": 1.028,
@@ -787,16 +787,16 @@
      "50": 1.318
     },
     "reference_rise_m": {
-     "2": 0.844,
-     "10": 2.615,
-     "20": 3.971,
-     "50": 5.642
+     "2": 0.968,
+     "10": 2.681,
+     "20": 3.651,
+     "50": 5.073
     },
     "fitted_rise_m": {
      "2": 0.699,
-     "10": 1.003,
+     "10": 1.024,
      "20": 1.154,
-     "50": 1.303
+     "50": 1.314
     }
    },
    "excluded_years": [],
@@ -850,72 +850,72 @@
    "ea_station_km": 1.08,
    "ea_measure": "http://environment.data.gov.uk/hydrology/id/measures/f4b9ded7-1961-4632-b8b2-6489d19337f3-level-max-86400-m-qualified",
    "record_years": 32,
-   "sensitivity": 0.4541,
-   "rise_exponent": 0.4041,
-   "seasonal_offset_m": 0.125,
-   "variability_scale": 0.6003,
+   "sensitivity": 0.4357,
+   "rise_exponent": 0.4597,
+   "seasonal_offset_m": 0.134,
+   "variability_scale": 0.5678,
    "rise_m": {
-    "alert": 0.569,
-    "warning": 0.828,
-    "severe": 1.055,
-    "historical_high": 0.818
+    "alert": 0.57,
+    "warning": 0.829,
+    "severe": 1.056,
+    "historical_high": 0.819
    },
    "historical_high_date": "2002-02-28",
    "fit": {
     "observed_rise_m": {
-     "2": 0.569,
-     "10": 0.828,
-     "20": 0.927,
-     "50": 1.055
+     "2": 0.57,
+     "10": 0.829,
+     "20": 0.928,
+     "50": 1.056
     },
     "reference_rise_m": {
-     "2": 0.948,
-     "10": 2.722,
-     "20": 4.089,
-     "50": 5.754
+     "2": 1.004,
+     "10": 2.716,
+     "20": 3.692,
+     "50": 5.13
     },
     "fitted_rise_m": {
-     "2": 0.569,
-     "10": 0.805,
-     "20": 0.927,
-     "50": 1.046
+     "2": 0.57,
+     "10": 0.823,
+     "20": 0.928,
+     "50": 1.058
     }
    },
    "excluded_years": [],
    "datum_changes": [],
    "annual_max_rise_m": {
-    "1990": 0.808,
-    "1991": 0.335,
-    "1994": 0.759,
-    "1996": 0.618,
-    "1997": 0.396,
-    "1998": 0.542,
-    "1999": 0.788,
-    "2000": 0.654,
-    "2002": 0.818,
-    "2003": 0.779,
-    "2005": 0.302,
-    "2006": 0.453,
-    "2007": 0.752,
-    "2008": 0.555,
-    "2009": 0.708,
-    "2010": 0.695,
-    "2011": 0.356,
-    "2012": 0.424,
-    "2013": 0.635,
-    "2014": 0.808,
-    "2015": 0.545,
-    "2016": 0.665,
-    "2017": 0.36,
-    "2018": 0.572,
-    "2019": 0.28,
-    "2020": 0.696,
-    "2021": 0.727,
-    "2022": 0.505,
-    "2023": 0.512,
-    "2024": 0.787,
-    "2025": 0.643,
-    "2026": 0.661
+    "1990": 0.809,
+    "1991": 0.336,
+    "1994": 0.76,
+    "1996": 0.619,
+    "1997": 0.397,
+    "1998": 0.543,
+    "1999": 0.789,
+    "2000": 0.655,
+    "2002": 0.819,
+    "2003": 0.78,
+    "2005": 0.303,
+    "2006": 0.454,
+    "2007": 0.753,
+    "2008": 0.556,
+    "2009": 0.709,
+    "2010": 0.696,
+    "2011": 0.357,
+    "2012": 0.425,
+    "2013": 0.636,
+    "2014": 0.809,
+    "2015": 0.546,
+    "2016": 0.666,
+    "2017": 0.361,
+    "2018": 0.573,
+    "2019": 0.281,
+    "2020": 0.697,
+    "2021": 0.728,
+    "2022": 0.506,
+    "2023": 0.513,
+    "2024": 0.788,
+    "2025": 0.644,
+    "2026": 0.662
    }
   }
  }

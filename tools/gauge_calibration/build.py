@@ -272,6 +272,11 @@ def calibrate_gauge(record, sim, first_pass=None):
     offset = 0.0
     if first_pass:
         offset = statistics.mean(first_pass[T] - s1 * sim[T] ** b1 for T in sim)
+        if offset >= obs[FIT_PERIODS[0]]:
+            raise ValueError(
+                f"{record['station']}: first-pass offset {offset:.2f} m is not below the observed "
+                f"2-year rise {obs[FIT_PERIODS[0]]:.2f} m — was the first-pass run made with "
+                "the first-pass calibration applied (not MKM_GAUGE_CALIBRATION=off)?")
     sensitivity, exponent = _solve_rating_curve({T: v - offset for T, v in obs.items()}, sim)
     fitted = {T: offset + sensitivity * sim[T] ** exponent for T in sim}
     top = max(am, key=lambda wy: am[wy]["rise_m"])

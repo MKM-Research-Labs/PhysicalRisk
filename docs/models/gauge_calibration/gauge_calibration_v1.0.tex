@@ -10,7 +10,7 @@
 \newcommand{\doctitle}{Gauge Calibration to Observed River Levels}
 \newcommand{\docsubtitle}{Rating-curve shape match of the Thames gauges to Environment Agency records}
 \newcommand{\docversion}{1.0}
-\newcommand{\docdate}{07-November-2026}
+\newcommand{\docdate}{24-November-2026}
 \newcommand{\docauthor}{David K Kelly}
 \input{../shared/mkm_header}
 \usepackage[T1]{fontenc}
@@ -50,7 +50,7 @@ reached once in $T$ years in reality is reached with probability about $1/T$ a y
 simulation. On the yearly chances the hazard curves publish --- the numbers pricing uses ---
 the \gcNCal{} gauges with their own EA record now reach alert in a median \gcMedAlert{} of
 years (target 50\%), warning \gcMedWarning{} (10\%) and severe \gcMedSevere{} (2\%). Before,
-the hazard curves gave alert in only 3--5\% of years and severe in 0.4--1.2\%
+the hazard curves gave alert in only 2--3\% of years and severe in 0.1--0.8\%
 (Table~\ref{tab:freq}): rivers four times too lively, measured against flood levels drawn at
 random well above them.
 
@@ -118,8 +118,10 @@ Two record defects are handled explicitly and recorded in the calibration file:
 
 \subsection{Simulated data}
 A reference run of the gauge-response model with the calibration switched off
-(\texttt{MKM\_GAUGE\_CALIBRATION=off}), the platform's 10{,}000 storm sequences, and the
-catchment arrival rate $\lambda=\gcLambda$ events a year.
+(\texttt{MKM\_GAUGE\_CALIBRATION=off}) on the 10{,}000 storm sequences of the Multi-Storm
+Sequence Model MKM-SS-001 v3.1 (seed 42), with the catchment arrival rate $\lambda=\gcLambda$
+events a year. The calibration is specific to that storm set: a change to the storm model
+calls for the reference run, and the calibration, to be redone (\S\ref{sec:repro}).
 
 % ===================================================================
 \mkmframework
@@ -168,17 +170,19 @@ Rises are weighted (priced basis) from the calibrated run, against the EA record
 \gcFitRows
 \end{longtable}
 
-The exponents fall in the range real rating curves take ($b\approx0.3$--$0.8$). Kingston and
-Teddington, at the tidal limit, are flatter ($b\approx0.4$): their rare floods rise little above
-their common ones.
+Every exponent is below 1, as a rating curve requires: the upstream gauges take
+$b=0.70$--$0.83$, flatter than the reference's linear response but above the 0.4--0.67 a
+stage--discharge relation typically gives, so part of the reshaping is absorbing the storm
+model's own spread. Kingston and Teddington, at the tidal limit, are flatter still
+($b\approx0.45$): their rare floods rise little above their common ones.
 
 \subsection{Priced yearly flood chances}
-The hazard curves' published \texttt{annual\_flood\_prob\_*}, before (v1, the demo book of
-31-Oct-2026) and after.
+The hazard curves' published \texttt{annual\_flood\_prob\_*}, before (the Thames demo book as
+rebuilt on MKM-SS-001 v3.1, 09-Nov-2026) and after.
 
 \begin{longtable}{l|r|r|r|r|r|r}
 \caption{Yearly chance of reaching each level, before and after.}\label{tab:freq}\\
- & \multicolumn{3}{c|}{\textbf{Before (v1)}} & \multicolumn{3}{c}{\textbf{After (v2)}} \\
+ & \multicolumn{3}{c|}{\textbf{Before}} & \multicolumn{3}{c}{\textbf{After}} \\
 \textbf{Gauge} & alert & warning & severe & alert & warning & severe \\
 \hline
 \gcFreqRows
@@ -204,8 +208,8 @@ alert \gcProvAlert, warning \gcProvWarning, severe \gcProvSevere.
     \item \textbf{One correction pass.} The seasonal offset is measured once; a second pass
           would refine it further. The result is within the ballpark asked for.
     \item \textbf{Downstream data must be regenerated.} Property and commercial flood curves,
-          spreads and the blotter read the gauge responses; the demo book of 31-Oct-2026 was
-          built before this calibration.
+          spreads and the blotter read the gauge responses; the demo book (rebuilt
+          09-Nov-2026 on MKM-SS-001 v3.1) predates this calibration.
 \end{itemize}
 
 % ===================================================================
@@ -222,7 +226,7 @@ alert \gcProvAlert, warning \gcProvWarning, severe \gcProvSevere.
     \item \texttt{models/hazard/io/\_stressm.py} --- GEV curves from the gauge-response peaks.
 \end{itemize}
 
-\subsection{Reproduction}
+\subsection{Reproduction}\label{sec:repro}
 \begin{enumerate}[nosep]
     \item Reference: \texttt{MKM\_GAUGE\_CALIBRATION=off phys.py port -{}-thames -{}-seed 42
           -{}-gaugehd -{}-stressm} on the uncalibrated \texttt{gauge.json}.
@@ -237,7 +241,7 @@ alert \gcProvAlert, warning \gcProvWarning, severe \gcProvSevere.
 MKM-GH-001 and MKM-GHD-001 go to 2.0.0, as does the model that owns the gauge-response code.
 This calibration was built on \gcBuilt.
 
-\mkmhistorypage{07-Nov-2026 & 1.0 & First issue: rating-curve calibration of the Thames gauges
-to EA records; GEV curves from the gauge-response model. & David K Kelly \\}
+\mkmhistorypage{24-Nov-2026 & 1.0 & First issue: rating-curve calibration of the Thames gauges
+to EA records against MKM-SS-001 v3.1; GEV curves from the gauge-response model. & David K Kelly \\}
 
 \end{document}
