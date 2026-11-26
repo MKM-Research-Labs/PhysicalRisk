@@ -18,8 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Portfolio-data stages: gauges (1, 1.5), properties (2), mortgages (3),
-commercial (3a, 3b), gauge historical data (4)."""
+"""Portfolio-data stages: gauges (1, 1.5), gauge calibration (1.6), properties (2),
+mortgages (3), commercial (3a, 3b), gauge historical data (4)."""
 
 import time
 
@@ -74,6 +74,43 @@ def run_synthetic_gauges(ctx: StageContext):
         parameters={"count": args.num_properties},
         elapsed_seconds=elapsed,
         input_hashes=pre,
+    )
+    print()
+
+
+def run_gauge_calibration(ctx: StageContext):
+    """Write the catchment's observed-level calibration into gauge.json's flood levels.
+
+    Runs whenever gauges or their history are (re)generated, so the levels the
+    history and the storm-gauge model read always match the calibration file.
+    No calibration file → nothing happens.
+    """
+    args = ctx.args
+    if not (ctx.run_all or args.gauges or args.properties or args.gaugehd
+            or getattr(args, "gauge_calibration", False)):
+        return
+    import database
+    from port.src.gauge.calibration import apply_gauge_calibration, load_gauge_calibration
+    calibration = load_gauge_calibration(ctx.catchment)
+    if not calibration:
+        return
+    print("1.6 Applying Gauge Calibration (observed river levels)...")
+    doc = database.get_gauge_portfolio(ctx.catchment)
+    if not doc:
+        print("   no gauge.json yet — nothing to calibrate")
+        return
+    n = apply_gauge_calibration(doc, calibration)
+    database.save_gauges(ctx.catchment, doc)
+    print(f"   {n} gauges  ({len(calibration.get('gauges', {}))} from their own EA record, "
+          f"the rest provisional)  →  gauge.json (updated)")
+    ctx.record(
+        step_name="gauge_calibration",
+        generator="port.src.gauge.calibration.apply_gauge_calibration",
+        inputs={"gauge.json": ctx.input_dir / "gauge.json"},
+        outputs={"gauge.json": ctx.input_dir / "gauge.json"},
+        parameters={"model_versions": calibration.get("model_versions"),
+                    "built": calibration.get("built")},
+        elapsed_seconds=0.0,
     )
     print()
 
@@ -216,6 +253,7 @@ def run_all(ctx: StageContext):
     """Run all portfolio stages in order."""
     run_gauges(ctx)
     run_synthetic_gauges(ctx)
+    run_gauge_calibration(ctx)
     run_properties(ctx)
     run_mortgages(ctx)
     run_commercial_portfolio(ctx)

@@ -25,7 +25,7 @@ and term structure computation into complete hazard curves.
 
 import logging
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -50,7 +50,7 @@ from models.frequency import (
 from models.frequency.datastructures import ProvenanceClass
 from models.frequency.events import build_catalogue
 
-from .data_structures import GaugeHazardCurve, HazardCurvePoint
+from .data_structures import GaugeHazardCurve, GaugeResponse, HazardCurvePoint
 from .gev import GEVFitter, compute_term_structure
 from .response_model import GaugeResponseModel
 
@@ -67,7 +67,8 @@ class HazardCurveBuilder:
         storms: List[Dict],
         force_gumbel: bool = False,
         verbose: bool = True,
-        catchment: str = ""
+        catchment: str = "",
+        responses: Optional[Dict[str, List[GaugeResponse]]] = None,
     ):
         """Build hazard curves from storms and gauges.
 
@@ -78,11 +79,16 @@ class HazardCurveBuilder:
             verbose: log progress.
             catchment: catchment whose event arrival rate annualises the
                 per-event conditionals. Empty uses the default seed rate.
+            responses: per-gauge, per-storm responses from the Storm-Gauge
+                Response Model (``io._stressm.load_stressm_responses``) — the
+                v2.0 source. ``None`` falls back to the simple
+                ``GaugeResponseModel`` of v1.
         """
         self.gauges = gauges
         self.storms = storms
         self.verbose = verbose
         self.catchment = catchment
+        self.responses = responses
 
         self.response_model = GaugeResponseModel(gauges)
         self.gev_fitter = GEVFitter(force_gumbel)
@@ -93,8 +99,12 @@ class HazardCurveBuilder:
 
     def build(self) -> Dict[str, GaugeHazardCurve]:
         """Build hazard curves for all gauges."""
-        self.log(f"Computing gauge responses for {len(self.storms)} storms...")
-        responses = self.response_model.compute_all_responses(self.storms)
+        if self.responses is not None:
+            self.log("Using storm-gauge model responses")
+            responses = self.responses
+        else:
+            self.log(f"Computing gauge responses for {len(self.storms)} storms...")
+            responses = self.response_model.compute_all_responses(self.storms)
 
         # Regroup the per-storm responses onto hours-clause events. The physics
         # is untouched — each storm was still routed individually — but an event

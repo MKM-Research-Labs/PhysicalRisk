@@ -153,6 +153,13 @@ class TestTrainGaugeStressmClassifier:
 
 class TestPortfolioClassifier:
 
+    @pytest.fixture(autouse=True)
+    def _uncalibrated(self, monkeypatch):
+        # These fixture gauges are not Thames gauges: keep them on the raw model
+        # rather than the Thames observed-level calibration's provisional default.
+        from port.src.gauge import calibration
+        monkeypatch.setattr(calibration, "load_gauge_calibration", lambda c: None)
+
     def test_portfolio_classifier_trains_all_gauges(self, gauge_dir, tmp_path):
         """train_classifier=True without gauge_id covers lines 364-384."""
         result = generate_stressm(

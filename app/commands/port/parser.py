@@ -74,6 +74,8 @@ def register_parser(subparsers):
                     help="BRI-AND-wind hazard curves for commercial (commercialbaw.json)")
     sp.add_argument("--gaugets", "--gt", action="store_true")
     sp.add_argument("--gaugehd", "--hd", action="store_true")
+    sp.add_argument("--gauge-calibration", action="store_true",
+                    help="Re-apply catch/<catchment>/gauge_calibration.json flood levels to gauge.json")
     sp.add_argument("--hazard", "--hz", action="store_true")
     sp.add_argument("--propertyts", "--pt", action="store_true")
     sp.add_argument("--propertytsd", action="store_true",

@@ -36,6 +36,7 @@ import database
 from config import config
 from models.statistics.synthetic import generate_synthetic_timeseries  # noqa: F401
 from models.statistics.timeseries import calculate_level_statistics
+from port.src.gauge.calibration import history_params
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,9 @@ def generate_from_gauge_portfolio(
 
     # Generate synthetic timeseries with reproducible seed
     seed = hash(gauge_id) % (2**32)
-    daily_observations = generate_synthetic_timeseries(gauge_data, years=years, seed=seed)
+    daily_observations = generate_synthetic_timeseries(
+        gauge_data, years=years, seed=seed,
+        calibration=history_params(catchment_id, gauge_data))
 
 
     # Calculate statistics

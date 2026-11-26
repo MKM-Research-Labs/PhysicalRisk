@@ -44,7 +44,8 @@ from typing import Any, Dict, List, Optional
 def generate_synthetic_timeseries(
     gauge_data: Dict[str, Any],
     years: int = 50,
-    seed: Optional[int] = None
+    seed: Optional[int] = None,
+    calibration: Optional[Dict[str, float]] = None,
 ) -> List[Dict[str, Any]]:
     """
     Generate synthetic daily water level timeseries for a gauge.
@@ -57,6 +58,10 @@ def generate_synthetic_timeseries(
         gauge_data: FloodGauge CDM data from gauge portfolio
         years: Number of years of history to generate
         seed: Random seed for reproducibility
+        calibration: ``{base_level, variability_scale}`` for a gauge calibrated to
+            observed levels (``port.src.gauge.calibration.history_params``): the
+            normal level is taken as given and the day-to-day, seasonal and tidal
+            swings shrink by ``variability_scale``. ``None`` keeps the drawn level.
 
     Returns:
         List of daily observations with date and level_meters
@@ -85,6 +90,10 @@ def generate_synthetic_timeseries(
 
     # Calculate base parameters
     base_level = flood_alert * random.uniform(0.3, 0.5)
+    variability_scale = 1.0
+    if calibration:
+        base_level = calibration["base_level"]
+        variability_scale = calibration["variability_scale"]
 
     # Tidal gauges: larger daily swing (tidal range), lower noise
     # Non-tidal upstream gauges: very stable day-to-day, change driven by rainfall
@@ -103,6 +112,9 @@ def generate_synthetic_timeseries(
         seasonal_amplitude = base_level * 0.30  # seasonal dominates
         tidal_amplitude = 0.0               # no tidal influence
         autocorrelation = 0.85              # high — river level changes slowly
+    daily_std *= variability_scale
+    seasonal_amplitude *= variability_scale
+    tidal_amplitude *= variability_scale
 
     # Generate date range
     end_date = datetime.now()

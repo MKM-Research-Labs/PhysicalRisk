@@ -24,6 +24,7 @@ import logging
 from typing import Dict, List, Optional
 
 import database
+from port.src.gauge.calibration import rise_exponent_for, sensitivity_for
 
 logger = logging.getLogger(__name__)
 
@@ -85,11 +86,15 @@ def _parse_gauge(record: dict, baselines: Optional[Dict[str, Dict]] = None) -> O
     """
     Return a normalised gauge dict with keys:
       gauge_id, lat, lon, base_level, monthly_means, flood_alert,
-      flood_warning, severe_warning
+      flood_warning, severe_warning, sensitivity, rise_exponent
 
     If gaugehd baselines are provided, base_level uses the historical mean
     daily water level and monthly_means enables seasonal variation.
     Otherwise falls back to 0.35 × flood_alert.
+
+    ``sensitivity`` and ``rise_exponent`` shape the gauge's simulated rise
+    (sensitivity × rise ** exponent): from the catchment's calibration to
+    observed levels (ST-001 v2.0), else 1.0 and 1.0.
 
     Returns None if the record is missing critical fields.
     """
@@ -118,6 +123,7 @@ def _parse_gauge(record: dict, baselines: Optional[Dict[str, Dict]] = None) -> O
 
     flood_warning = float(warning) if warning else float(alert) * 1.33
     severe_warning = float(severe) if severe else float(alert) * 1.58
+    catchment = header.get("CatchmentID") or database.active_catchment()
 
     return {
         "gauge_id": gauge_id,
@@ -128,4 +134,6 @@ def _parse_gauge(record: dict, baselines: Optional[Dict[str, Dict]] = None) -> O
         "flood_alert": float(alert),
         "flood_warning": flood_warning,
         "severe_warning": severe_warning,
+        "sensitivity": sensitivity_for(catchment, header.get("GaugeName")),
+        "rise_exponent": rise_exponent_for(catchment, header.get("GaugeName")),
     }

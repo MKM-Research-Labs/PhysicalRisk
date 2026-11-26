@@ -123,6 +123,8 @@ def build_gauge_training_set(
         flood_alert=alert_l,
         flood_warning=warning_l,
         severe_warning=severe_l,
+        sensitivity=gauge.get("sensitivity", 1.0),
+        rise_exponent=gauge.get("rise_exponent", 1.0),
     )
 
     def _real_vectors(ref):
